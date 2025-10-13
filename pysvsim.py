@@ -27,6 +27,7 @@ class SystemVerilogParser:
         self.inputs = []
         self.outputs = []
         self.wires = []
+        self.bus_info = {}  # Track bus widths and ranges
         self.assignments = {}
         self.instantiations = []
     
@@ -81,7 +82,8 @@ class SystemVerilogParser:
             'inputs': self.inputs.copy(),
             'outputs': self.outputs.copy(),
             'assignments': self.assignments.copy(),
-            'instantiations': self.instantiations.copy()
+            'instantiations': self.instantiations.copy(),
+            'bus_info': self.bus_info.copy()
         }
     
     def _remove_comments(self, content: str) -> str:
@@ -93,21 +95,61 @@ class SystemVerilogParser:
         return content
     
     def _parse_ports(self, content: str, port_list: str):
-        """Parse input and output port declarations."""
-        # Find all input/output declarations in the module
-        port_declarations = re.findall(r'(input|output)\s+(\w+)', content)
+        """Parse input and output port declarations, including buses."""
+        # Find bus declarations like: input [3:0] A, output [7:0] result
+        bus_port_pattern = r'(input|output)\s+\[(\d+):(\d+)\]\s+(\w+)'
+        bus_declarations = re.findall(bus_port_pattern, content)
         
-        for port_type, port_name in port_declarations:
+        for port_type, msb, lsb, port_name in bus_declarations:
+            msb, lsb = int(msb), int(lsb)
+            width = abs(msb - lsb) + 1
+            
+            # Store bus information
+            self.bus_info[port_name] = {'msb': msb, 'lsb': lsb, 'width': width}
+            
             if port_type == 'input':
                 self.inputs.append(port_name)
             elif port_type == 'output':
                 self.outputs.append(port_name)
+        
+        # Find single-bit declarations like: input A, output Y
+        single_port_pattern = r'(input|output)\s+(?!\[)(\w+)(?!\s*\[)'
+        single_declarations = re.findall(single_port_pattern, content)
+        
+        for port_type, port_name in single_declarations:
+            # Skip if already processed as a bus
+            if port_name not in self.bus_info:
+                # Single bit signal
+                self.bus_info[port_name] = {'msb': 0, 'lsb': 0, 'width': 1}
+                
+                if port_type == 'input':
+                    self.inputs.append(port_name)
+                elif port_type == 'output':
+                    self.outputs.append(port_name)
     
     def _parse_wires(self, content: str):
-        """Parse wire declarations."""
-        wire_pattern = r'wire\s+(\w+)\s*;'
-        wires = re.findall(wire_pattern, content)
-        self.wires.extend(wires)
+        """Parse wire declarations, including bus wires."""
+        # Handle bus wire declarations like: wire [3:0] temp;
+        bus_wire_pattern = r'wire\s+\[(\d+):(\d+)\]\s+(\w+)\s*;'
+        bus_wire_declarations = re.findall(bus_wire_pattern, content)
+        
+        for msb, lsb, wire_name in bus_wire_declarations:
+            msb, lsb = int(msb), int(lsb)
+            width = abs(msb - lsb) + 1
+            self.bus_info[wire_name] = {'msb': msb, 'lsb': lsb, 'width': width}
+            self.wires.append(wire_name)
+        
+        # Handle single-bit wire declarations like: wire temp1, temp2;
+        single_wire_pattern = r'wire\s+(?!\[)([\w,\s]+)\s*;'
+        single_wire_declarations = re.findall(single_wire_pattern, content)
+        
+        for wire_list in single_wire_declarations:
+            # Split by comma and clean up whitespace
+            wires = [wire.strip() for wire in wire_list.split(',') if wire.strip()]
+            for wire_name in wires:
+                if wire_name not in self.bus_info:
+                    self.bus_info[wire_name] = {'msb': 0, 'lsb': 0, 'width': 1}
+                    self.wires.append(wire_name)
     
     def _parse_assignments(self, content: str):
         """Parse assign statements and build assignment expressions."""
@@ -132,8 +174,8 @@ class SystemVerilogParser:
                 
             # Parse port connections
             port_connections = {}
-            # Pattern to match .port_name(signal_name) connections
-            conn_pattern = r'\.([\w]+)\(([\w]+)\)'
+            # Pattern to match .port_name(signal_name) connections including bit selections like A[0]
+            conn_pattern = r'\.([\w]+)\(([\w\[\]]+)\)'
             connections_found = re.findall(conn_pattern, connections)
             
             for port_name, signal_name in connections_found:
@@ -149,11 +191,12 @@ class SystemVerilogParser:
 class LogicEvaluator:
     """Evaluates SystemVerilog expressions with given input values."""
     
-    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str], instantiations: List[Dict[str, Any]] = None):
+    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str], instantiations: List[Dict[str, Any]] = None, bus_info: Dict[str, Dict] = None):
         self.inputs = inputs
         self.outputs = outputs
         self.assignments = assignments
         self.instantiations = instantiations or []
+        self.bus_info = bus_info or {}
         self.loaded_modules = {}  # Cache for loaded modules
     
     def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
@@ -161,13 +204,20 @@ class LogicEvaluator:
         Evaluate all output expressions for given input values.
         
         Args:
-            input_values: Dictionary mapping input names to their values (0 or 1)
+            input_values: Dictionary mapping input names to their values (buses as integers)
             
         Returns:
             Dictionary mapping output names to their computed values
         """
-        # Start with input values
-        signal_values = input_values.copy()
+        # Start with input values and expand buses to individual bits
+        signal_values = {}
+        for signal_name, value in input_values.items():
+            signal_values[signal_name] = value
+            # If this is a bus, also create individual bit signals
+            if signal_name in self.bus_info:
+                bus_info = self.bus_info[signal_name]
+                if bus_info['width'] > 1:
+                    self._expand_bus_to_bits(signal_name, value, signal_values)
         
         # Evaluate module instantiations first
         for inst in self.instantiations:
@@ -181,20 +231,47 @@ class LogicEvaluator:
                 value = self._evaluate_expression(expression, signal_values)
                 output_values[output_name] = value
                 signal_values[output_name] = value
+                # If this is a bus, expand to individual bits
+                if output_name in self.bus_info and self.bus_info[output_name]['width'] > 1:
+                    self._expand_bus_to_bits(output_name, value, signal_values)
             elif output_name in signal_values:  # Output from instantiation
                 output_values[output_name] = signal_values[output_name]
+            else:
+                # Check if this is a bus that needs to be collected from individual bits
+                if output_name in self.bus_info and self.bus_info[output_name]['width'] > 1:
+                    bus_value = self._collect_bus_from_bits(output_name, signal_values)
+                    output_values[output_name] = bus_value
+                    signal_values[output_name] = bus_value
         
         return output_values
     
     def _evaluate_expression(self, expression: str, signal_values: Dict[str, int]) -> int:
         """Evaluate a single SystemVerilog expression."""
         # Replace signal names with their values
-        eval_expr = expression
+        eval_expr = expression.strip()
+        
+        # Handle simple bus-to-bus assignment (like Y = A)
+        if eval_expr in signal_values:
+            return signal_values[eval_expr]
+        
+        # Handle bus bit selection like A[2], B[0] first
+        bit_select_pattern = r'(\w+)\[(\d+)\]'
+        def replace_bit_select(match):
+            bus_name = match.group(1)
+            bit_index = int(match.group(2))
+            bit_signal = f"{bus_name}[{bit_index}]"
+            if bit_signal in signal_values:
+                return str(signal_values[bit_signal])
+            return match.group(0)  # Return original if not found
+        
+        eval_expr = re.sub(bit_select_pattern, replace_bit_select, eval_expr)
         
         # Handle parentheses and operators in correct precedence
         # For now, we'll use a simple approach with string replacement
         for signal_name, value in signal_values.items():
-            eval_expr = re.sub(r'\b' + re.escape(signal_name) + r'\b', str(value), eval_expr)
+            # Skip bit selection signals as they're already handled above
+            if '[' not in signal_name:
+                eval_expr = re.sub(r'\b' + re.escape(signal_name) + r'\b', str(value), eval_expr)
         
         # Convert SystemVerilog operators to Python equivalents
         eval_expr = self._convert_operators(eval_expr)
@@ -237,8 +314,23 @@ class LogicEvaluator:
         inst_input_values = {}
         for port_name, signal_name in connections.items():
             if port_name in module_info['inputs']:
+                signal_value = None
+                
+                # Handle direct signal reference
                 if signal_name in signal_values:
-                    inst_input_values[port_name] = signal_values[signal_name]
+                    signal_value = signal_values[signal_name]
+                else:
+                    # Check if it's a bit selection like A[0]
+                    bit_select_match = re.match(r'(\w+)\[(\d+)\]', signal_name)
+                    if bit_select_match:
+                        bus_name = bit_select_match.group(1)
+                        bit_index = int(bit_select_match.group(2))
+                        bit_signal_name = f"{bus_name}[{bit_index}]"
+                        if bit_signal_name in signal_values:
+                            signal_value = signal_values[bit_signal_name]
+                    
+                if signal_value is not None:
+                    inst_input_values[port_name] = signal_value
                 else:
                     raise ValueError(f"Signal '{signal_name}' not found for instantiation '{inst['instance_name']}'")
         
@@ -247,7 +339,8 @@ class LogicEvaluator:
             module_info['inputs'],
             module_info['outputs'],
             module_info['assignments'],
-            module_info.get('instantiations', [])
+            module_info.get('instantiations', []),
+            module_info.get('bus_info', {})
         )
         
         # Evaluate the instantiated module
@@ -256,7 +349,41 @@ class LogicEvaluator:
         # Map outputs back to the parent module's signals
         for port_name, signal_name in connections.items():
             if port_name in module_info['outputs']:
+                # Handle direct signal assignment
                 signal_values[signal_name] = inst_outputs[port_name]
+                
+                # Also handle bit selection assignment like Sum[0]
+                bit_select_match = re.match(r'(\w+)\[(\d+)\]', signal_name)
+                if bit_select_match:
+                    bus_name = bit_select_match.group(1)
+                    bit_index = int(bit_select_match.group(2))
+                    bit_signal_name = f"{bus_name}[{bit_index}]"
+                    signal_values[bit_signal_name] = inst_outputs[port_name]
+    
+    def _expand_bus_to_bits(self, bus_name: str, bus_value: int, signal_values: Dict[str, int]):
+        """Expand a bus value into individual bit signals."""
+        bus_info = self.bus_info[bus_name]
+        msb, lsb = bus_info['msb'], bus_info['lsb']
+        
+        # Create individual bit signals like A[3], A[2], A[1], A[0] for a 4-bit bus
+        for i in range(max(msb, lsb), min(msb, lsb) - 1, -1):
+            bit_index = abs(i - lsb) if msb >= lsb else abs(lsb - i)
+            bit_value = (bus_value >> bit_index) & 1
+            signal_values[f"{bus_name}[{i}]"] = bit_value
+    
+    def _collect_bus_from_bits(self, bus_name: str, signal_values: Dict[str, int]) -> int:
+        """Collect individual bit signals back into a bus value."""
+        bus_info = self.bus_info[bus_name]
+        msb, lsb = bus_info['msb'], bus_info['lsb']
+        bus_value = 0
+        
+        for i in range(max(msb, lsb), min(msb, lsb) - 1, -1):
+            bit_index = abs(i - lsb) if msb >= lsb else abs(lsb - i)
+            bit_name = f"{bus_name}[{i}]"
+            if bit_name in signal_values:
+                bus_value |= (signal_values[bit_name] & 1) << bit_index
+        
+        return bus_value
     
     def _load_module(self, module_name: str):
         """Load a module from file."""
@@ -290,22 +417,42 @@ class TruthTableGenerator:
             List of dictionaries containing input and output values for each combination
         """
         inputs = self.evaluator.inputs
-        num_inputs = len(inputs)
+        bus_info = self.evaluator.bus_info
+        
+        # Calculate total number of input bits
+        total_input_bits = 0
+        for input_name in inputs:
+            if input_name in bus_info:
+                total_input_bits += bus_info[input_name]['width']
+            else:
+                total_input_bits += 1
         
         # Limit combinations if too many inputs
-        if 2**num_inputs > max_combinations:
-            print(f"Warning: Too many input combinations ({2**num_inputs}). "
+        total_combinations = 2**total_input_bits
+        if total_combinations > max_combinations:
+            print(f"Warning: Too many input combinations ({total_combinations}). "
                   f"Limiting to first {max_combinations} combinations.")
         
         truth_table = []
-        combinations_to_test = min(2**num_inputs, max_combinations)
+        combinations_to_test = min(total_combinations, max_combinations)
         
         for i in range(combinations_to_test):
-            # Convert index to binary representation
+            # Convert index to bus values
             input_values = {}
-            for j, input_name in enumerate(inputs):
-                bit_value = (i >> (num_inputs - 1 - j)) & 1
-                input_values[input_name] = bit_value
+            bit_offset = 0
+            
+            for input_name in inputs:
+                if input_name in bus_info:
+                    width = bus_info[input_name]['width']
+                    # Extract bits for this bus from the combination index
+                    bus_value = (i >> (total_input_bits - bit_offset - width)) & ((1 << width) - 1)
+                    input_values[input_name] = bus_value
+                    bit_offset += width
+                else:
+                    # Single bit
+                    bit_value = (i >> (total_input_bits - bit_offset - 1)) & 1
+                    input_values[input_name] = bit_value
+                    bit_offset += 1
             
             # Evaluate outputs
             output_values = self.evaluator.evaluate(input_values)
@@ -317,25 +464,46 @@ class TruthTableGenerator:
         return truth_table
     
     def print_truth_table(self, truth_table: List[Dict[str, int]]):
-        """Print a formatted truth table."""
+        """Print a formatted truth table with proper bus formatting."""
         if not truth_table:
             print("No truth table data to display.")
             return
         
         inputs = self.evaluator.inputs
         outputs = self.evaluator.outputs
+        bus_info = self.evaluator.bus_info
+        
+        # Create headers with bus information
+        input_headers = []
+        output_headers = []
+        
+        for inp in inputs:
+            if inp in bus_info and bus_info[inp]['width'] > 1:
+                width = bus_info[inp]['width']
+                msb, lsb = bus_info[inp]['msb'], bus_info[inp]['lsb']
+                input_headers.append(f"{inp}[{msb}:{lsb}]")
+            else:
+                input_headers.append(inp)
+        
+        for out in outputs:
+            if out in bus_info and bus_info[out]['width'] > 1:
+                width = bus_info[out]['width']
+                msb, lsb = bus_info[out]['msb'], bus_info[out]['lsb']
+                output_headers.append(f"{out}[{msb}:{lsb}]")
+            else:
+                output_headers.append(out)
         
         # Print header
-        header_inputs = " ".join(f"{inp:>3}" for inp in inputs)
-        header_outputs = " ".join(f"{out:>3}" for out in outputs)
+        header_inputs = " ".join(f"{header:>6}" for header in input_headers)
+        header_outputs = " ".join(f"{header:>6}" for header in output_headers)
         print("Truth Table:")
         print(f"{header_inputs} | {header_outputs}")
         print("-" * (len(header_inputs) + 3 + len(header_outputs)))
         
         # Print data rows
         for row in truth_table:
-            input_values = " ".join(f"{row[inp]:>3}" for inp in inputs)
-            output_values = " ".join(f"{row[out]:>3}" for out in outputs)
+            input_values = " ".join(f"{row[inp]:>6}" for inp in inputs)
+            output_values = " ".join(f"{row[out]:>6}" for out in outputs)
             print(f"{input_values} | {output_values}")
 
 
@@ -424,7 +592,8 @@ def main():
             module_info['inputs'], 
             module_info['outputs'], 
             module_info['assignments'],
-            module_info.get('instantiations', [])
+            module_info.get('instantiations', []),
+            module_info.get('bus_info', {})
         )
         
         # Generate and display truth table

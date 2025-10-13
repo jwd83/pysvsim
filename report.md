@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 06:20:52
+**Generated:** 2025-10-13 06:30:53
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.043s
+**Execution Time:** 0.042s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.050s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.050s
+**Execution Time:** 0.053s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.050s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.060s
+**Execution Time:** 0.058s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -277,7 +277,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.100s
+**Execution Time:** 0.101s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -323,7 +323,7 @@ All tests passed!
 
 **File:** `alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.464s
+**Execution Time:** 0.469s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -402,7 +402,7 @@ All tests passed!
 
 **File:** `complex_logic.sv`
 **Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.048s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['a', 'b', 'c'] ✅
 **Outputs Parsed:** ['out1', 'out2', 'out3'] ✅
