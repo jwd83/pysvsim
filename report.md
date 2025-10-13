@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 06:30:53
+**Generated:** 2025-10-13 06:47:37
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.042s
+**Execution Time:** 0.056s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -29,12 +29,12 @@ Module: nand_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 Truth Table:
-inA inB | outY
---------------
-  0   0 |   1
-  0   1 |   1
-  1   0 |   1
-  1   1 |   0
+   inA    inB |   outY
+----------------------
+     0      0 |      1
+     0      1 |      1
+     1      0 |      1
+     1      1 |      0
 
 Running tests...
 Test 1 passed
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.049s
+**Execution Time:** 0.044s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -67,10 +67,10 @@ Module: inverter
 Inputs: ['in']
 Outputs: ['out']
 Truth Table:
- in | out
----------
-  0 |   1
-  1 |   0
+    in |    out
+---------------
+     0 |      1
+     1 |      0
 
 Running tests...
 Test 1 passed
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.053s
+**Execution Time:** 0.056s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -101,12 +101,12 @@ Module: and_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 Truth Table:
-inA inB | outY
---------------
-  0   0 |   0
-  0   1 |   0
-  1   0 |   0
-  1   1 |   1
+   inA    inB |   outY
+----------------------
+     0      0 |      0
+     0      1 |      0
+     1      0 |      0
+     1      1 |      1
 
 Running tests...
 Test 1 passed
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.049s
+**Execution Time:** 0.046s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -139,12 +139,12 @@ Module: or_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 Truth Table:
-inA inB | outY
---------------
-  0   0 |   0
-  0   1 |   1
-  1   0 |   1
-  1   1 |   1
+   inA    inB |   outY
+----------------------
+     0      0 |      0
+     0      1 |      1
+     1      0 |      1
+     1      1 |      1
 
 Running tests...
 Test 1 passed
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.058s
+**Execution Time:** 0.063s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -177,12 +177,12 @@ Module: xor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 Truth Table:
-inA inB | outY
---------------
-  0   0 |   0
-  0   1 |   1
-  1   0 |   1
-  1   1 |   0
+   inA    inB |   outY
+----------------------
+     0      0 |      0
+     0      1 |      1
+     1      0 |      1
+     1      1 |      0
 
 Running tests...
 Test 1 passed
@@ -201,7 +201,7 @@ All tests passed!
 
 **File:** `nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.050s
+**Execution Time:** 0.055s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -215,12 +215,12 @@ Module: nor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 Truth Table:
-inA inB | outY
---------------
-  0   0 |   1
-  0   1 |   0
-  1   0 |   0
-  1   1 |   0
+   inA    inB |   outY
+----------------------
+     0      0 |      1
+     0      1 |      0
+     1      0 |      0
+     1      1 |      0
 
 Running tests...
 Test 1 passed
@@ -239,7 +239,7 @@ All tests passed!
 
 **File:** `half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
-**Execution Time:** 0.060s
+**Execution Time:** 0.063s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -253,12 +253,12 @@ Module: half_adder
 Inputs: ['A', 'B']
 Outputs: ['Sum', 'Carry']
 Truth Table:
-  A   B | Sum Carry
--------------------
-  0   0 |   0   0
-  0   1 |   1   0
-  1   0 |   1   0
-  1   1 |   0   1
+     A      B |    Sum  Carry
+-----------------------------
+     0      0 |      0      0
+     0      1 |      1      0
+     1      0 |      1      0
+     1      1 |      0      1
 
 Running tests...
 Test 1 passed
@@ -277,7 +277,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.101s
+**Execution Time:** 0.108s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -291,16 +291,16 @@ Module: full_adder
 Inputs: ['A', 'B', 'Cin']
 Outputs: ['Sum', 'Cout']
 Truth Table:
-  A   B Cin | Sum Cout
-----------------------
-  0   0   0 |   0   0
-  0   0   1 |   1   0
-  0   1   0 |   1   0
-  0   1   1 |   0   1
-  1   0   0 |   1   0
-  1   0   1 |   0   1
-  1   1   0 |   0   1
-  1   1   1 |   1   1
+     A      B    Cin |    Sum   Cout
+------------------------------------
+     0      0      0 |      0      0
+     0      0      1 |      1      0
+     0      1      0 |      1      0
+     0      1      1 |      0      1
+     1      0      0 |      1      0
+     1      0      1 |      0      1
+     1      1      0 |      0      1
+     1      1      1 |      1      1
 
 Running tests...
 Test 1 passed
@@ -323,7 +323,7 @@ All tests passed!
 
 **File:** `alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.469s
+**Execution Time:** 0.526s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -337,40 +337,40 @@ Module: alu_1bit
 Inputs: ['A', 'B', 'Cin', 'Op0', 'Op1']
 Outputs: ['Result', 'Cout']
 Truth Table:
-  A   B Cin Op0 Op1 | Result Cout
----------------------------------
-  0   0   0   0   0 |   0   0
-  0   0   0   0   1 |   0   0
-  0   0   0   1   0 |   0   0
-  0   0   0   1   1 |   0   0
-  0   0   1   0   0 |   0   0
-  0   0   1   0   1 |   0   0
-  0   0   1   1   0 |   0   0
-  0   0   1   1   1 |   1   0
-  0   1   0   0   0 |   0   0
-  0   1   0   0   1 |   1   0
-  0   1   0   1   0 |   1   0
-  0   1   0   1   1 |   1   0
-  0   1   1   0   0 |   0   0
-  0   1   1   0   1 |   1   0
-  0   1   1   1   0 |   1   0
-  0   1   1   1   1 |   0   1
-  1   0   0   0   0 |   0   0
-  1   0   0   0   1 |   1   0
-  1   0   0   1   0 |   1   0
-  1   0   0   1   1 |   1   0
-  1   0   1   0   0 |   0   0
-  1   0   1   0   1 |   1   0
-  1   0   1   1   0 |   1   0
-  1   0   1   1   1 |   0   1
-  1   1   0   0   0 |   1   0
-  1   1   0   0   1 |   0   0
-  1   1   0   1   0 |   1   0
-  1   1   0   1   1 |   0   1
-  1   1   1   0   0 |   1   0
-  1   1   1   0   1 |   0   0
-  1   1   1   1   0 |   1   0
-  1   1   1   1   1 |   1   1
+     A      B    Cin    Op0    Op1 | Result   Cout
+--------------------------------------------------
+     0      0      0      0      0 |      0      0
+     0      0      0      0      1 |      0      0
+     0      0      0      1      0 |      0      0
+     0      0      0      1      1 |      0      0
+     0      0      1      0      0 |      0      0
+     0      0      1      0      1 |      0      0
+     0      0      1      1      0 |      0      0
+     0      0      1      1      1 |      1      0
+     0      1      0      0      0 |      0      0
+     0      1      0      0      1 |      1      0
+     0      1      0      1      0 |      1      0
+     0      1      0      1      1 |      1      0
+     0      1      1      0      0 |      0      0
+     0      1      1      0      1 |      1      0
+     0      1      1      1      0 |      1      0
+     0      1      1      1      1 |      0      1
+     1      0      0      0      0 |      0      0
+     1      0      0      0      1 |      1      0
+     1      0      0      1      0 |      1      0
+     1      0      0      1      1 |      1      0
+     1      0      1      0      0 |      0      0
+     1      0      1      0      1 |      1      0
+     1      0      1      1      0 |      1      0
+     1      0      1      1      1 |      0      1
+     1      1      0      0      0 |      1      0
+     1      1      0      0      1 |      0      0
+     1      1      0      1      0 |      1      0
+     1      1      0      1      1 |      0      1
+     1      1      1      0      0 |      1      0
+     1      1      1      0      1 |      0      0
+     1      1      1      1      0 |      1      0
+     1      1      1      1      1 |      1      1
 
 Running tests...
 Test 1 passed
@@ -398,34 +398,301 @@ All tests passed!
 
 ---
 
-### 10. Complex Logic ✅
+### 10. 4-bit Adder ✅
 
-**File:** `complex_logic.sv`
-**Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.050s
+**File:** `adder_4bit_bus.sv`
+**Description:** 4-bit ripple carry adder using proper SystemVerilog bus notation
+**Execution Time:** 3.993s
 
-**Inputs Parsed:** ['a', 'b', 'c'] ✅
-**Outputs Parsed:** ['out1', 'out2', 'out3'] ✅
+**Inputs Parsed:** ['A', 'B', 'Cin'] ✅
+**Outputs Parsed:** ['Sum', 'Cout'] ✅
 **Truth Table:** Generated ✅
-**Test Cases:** No test file specified (truth table only)
+**Test Cases:** 13/13 passed ✅
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: complex_logic.sv
-Module: complex_logic
-Inputs: ['a', 'b', 'c']
-Outputs: ['out1', 'out2', 'out3']
+Parsing SystemVerilog file: adder_4bit_bus.sv
+Module: adder_4bit_bus
+Inputs: ['A', 'B', 'Cin']
+Outputs: ['Sum', 'Cout']
+Warning: Too many input combinations (512). Limiting to first 256 combinations.
 Truth Table:
-  a   b   c | out1 out2 out3
-----------------------------
-  0   0   0 |   0   0   0
-  0   0   1 |   0   1   0
-  0   1   0 |   0   0   0
-  0   1   1 |   0   1   1
-  1   0   0 |   0   1   1
-  1   0   1 |   0   1   1
-  1   1   0 |   1   1   1
-  1   1   1 |   1   1   0
+A[3:0] B[3:0]    Cin | Sum[3:0]   Cout
+--------------------------------------
+     0      0      0 |      0      0
+     0      0      1 |      1      0
+     0      1      0 |      1      0
+     0      1      1 |      2      0
+     0      2      0 |      2      0
+     0      2      1 |      3      0
+     0      3      0 |      3      0
+     0      3      1 |      4      0
+     0      4      0 |      4      0
+     0      4      1 |      5      0
+     0      5      0 |      5      0
+     0      5      1 |      6      0
+     0      6      0 |      6      0
+     0      6      1 |      7      0
+     0      7      0 |      7      0
+     0      7      1 |      8      0
+     0      8      0 |      8      0
+     0      8      1 |      9      0
+     0      9      0 |      9      0
+     0      9      1 |     10      0
+     0     10      0 |     10      0
+     0     10      1 |     11      0
+     0     11      0 |     11      0
+     0     11      1 |     12      0
+     0     12      0 |     12      0
+     0     12      1 |     13      0
+     0     13      0 |     13      0
+     0     13      1 |     14      0
+     0     14      0 |     14      0
+     0     14      1 |     15      0
+     0     15      0 |     15      0
+     0     15      1 |      0      1
+     1      0      0 |      1      0
+     1      0      1 |      2      0
+     1      1      0 |      2      0
+     1      1      1 |      3      0
+     1      2      0 |      3      0
+     1      2      1 |      4      0
+     1      3      0 |      4      0
+     1      3      1 |      5      0
+     1      4      0 |      5      0
+     1      4      1 |      6      0
+     1      5      0 |      6      0
+     1      5      1 |      7      0
+     1      6      0 |      7      0
+     1      6      1 |      8      0
+     1      7      0 |      8      0
+     1      7      1 |      9      0
+     1      8      0 |      9      0
+     1      8      1 |     10      0
+     1      9      0 |     10      0
+     1      9      1 |     11      0
+     1     10      0 |     11      0
+     1     10      1 |     12      0
+     1     11      0 |     12      0
+     1     11      1 |     13      0
+     1     12      0 |     13      0
+     1     12      1 |     14      0
+     1     13      0 |     14      0
+     1     13      1 |     15      0
+     1     14      0 |     15      0
+     1     14      1 |      0      1
+     1     15      0 |      0      1
+     1     15      1 |      1      1
+     2      0      0 |      2      0
+     2      0      1 |      3      0
+     2      1      0 |      3      0
+     2      1      1 |      4      0
+     2      2      0 |      4      0
+     2      2      1 |      5      0
+     2      3      0 |      5      0
+     2      3      1 |      6      0
+     2      4      0 |      6      0
+     2      4      1 |      7      0
+     2      5      0 |      7      0
+     2      5      1 |      8      0
+     2      6      0 |      8      0
+     2      6      1 |      9      0
+     2      7      0 |      9      0
+     2      7      1 |     10      0
+     2      8      0 |     10      0
+     2      8      1 |     11      0
+     2      9      0 |     11      0
+     2      9      1 |     12      0
+     2     10      0 |     12      0
+     2     10      1 |     13      0
+     2     11      0 |     13      0
+     2     11      1 |     14      0
+     2     12      0 |     14      0
+     2     12      1 |     15      0
+     2     13      0 |     15      0
+     2     13      1 |      0      1
+     2     14      0 |      0      1
+     2     14      1 |      1      1
+     2     15      0 |      1      1
+     2     15      1 |      2      1
+     3      0      0 |      3      0
+     3      0      1 |      4      0
+     3      1      0 |      4      0
+     3      1      1 |      5      0
+     3      2      0 |      5      0
+     3      2      1 |      6      0
+     3      3      0 |      6      0
+     3      3      1 |      7      0
+     3      4      0 |      7      0
+     3      4      1 |      8      0
+     3      5      0 |      8      0
+     3      5      1 |      9      0
+     3      6      0 |      9      0
+     3      6      1 |     10      0
+     3      7      0 |     10      0
+     3      7      1 |     11      0
+     3      8      0 |     11      0
+     3      8      1 |     12      0
+     3      9      0 |     12      0
+     3      9      1 |     13      0
+     3     10      0 |     13      0
+     3     10      1 |     14      0
+     3     11      0 |     14      0
+     3     11      1 |     15      0
+     3     12      0 |     15      0
+     3     12      1 |      0      1
+     3     13      0 |      0      1
+     3     13      1 |      1      1
+     3     14      0 |      1      1
+     3     14      1 |      2      1
+     3     15      0 |      2      1
+     3     15      1 |      3      1
+     4      0      0 |      4      0
+     4      0      1 |      5      0
+     4      1      0 |      5      0
+     4      1      1 |      6      0
+     4      2      0 |      6      0
+     4      2      1 |      7      0
+     4      3      0 |      7      0
+     4      3      1 |      8      0
+     4      4      0 |      8      0
+     4      4      1 |      9      0
+     4      5      0 |      9      0
+     4      5      1 |     10      0
+     4      6      0 |     10      0
+     4      6      1 |     11      0
+     4      7      0 |     11      0
+     4      7      1 |     12      0
+     4      8      0 |     12      0
+     4      8      1 |     13      0
+     4      9      0 |     13      0
+     4      9      1 |     14      0
+     4     10      0 |     14      0
+     4     10      1 |     15      0
+     4     11      0 |     15      0
+     4     11      1 |      0      1
+     4     12      0 |      0      1
+     4     12      1 |      1      1
+     4     13      0 |      1      1
+     4     13      1 |      2      1
+     4     14      0 |      2      1
+     4     14      1 |      3      1
+     4     15      0 |      3      1
+     4     15      1 |      4      1
+     5      0      0 |      5      0
+     5      0      1 |      6      0
+     5      1      0 |      6      0
+     5      1      1 |      7      0
+     5      2      0 |      7      0
+     5      2      1 |      8      0
+     5      3      0 |      8      0
+     5      3      1 |      9      0
+     5      4      0 |      9      0
+     5      4      1 |     10      0
+     5      5      0 |     10      0
+     5      5      1 |     11      0
+     5      6      0 |     11      0
+     5      6      1 |     12      0
+     5      7      0 |     12      0
+     5      7      1 |     13      0
+     5      8      0 |     13      0
+     5      8      1 |     14      0
+     5      9      0 |     14      0
+     5      9      1 |     15      0
+     5     10      0 |     15      0
+     5     10      1 |      0      1
+     5     11      0 |      0      1
+     5     11      1 |      1      1
+     5     12      0 |      1      1
+     5     12      1 |      2      1
+     5     13      0 |      2      1
+     5     13      1 |      3      1
+     5     14      0 |      3      1
+     5     14      1 |      4      1
+     5     15      0 |      4      1
+     5     15      1 |      5      1
+     6      0      0 |      6      0
+     6      0      1 |      7      0
+     6      1      0 |      7      0
+     6      1      1 |      8      0
+     6      2      0 |      8      0
+     6      2      1 |      9      0
+     6      3      0 |      9      0
+     6      3      1 |     10      0
+     6      4      0 |     10      0
+     6      4      1 |     11      0
+     6      5      0 |     11      0
+     6      5      1 |     12      0
+     6      6      0 |     12      0
+     6      6      1 |     13      0
+     6      7      0 |     13      0
+     6      7      1 |     14      0
+     6      8      0 |     14      0
+     6      8      1 |     15      0
+     6      9      0 |     15      0
+     6      9      1 |      0      1
+     6     10      0 |      0      1
+     6     10      1 |      1      1
+     6     11      0 |      1      1
+     6     11      1 |      2      1
+     6     12      0 |      2      1
+     6     12      1 |      3      1
+     6     13      0 |      3      1
+     6     13      1 |      4      1
+     6     14      0 |      4      1
+     6     14      1 |      5      1
+     6     15      0 |      5      1
+     6     15      1 |      6      1
+     7      0      0 |      7      0
+     7      0      1 |      8      0
+     7      1      0 |      8      0
+     7      1      1 |      9      0
+     7      2      0 |      9      0
+     7      2      1 |     10      0
+     7      3      0 |     10      0
+     7      3      1 |     11      0
+     7      4      0 |     11      0
+     7      4      1 |     12      0
+     7      5      0 |     12      0
+     7      5      1 |     13      0
+     7      6      0 |     13      0
+     7      6      1 |     14      0
+     7      7      0 |     14      0
+     7      7      1 |     15      0
+     7      8      0 |     15      0
+     7      8      1 |      0      1
+     7      9      0 |      0      1
+     7      9      1 |      1      1
+     7     10      0 |      1      1
+     7     10      1 |      2      1
+     7     11      0 |      2      1
+     7     11      1 |      3      1
+     7     12      0 |      3      1
+     7     12      1 |      4      1
+     7     13      0 |      4      1
+     7     13      1 |      5      1
+     7     14      0 |      5      1
+     7     14      1 |      6      1
+     7     15      0 |      6      1
+     7     15      1 |      7      1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+Test 13 passed
+
+Test Results: 13/13 passed
+All tests passed!
 
 ```
 

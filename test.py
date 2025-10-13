@@ -102,12 +102,12 @@ TEST_CASES = [
         expected_outputs=["Result", "Cout"]
     ),
     TestCase(
-        name="Complex Logic",
-        verilog_file="complex_logic.sv",
-        test_file=None,  # No test file, just truth table generation
-        description="Multi-output module with various bitwise operations",
-        expected_inputs=["a", "b", "c"],
-        expected_outputs=["out1", "out2", "out3"]
+        name="4-bit Adder",
+        verilog_file="adder_4bit_bus.sv",
+        test_file="tests_adder_4bit_bus.json",
+        description="4-bit ripple carry adder using proper SystemVerilog bus notation",
+        expected_inputs=["A", "B", "Cin"],
+        expected_outputs=["Sum", "Cout"]
     )
 ]
 
