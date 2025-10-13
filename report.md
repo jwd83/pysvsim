@@ -1,11 +1,11 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 05:10:42
+**Generated:** 2025-10-13 05:26:31
 
 ## Summary
 
-- **Total Test Cases:** 6
-- **Passed:** 6 ✅
+- **Total Test Cases:** 7
+- **Passed:** 7 ✅
 - **Failed:** 0 ❌
 - **Success Rate:** 100.0%
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.046s
+**Execution Time:** 0.047s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.045s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.047s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `half_adder.sv`
 **Description:** Half adder with XOR sum and AND carry logic
-**Execution Time:** 0.044s
+**Execution Time:** 0.048s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.045s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -205,11 +205,91 @@ All tests passed!
 
 ---
 
-### 6. Complex Logic ✅
+### 6. 1-bit ALU ✅
+
+**File:** `alu_1bit.sv`
+**Description:** 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
+**Execution Time:** 0.054s
+
+**Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1', 'Op2'] ✅
+**Outputs Parsed:** ['Result', 'Cout'] ✅
+**Truth Table:** Generated ✅
+**Test Cases:** 33/33 passed ✅
+
+**Complete Output:**
+```
+Parsing SystemVerilog file: alu_1bit.sv
+Module: alu_1bit
+Inputs: ['A', 'B', 'Cin', 'Op0', 'Op1', 'Op2']
+Outputs: ['Result', 'Cout']
+Warning: Too many input combinations (64). Limiting to first 16 combinations.
+Truth Table:
+  A   B Cin Op0 Op1 Op2 | Result Cout
+-------------------------------------
+  0   0   0   0   0   0 |   0   0
+  0   0   0   0   0   1 |   1   0
+  0   0   0   0   1   0 |   0   0
+  0   0   0   0   1   1 |   0   0
+  0   0   0   1   0   0 |   0   0
+  0   0   0   1   0   1 |   1   0
+  0   0   0   1   1   0 |   0   0
+  0   0   0   1   1   1 |   0   0
+  0   0   1   0   0   0 |   0   0
+  0   0   1   0   0   1 |   0   1
+  0   0   1   0   1   0 |   0   0
+  0   0   1   0   1   1 |   0   0
+  0   0   1   1   0   0 |   0   0
+  0   0   1   1   0   1 |   1   0
+  0   0   1   1   1   0 |   1   0
+  0   0   1   1   1   1 |   0   0
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+Test 13 passed
+Test 14 passed
+Test 15 passed
+Test 16 passed
+Test 17 passed
+Test 18 passed
+Test 19 passed
+Test 20 passed
+Test 21 passed
+Test 22 passed
+Test 23 passed
+Test 24 passed
+Test 25 passed
+Test 26 passed
+Test 27 passed
+Test 28 passed
+Test 29 passed
+Test 30 passed
+Test 31 passed
+Test 32 passed
+Test 33 passed
+
+Test Results: 33/33 passed
+All tests passed!
+
+```
+
+---
+
+### 7. Complex Logic ✅
 
 **File:** `complex_logic.sv`
 **Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.045s
+**Execution Time:** 0.048s
 
 **Inputs Parsed:** ['a', 'b', 'c'] ✅
 **Outputs Parsed:** ['out1', 'out2', 'out3'] ✅

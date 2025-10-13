@@ -70,6 +70,14 @@ TEST_CASES = [
         expected_outputs=["Sum", "Cout"]
     ),
     TestCase(
+        name="1-bit ALU",
+        verilog_file="alu_1bit.sv",
+        test_file="tests_alu_1bit.json",
+        description="1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)",
+        expected_inputs=["A", "B", "Cin", "Op0", "Op1", "Op2"],
+        expected_outputs=["Result", "Cout"]
+    ),
+    TestCase(
         name="Complex Logic",
         verilog_file="complex_logic.sv",
         test_file=None,  # No test file, just truth table generation
