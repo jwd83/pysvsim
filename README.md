@@ -113,7 +113,7 @@ See the included example files:
 - `nor_gate.sv`: NOR gate built using OR gate + inverter (NOT OR)
 - `half_adder.sv`: Half adder built from XOR and AND gate modules
 - `full_adder.sv`: Full adder built from two half adders with carry chain
-- `alu_1bit.sv`: 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
+- `alu_1bit.sv`: Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built entirely from gate modules
 - `complex_logic.sv`: Multi-output module with various operations
 - `tests_nand_gate.json`: Test cases for the NAND gate
 - `tests_inverter.json`: Test cases for the inverter
@@ -123,7 +123,7 @@ See the included example files:
 - `tests_nor_gate.json`: Test cases for the NOR gate
 - `tests_half_adder.json`: Test cases for the half adder
 - `tests_full_adder.json`: Test cases for the full adder
-- `tests_alu_1bit.json`: Test cases for the 1-bit ALU
+- `tests_alu_1bit.json`: Test cases for the hierarchical 1-bit ALU
 
 ## Limitations
 

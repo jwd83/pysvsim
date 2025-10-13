@@ -97,8 +97,8 @@ TEST_CASES = [
         name="1-bit ALU",
         verilog_file="alu_1bit.sv",
         test_file="tests_alu_1bit.json",
-        description="1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)",
-        expected_inputs=["A", "B", "Cin", "Op0", "Op1", "Op2"],
+        description="Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules",
+        expected_inputs=["A", "B", "Cin", "Op0", "Op1"],
         expected_outputs=["Result", "Cout"]
     ),
     TestCase(

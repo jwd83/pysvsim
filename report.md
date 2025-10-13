@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 06:12:39
+**Generated:** 2025-10-13 06:20:52
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.045s
+**Execution Time:** 0.043s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.045s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.044s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.045s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.053s
+**Execution Time:** 0.060s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -201,7 +201,7 @@ All tests passed!
 
 **File:** `nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.048s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -239,7 +239,7 @@ All tests passed!
 
 **File:** `half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
-**Execution Time:** 0.056s
+**Execution Time:** 0.060s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -277,7 +277,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.099s
+**Execution Time:** 0.100s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -322,87 +322,55 @@ All tests passed!
 ### 9. 1-bit ALU ✅
 
 **File:** `alu_1bit.sv`
-**Description:** 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
-**Execution Time:** 0.057s
+**Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
+**Execution Time:** 0.464s
 
-**Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1', 'Op2'] ✅
+**Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
 **Truth Table:** Generated ✅
-**Test Cases:** 33/33 passed ✅
+**Test Cases:** 17/17 passed ✅
 
 **Complete Output:**
 ```
 Parsing SystemVerilog file: alu_1bit.sv
 Module: alu_1bit
-Inputs: ['A', 'B', 'Cin', 'Op0', 'Op1', 'Op2']
+Inputs: ['A', 'B', 'Cin', 'Op0', 'Op1']
 Outputs: ['Result', 'Cout']
 Truth Table:
-  A   B Cin Op0 Op1 Op2 | Result Cout
--------------------------------------
-  0   0   0   0   0   0 |   0   0
-  0   0   0   0   0   1 |   1   0
-  0   0   0   0   1   0 |   0   0
-  0   0   0   0   1   1 |   0   0
-  0   0   0   1   0   0 |   0   0
-  0   0   0   1   0   1 |   1   0
-  0   0   0   1   1   0 |   0   0
-  0   0   0   1   1   1 |   0   0
-  0   0   1   0   0   0 |   0   0
-  0   0   1   0   0   1 |   0   1
-  0   0   1   0   1   0 |   0   0
-  0   0   1   0   1   1 |   0   0
-  0   0   1   1   0   0 |   0   0
-  0   0   1   1   0   1 |   1   0
-  0   0   1   1   1   0 |   1   0
-  0   0   1   1   1   1 |   0   0
-  0   1   0   0   0   0 |   0   0
-  0   1   0   0   0   1 |   0   0
-  0   1   0   0   1   0 |   1   0
-  0   1   0   0   1   1 |   0   0
-  0   1   0   1   0   0 |   1   0
-  0   1   0   1   0   1 |   1   0
-  0   1   0   1   1   0 |   1   0
-  0   1   0   1   1   1 |   1   0
-  0   1   1   0   0   0 |   0   0
-  0   1   1   0   0   1 |   1   0
-  0   1   1   0   1   0 |   1   0
-  0   1   1   0   1   1 |   0   0
-  0   1   1   1   0   0 |   1   0
-  0   1   1   1   0   1 |   1   0
-  0   1   1   1   1   0 |   0   1
-  0   1   1   1   1   1 |   1   0
-  1   0   0   0   0   0 |   0   0
-  1   0   0   0   0   1 |   0   1
-  1   0   0   0   1   0 |   1   0
-  1   0   0   0   1   1 |   1   0
-  1   0   0   1   0   0 |   1   0
-  1   0   0   1   0   1 |   0   0
-  1   0   0   1   1   0 |   1   0
-  1   0   0   1   1   1 |   0   0
-  1   0   1   0   0   0 |   0   0
-  1   0   1   0   0   1 |   1   1
-  1   0   1   0   1   0 |   1   0
-  1   0   1   0   1   1 |   1   0
-  1   0   1   1   0   0 |   1   0
-  1   0   1   1   0   1 |   0   0
-  1   0   1   1   1   0 |   0   1
-  1   0   1   1   1   1 |   0   0
-  1   1   0   0   0   0 |   1   0
-  1   1   0   0   0   1 |   1   0
-  1   1   0   0   1   0 |   0   0
-  1   1   0   0   1   1 |   1   0
-  1   1   0   1   0   0 |   1   0
-  1   1   0   1   0   1 |   0   0
-  1   1   0   1   1   0 |   0   1
-  1   1   0   1   1   1 |   1   0
-  1   1   1   0   0   0 |   1   0
-  1   1   1   0   0   1 |   0   1
-  1   1   1   0   1   0 |   0   0
-  1   1   1   0   1   1 |   1   0
-  1   1   1   1   0   0 |   1   0
-  1   1   1   1   0   1 |   0   0
-  1   1   1   1   1   0 |   1   1
-  1   1   1   1   1   1 |   1   0
+  A   B Cin Op0 Op1 | Result Cout
+---------------------------------
+  0   0   0   0   0 |   0   0
+  0   0   0   0   1 |   0   0
+  0   0   0   1   0 |   0   0
+  0   0   0   1   1 |   0   0
+  0   0   1   0   0 |   0   0
+  0   0   1   0   1 |   0   0
+  0   0   1   1   0 |   0   0
+  0   0   1   1   1 |   1   0
+  0   1   0   0   0 |   0   0
+  0   1   0   0   1 |   1   0
+  0   1   0   1   0 |   1   0
+  0   1   0   1   1 |   1   0
+  0   1   1   0   0 |   0   0
+  0   1   1   0   1 |   1   0
+  0   1   1   1   0 |   1   0
+  0   1   1   1   1 |   0   1
+  1   0   0   0   0 |   0   0
+  1   0   0   0   1 |   1   0
+  1   0   0   1   0 |   1   0
+  1   0   0   1   1 |   1   0
+  1   0   1   0   0 |   0   0
+  1   0   1   0   1 |   1   0
+  1   0   1   1   0 |   1   0
+  1   0   1   1   1 |   0   1
+  1   1   0   0   0 |   1   0
+  1   1   0   0   1 |   0   0
+  1   1   0   1   0 |   1   0
+  1   1   0   1   1 |   0   1
+  1   1   1   0   0 |   1   0
+  1   1   1   0   1 |   0   0
+  1   1   1   1   0 |   1   0
+  1   1   1   1   1 |   1   1
 
 Running tests...
 Test 1 passed
@@ -422,24 +390,8 @@ Test 14 passed
 Test 15 passed
 Test 16 passed
 Test 17 passed
-Test 18 passed
-Test 19 passed
-Test 20 passed
-Test 21 passed
-Test 22 passed
-Test 23 passed
-Test 24 passed
-Test 25 passed
-Test 26 passed
-Test 27 passed
-Test 28 passed
-Test 29 passed
-Test 30 passed
-Test 31 passed
-Test 32 passed
-Test 33 passed
 
-Test Results: 33/33 passed
+Test Results: 17/17 passed
 All tests passed!
 
 ```
@@ -450,7 +402,7 @@ All tests passed!
 
 **File:** `complex_logic.sv`
 **Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.044s
+**Execution Time:** 0.048s
 
 **Inputs Parsed:** ['a', 'b', 'c'] ✅
 **Outputs Parsed:** ['out1', 'out2', 'out3'] ✅
@@ -481,7 +433,7 @@ Truth Table:
 
 ## System Information
 
-- **Python:** 3.13.2 (main, Feb 12 2025, 14:49:53) [MSC v.1942 64 bit (AMD64)]
+- **Python:** 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
 - **Platform:** win32
 - **Working Directory:** C:\Users\jared\pysvsim
 - **pysvsim Script:** pysvsim.py
