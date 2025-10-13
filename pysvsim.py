@@ -380,14 +380,14 @@ class TestRunner:
             test_passed = True
             for output_name, expected_value in expected_outputs.items():
                 if output_name not in actual_outputs:
-                    print(f"✗ Test {i} failed: Output '{output_name}' not found")
+                    print(f"Test {i} failed: Output '{output_name}' not found")
                     test_passed = False
                 elif actual_outputs[output_name] != expected_value:
-                    print(f"✗ Test {i} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}")
+                    print(f"Test {i} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}")
                     test_passed = False
             
             if test_passed:
-                print(f"✓ Test {i} passed")
+                print(f"Test {i} passed")
                 passed += 1
         
         return passed, total
@@ -438,7 +438,7 @@ def main():
             
             print(f"\nTest Results: {passed}/{total} passed")
             if passed == total:
-                print("All tests passed! ✓")
+                print("All tests passed!")
             else:
                 print(f"{total - passed} test(s) failed.")
                 sys.exit(1)
