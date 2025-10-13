@@ -1,11 +1,11 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 05:06:39
+**Generated:** 2025-10-13 05:10:42
 
 ## Summary
 
-- **Total Test Cases:** 4
-- **Passed:** 4 ✅
+- **Total Test Cases:** 6
+- **Passed:** 6 ✅
 - **Failed:** 0 ❌
 - **Success Rate:** 100.0%
 
@@ -22,7 +22,7 @@
 **Truth Table:** Generated ✅
 **Test Cases:** 4/4 passed ✅
 
-**Sample Output:**
+**Complete Output:**
 ```
 Parsing SystemVerilog file: nand_gate.sv
 Module: nand_gate
@@ -34,7 +34,17 @@ inA inB | outY
   0   0 |   1
   0   1 |   1
   1   0 |   1
-... (truncated)
+  1   1 |   0
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+
+Test Results: 4/4 passed
+All tests passed!
+
 ```
 
 ---
@@ -43,14 +53,14 @@ inA inB | outY
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.044s
+**Execution Time:** 0.045s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
 **Truth Table:** Generated ✅
 **Test Cases:** 2/2 passed ✅
 
-**Sample Output:**
+**Complete Output:**
 ```
 Parsing SystemVerilog file: inverter.sv
 Module: inverter
@@ -62,7 +72,13 @@ Truth Table:
   0 |   1
   1 |   0
 
-... (truncated)
+Running tests...
+Test 1 passed
+Test 2 passed
+
+Test Results: 2/2 passed
+All tests passed!
+
 ```
 
 ---
@@ -71,14 +87,14 @@ Truth Table:
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.046s
+**Execution Time:** 0.047s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
 **Truth Table:** Generated ✅
 **Test Cases:** 4/4 passed ✅
 
-**Sample Output:**
+**Complete Output:**
 ```
 Parsing SystemVerilog file: and_gate.sv
 Module: and_gate
@@ -90,23 +106,117 @@ inA inB | outY
   0   0 |   0
   0   1 |   0
   1   0 |   0
-... (truncated)
+  1   1 |   1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+
+Test Results: 4/4 passed
+All tests passed!
+
 ```
 
 ---
 
-### 4. Complex Logic ✅
+### 4. Half Adder ✅
+
+**File:** `half_adder.sv`
+**Description:** Half adder with XOR sum and AND carry logic
+**Execution Time:** 0.044s
+
+**Inputs Parsed:** ['A', 'B'] ✅
+**Outputs Parsed:** ['Sum', 'Carry'] ✅
+**Truth Table:** Generated ✅
+**Test Cases:** 4/4 passed ✅
+
+**Complete Output:**
+```
+Parsing SystemVerilog file: half_adder.sv
+Module: half_adder
+Inputs: ['A', 'B']
+Outputs: ['Sum', 'Carry']
+Truth Table:
+  A   B | Sum Carry
+-------------------
+  0   0 |   0   0
+  0   1 |   1   0
+  1   0 |   1   0
+  1   1 |   0   1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+
+Test Results: 4/4 passed
+All tests passed!
+
+```
+
+---
+
+### 5. Full Adder ✅
+
+**File:** `full_adder.sv`
+**Description:** Full adder built from two half adders with carry chain
+**Execution Time:** 0.045s
+
+**Inputs Parsed:** ['A', 'B', 'Cin'] ✅
+**Outputs Parsed:** ['Sum', 'Cout'] ✅
+**Truth Table:** Generated ✅
+**Test Cases:** 8/8 passed ✅
+
+**Complete Output:**
+```
+Parsing SystemVerilog file: full_adder.sv
+Module: full_adder
+Inputs: ['A', 'B', 'Cin']
+Outputs: ['Sum', 'Cout']
+Truth Table:
+  A   B Cin | Sum Cout
+----------------------
+  0   0   0 |   0   0
+  0   0   1 |   1   0
+  0   1   0 |   1   0
+  0   1   1 |   0   1
+  1   0   0 |   1   0
+  1   0   1 |   0   1
+  1   1   0 |   0   1
+  1   1   1 |   1   1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+
+Test Results: 8/8 passed
+All tests passed!
+
+```
+
+---
+
+### 6. Complex Logic ✅
 
 **File:** `complex_logic.sv`
 **Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.046s
+**Execution Time:** 0.045s
 
 **Inputs Parsed:** ['a', 'b', 'c'] ✅
 **Outputs Parsed:** ['out1', 'out2', 'out3'] ✅
 **Truth Table:** Generated ✅
 **Test Cases:** No test file specified (truth table only)
 
-**Sample Output:**
+**Complete Output:**
 ```
 Parsing SystemVerilog file: complex_logic.sv
 Module: complex_logic
@@ -118,7 +228,12 @@ Truth Table:
   0   0   0 |   0   0   0
   0   0   1 |   0   1   0
   0   1   0 |   0   0   0
-... (truncated)
+  0   1   1 |   0   1   1
+  1   0   0 |   0   1   1
+  1   0   1 |   0   1   1
+  1   1   0 |   1   1   1
+  1   1   1 |   1   1   0
+
 ```
 
 ---

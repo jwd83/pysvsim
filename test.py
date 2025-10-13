@@ -54,6 +54,22 @@ TEST_CASES = [
         expected_outputs=["outY"]
     ),
     TestCase(
+        name="Half Adder",
+        verilog_file="half_adder.sv",
+        test_file="tests_half_adder.json",
+        description="Half adder with XOR sum and AND carry logic",
+        expected_inputs=["A", "B"],
+        expected_outputs=["Sum", "Carry"]
+    ),
+    TestCase(
+        name="Full Adder",
+        verilog_file="full_adder.sv",
+        test_file="tests_full_adder.json",
+        description="Full adder built from two half adders with carry chain",
+        expected_inputs=["A", "B", "Cin"],
+        expected_outputs=["Sum", "Cout"]
+    ),
+    TestCase(
         name="Complex Logic",
         verilog_file="complex_logic.sv",
         test_file=None,  # No test file, just truth table generation
@@ -287,16 +303,14 @@ class TestRunner:
                     report_lines.append("Unknown error")
                 report_lines.append("```")
             
-            # Output sample (first few lines)
+            # Complete output (no truncation)
             if result.output and result.success:
-                lines = result.output.split('\n')[:10]  # First 10 lines
+                lines = result.output.split('\n')
                 if lines:
                     report_lines.append("")
-                    report_lines.append("**Sample Output:**")
+                    report_lines.append("**Complete Output:**")
                     report_lines.append("```")
                     report_lines.extend(lines)
-                    if len(result.output.split('\n')) > 10:
-                        report_lines.append("... (truncated)")
                     report_lines.append("```")
             
             report_lines.append("")
