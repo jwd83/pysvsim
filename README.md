@@ -110,6 +110,7 @@ See the included example files:
 - `and_gate.sv`: AND gate built from NAND gate and inverter modules
 - `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND
 - `xor_gate.sv`: XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
+- `nor_gate.sv`: NOR gate built using OR gate + inverter (NOT OR)
 - `half_adder.sv`: Half adder built from XOR and AND gate modules
 - `full_adder.sv`: Full adder built from two half adders with carry chain
 - `alu_1bit.sv`: 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
@@ -119,6 +120,7 @@ See the included example files:
 - `tests_and_gate.json`: Test cases for the AND gate
 - `tests_or_gate.json`: Test cases for the OR gate
 - `tests_xor_gate.json`: Test cases for the XOR gate
+- `tests_nor_gate.json`: Test cases for the NOR gate
 - `tests_half_adder.json`: Test cases for the half adder
 - `tests_full_adder.json`: Test cases for the full adder
 - `tests_alu_1bit.json`: Test cases for the 1-bit ALU

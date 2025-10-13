@@ -70,6 +70,14 @@ TEST_CASES = [
         expected_outputs=["outY"]
     ),
     TestCase(
+        name="NOR Gate",
+        verilog_file="nor_gate.sv",
+        test_file="tests_nor_gate.json",
+        description="NOR gate built using OR gate + inverter (NOT OR)",
+        expected_inputs=["inA", "inB"],
+        expected_outputs=["outY"]
+    ),
+    TestCase(
         name="Half Adder",
         verilog_file="half_adder.sv",
         test_file="tests_half_adder.json",
