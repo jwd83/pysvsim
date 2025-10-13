@@ -24,7 +24,9 @@ class SystemVerilogParser:
         self.module_name = ""
         self.inputs = []
         self.outputs = []
+        self.wires = []
         self.assignments = {}
+        self.instantiations = []
     
     def parse_file(self, filepath: str) -> Dict[str, Any]:
         """
@@ -63,14 +65,21 @@ class SystemVerilogParser:
         # Parse ports
         self._parse_ports(content, port_list)
         
+        # Parse wire declarations
+        self._parse_wires(content)
+        
         # Parse assign statements
         self._parse_assignments(content)
+        
+        # Parse module instantiations
+        self._parse_instantiations(content)
         
         return {
             'name': self.module_name,
             'inputs': self.inputs.copy(),
             'outputs': self.outputs.copy(),
-            'assignments': self.assignments.copy()
+            'assignments': self.assignments.copy(),
+            'instantiations': self.instantiations.copy()
         }
     
     def _remove_comments(self, content: str) -> str:
@@ -92,6 +101,12 @@ class SystemVerilogParser:
             elif port_type == 'output':
                 self.outputs.append(port_name)
     
+    def _parse_wires(self, content: str):
+        """Parse wire declarations."""
+        wire_pattern = r'wire\s+(\w+)\s*;'
+        wires = re.findall(wire_pattern, content)
+        self.wires.extend(wires)
+    
     def _parse_assignments(self, content: str):
         """Parse assign statements and build assignment expressions."""
         assign_pattern = r'assign\s+(\w+)\s*=\s*([^;]+)\s*;'
@@ -101,15 +116,43 @@ class SystemVerilogParser:
             # Clean up the expression
             expression = expression.strip()
             self.assignments[output_signal] = expression
+    
+    def _parse_instantiations(self, content: str):
+        """Parse module instantiations."""
+        # Pattern to match module instantiations like: module_name instance_name ( port connections );
+        inst_pattern = r'(\w+)\s+(\w+)\s*\((.*?)\)\s*;'
+        instantiations = re.findall(inst_pattern, content)
+        
+        for module_type, instance_name, connections in instantiations:
+            # Skip if this looks like a module declaration
+            if module_type == 'module':
+                continue
+                
+            # Parse port connections
+            port_connections = {}
+            # Pattern to match .port_name(signal_name) connections
+            conn_pattern = r'\.([\w]+)\(([\w]+)\)'
+            connections_found = re.findall(conn_pattern, connections)
+            
+            for port_name, signal_name in connections_found:
+                port_connections[port_name] = signal_name
+            
+            self.instantiations.append({
+                'module_type': module_type,
+                'instance_name': instance_name,
+                'connections': port_connections
+            })
 
 
 class LogicEvaluator:
     """Evaluates SystemVerilog expressions with given input values."""
     
-    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str]):
+    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str], instantiations: List[Dict[str, Any]] = None):
         self.inputs = inputs
         self.outputs = outputs
         self.assignments = assignments
+        self.instantiations = instantiations or []
+        self.loaded_modules = {}  # Cache for loaded modules
     
     def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
         """
@@ -124,6 +167,10 @@ class LogicEvaluator:
         # Start with input values
         signal_values = input_values.copy()
         
+        # Evaluate module instantiations first
+        for inst in self.instantiations:
+            self._evaluate_instantiation(inst, signal_values)
+        
         # Evaluate each assignment
         output_values = {}
         for output_name in self.outputs:
@@ -132,6 +179,8 @@ class LogicEvaluator:
                 value = self._evaluate_expression(expression, signal_values)
                 output_values[output_name] = value
                 signal_values[output_name] = value
+            elif output_name in signal_values:  # Output from instantiation
+                output_values[output_name] = signal_values[output_name]
         
         return output_values
     
@@ -167,6 +216,59 @@ class LogicEvaluator:
         expression = re.sub(r'\^', '^', expression)
         
         return expression
+    
+    def _evaluate_instantiation(self, inst: Dict[str, Any], signal_values: Dict[str, int]):
+        """Evaluate a module instantiation."""
+        module_type = inst['module_type']
+        connections = inst['connections']
+        
+        # Load the referenced module if not already loaded
+        if module_type not in self.loaded_modules:
+            self._load_module(module_type)
+        
+        if module_type not in self.loaded_modules:
+            raise ValueError(f"Could not load module '{module_type}'")
+        
+        module_info = self.loaded_modules[module_type]
+        
+        # Build input values for the instantiated module
+        inst_input_values = {}
+        for port_name, signal_name in connections.items():
+            if port_name in module_info['inputs']:
+                if signal_name in signal_values:
+                    inst_input_values[port_name] = signal_values[signal_name]
+                else:
+                    raise ValueError(f"Signal '{signal_name}' not found for instantiation '{inst['instance_name']}'")
+        
+        # Create evaluator for the instantiated module
+        inst_evaluator = LogicEvaluator(
+            module_info['inputs'],
+            module_info['outputs'],
+            module_info['assignments'],
+            module_info.get('instantiations', [])
+        )
+        
+        # Evaluate the instantiated module
+        inst_outputs = inst_evaluator.evaluate(inst_input_values)
+        
+        # Map outputs back to the parent module's signals
+        for port_name, signal_name in connections.items():
+            if port_name in module_info['outputs']:
+                signal_values[signal_name] = inst_outputs[port_name]
+    
+    def _load_module(self, module_name: str):
+        """Load a module from file."""
+        import os
+        
+        # Try to find the module file in the current directory
+        module_file = f"{module_name}.sv"
+        if os.path.exists(module_file):
+            try:
+                parser = SystemVerilogParser()
+                module_info = parser.parse_file(module_file)
+                self.loaded_modules[module_name] = module_info
+            except Exception as e:
+                print(f"Warning: Could not load module '{module_name}': {e}")
 
 
 class TruthTableGenerator:
@@ -319,7 +421,8 @@ def main():
         evaluator = LogicEvaluator(
             module_info['inputs'], 
             module_info['outputs'], 
-            module_info['assignments']
+            module_info['assignments'],
+            module_info.get('instantiations', [])
         )
         
         # Generate and display truth table

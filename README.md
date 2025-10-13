@@ -42,6 +42,8 @@ python sv_simulator.py --file complex_logic.sv --max-combinations 4
 
 - Module declarations with input/output ports
 - Basic assign statements
+- Module instantiation with port connections
+- Wire declarations
 - Bitwise operators: `&` (AND), `|` (OR), `^` (XOR), `~` (NOT)
 - Parentheses for expression grouping
 - Single-bit scalar signals
@@ -55,6 +57,22 @@ module nand_gate (
     output outY
 );
     assign outY = ~(inA & inB);
+endmodule
+```
+
+### Module Instantiation Example
+
+```verilog
+module inverter (
+    input in,
+    output out
+);
+    // Create an inverter using a NAND gate
+    nand_gate u1 (
+        .inA(in),
+        .inB(in),
+        .outY(out)
+    );
 endmodule
 ```
 
@@ -88,8 +106,12 @@ The simulator consists of four main components:
 
 See the included example files:
 - `nand_gate.sv`: Simple NAND gate implementation
+- `inverter.sv`: Inverter built from NAND gate instantiation
+- `and_gate.sv`: AND gate built from NAND gate and inverter modules
 - `complex_logic.sv`: Multi-output module with various operations
 - `tests.json`: Example test cases for the NAND gate
+- `inverter_tests.json`: Test cases for the inverter
+- `and_gate_tests.json`: Test cases for the AND gate
 
 ## Limitations
 
@@ -97,9 +119,9 @@ This is an MVP focused on basic combinational logic. Current limitations include
 
 - No sequential logic (flip-flops, latches)
 - No multi-bit vectors (only scalar signals)
-- No module instantiation
 - Limited to basic bitwise operations
 - No arithmetic operators (+, -, *, /)
+- Module instantiation supports only same-directory modules
 
 ## Future Enhancements
 
