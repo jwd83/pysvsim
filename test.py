@@ -108,6 +108,14 @@ TEST_CASES = [
         description="4-bit ripple carry adder using proper SystemVerilog bus notation",
         expected_inputs=["A", "B", "Cin"],
         expected_outputs=["Sum", "Cout"]
+    ),
+    TestCase(
+        name="4:1 Multiplexer",
+        verilog_file="mux_4to1.sv",
+        test_file="tests_mux_4to1.json",
+        description="4:1 multiplexer using hierarchical design with bus inputs and select logic",
+        expected_inputs=["data_in", "select"],
+        expected_outputs=["out"]
     )
 ]
 

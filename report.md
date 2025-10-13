@@ -1,11 +1,11 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 06:47:37
+**Generated:** 2025-10-13 07:10:11
 
 ## Summary
 
-- **Total Test Cases:** 10
-- **Passed:** 10 ✅
+- **Total Test Cases:** 11
+- **Passed:** 11 ✅
 - **Failed:** 0 ❌
 - **Success Rate:** 100.0%
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.056s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.044s
+**Execution Time:** 0.032s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.056s
+**Execution Time:** 0.060s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.046s
+**Execution Time:** 0.055s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.063s
+**Execution Time:** 0.065s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -201,7 +201,7 @@ All tests passed!
 
 **File:** `nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.055s
+**Execution Time:** 0.053s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -239,7 +239,7 @@ All tests passed!
 
 **File:** `half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
-**Execution Time:** 0.063s
+**Execution Time:** 0.062s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -277,7 +277,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.108s
+**Execution Time:** 0.110s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -323,7 +323,7 @@ All tests passed!
 
 **File:** `alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.526s
+**Execution Time:** 0.510s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -402,7 +402,7 @@ All tests passed!
 
 **File:** `adder_4bit_bus.sv`
 **Description:** 4-bit ripple carry adder using proper SystemVerilog bus notation
-**Execution Time:** 3.993s
+**Execution Time:** 3.916s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -692,6 +692,132 @@ Test 12 passed
 Test 13 passed
 
 Test Results: 13/13 passed
+All tests passed!
+
+```
+
+---
+
+### 11. 4:1 Multiplexer ✅
+
+**File:** `mux_4to1.sv`
+**Description:** 4:1 multiplexer using hierarchical design with bus inputs and select logic
+**Execution Time:** 0.354s
+
+**Inputs Parsed:** ['data_in', 'select'] ✅
+**Outputs Parsed:** ['out'] ✅
+**Truth Table:** Generated ✅
+**Test Cases:** 32/32 passed ✅
+
+**Complete Output:**
+```
+Parsing SystemVerilog file: mux_4to1.sv
+Module: mux_4to1
+Inputs: ['data_in', 'select']
+Outputs: ['out']
+Truth Table:
+data_in[3:0] select[1:0] |    out
+---------------------------------
+     0      0 |      0
+     0      1 |      0
+     0      2 |      0
+     0      3 |      0
+     1      0 |      1
+     1      1 |      0
+     1      2 |      0
+     1      3 |      0
+     2      0 |      0
+     2      1 |      1
+     2      2 |      0
+     2      3 |      0
+     3      0 |      1
+     3      1 |      1
+     3      2 |      0
+     3      3 |      0
+     4      0 |      0
+     4      1 |      0
+     4      2 |      1
+     4      3 |      0
+     5      0 |      1
+     5      1 |      0
+     5      2 |      1
+     5      3 |      0
+     6      0 |      0
+     6      1 |      1
+     6      2 |      1
+     6      3 |      0
+     7      0 |      1
+     7      1 |      1
+     7      2 |      1
+     7      3 |      0
+     8      0 |      0
+     8      1 |      0
+     8      2 |      0
+     8      3 |      1
+     9      0 |      1
+     9      1 |      0
+     9      2 |      0
+     9      3 |      1
+    10      0 |      0
+    10      1 |      1
+    10      2 |      0
+    10      3 |      1
+    11      0 |      1
+    11      1 |      1
+    11      2 |      0
+    11      3 |      1
+    12      0 |      0
+    12      1 |      0
+    12      2 |      1
+    12      3 |      1
+    13      0 |      1
+    13      1 |      0
+    13      2 |      1
+    13      3 |      1
+    14      0 |      0
+    14      1 |      1
+    14      2 |      1
+    14      3 |      1
+    15      0 |      1
+    15      1 |      1
+    15      2 |      1
+    15      3 |      1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+Test 13 passed
+Test 14 passed
+Test 15 passed
+Test 16 passed
+Test 17 passed
+Test 18 passed
+Test 19 passed
+Test 20 passed
+Test 21 passed
+Test 22 passed
+Test 23 passed
+Test 24 passed
+Test 25 passed
+Test 26 passed
+Test 27 passed
+Test 28 passed
+Test 29 passed
+Test 30 passed
+Test 31 passed
+Test 32 passed
+
+Test Results: 32/32 passed
 All tests passed!
 
 ```
