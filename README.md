@@ -6,7 +6,7 @@ A pure Python SystemVerilog simulator designed for game development. Players can
 
 - **Pure Python**: No external dependencies except standard libraries
 - **Combinational Logic Support**: Handles basic logic operations (`&`, `|`, `^`, `~`)
-- **Truth Table Generation**: Automatically generates truth tables for up to 16 input combinations
+- **Truth Table Generation**: Automatically generates truth tables for up to 256 input combinations
 - **JSON Testing**: Validate designs with custom test cases
 - **Game-Ready**: Designed to be easily embedded in larger Python games
 
@@ -15,26 +15,26 @@ A pure Python SystemVerilog simulator designed for game development. Players can
 ### Basic Truth Table Generation
 
 ```bash
-python sv_simulator.py --file nand_gate.sv
+python pysvsim.py --file nand_gate.sv
 ```
 
 ### With Custom Test Cases
 
 ```bash
-python sv_simulator.py --file nand_gate.sv --test tests.json
+python pysvsim.py --file nand_gate.sv --test tests_nand_gate.json
 ```
 
 ### Limit Input Combinations
 
 ```bash
-python sv_simulator.py --file complex_logic.sv --max-combinations 4
+python pysvsim.py --file alu_1bit.sv --max-combinations 32
 ```
 
 ## Command Line Arguments
 
 - `--file <verilog_file>`: SystemVerilog file to simulate (required)
 - `--test <json_file>`: JSON test file (optional)
-- `--max-combinations N`: Maximum number of input combinations to test (default: 16)
+- `--max-combinations N`: Maximum number of input combinations to test (default: 256)
 
 ## SystemVerilog Support
 

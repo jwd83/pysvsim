@@ -6,7 +6,9 @@ A pure Python SystemVerilog simulator that parses basic combinational logic
 modules and generates truth tables. Supports testing with JSON test cases.
 
 Usage:
-    python sv_simulator.py --file <verilog_file> [--test <json_file>] [--max-combinations N]
+    python pysvsim.py --file <verilog_file> [--test <json_file>] [--max-combinations N]
+    
+Defaults to 256 max combinations for comprehensive truth table generation.
 """
 
 import argparse
@@ -277,7 +279,7 @@ class TruthTableGenerator:
     def __init__(self, evaluator: LogicEvaluator):
         self.evaluator = evaluator
     
-    def generate_truth_table(self, max_combinations: int = 16) -> List[Dict[str, int]]:
+    def generate_truth_table(self, max_combinations: int = 256) -> List[Dict[str, int]]:
         """
         Generate truth table for all input combinations.
         
@@ -402,8 +404,8 @@ def main():
     
     parser.add_argument('--file', required=True, help='SystemVerilog file to simulate')
     parser.add_argument('--test', help='JSON test file (optional)')
-    parser.add_argument('--max-combinations', type=int, default=16, 
-                       help='Maximum number of input combinations to test (default: 16)')
+    parser.add_argument('--max-combinations', type=int, default=256, 
+                       help='Maximum number of input combinations to test (default: 256)')
     
     args = parser.parse_args()
     
