@@ -1,11 +1,11 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 05:31:40
+**Generated:** 2025-10-13 05:39:43
 
 ## Summary
 
-- **Total Test Cases:** 7
-- **Passed:** 7 ✅
+- **Total Test Cases:** 8
+- **Passed:** 8 ✅
 - **Failed:** 0 ❌
 - **Success Rate:** 100.0%
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.050s
+**Execution Time:** 0.046s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.052s
+**Execution Time:** 0.045s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.052s
+**Execution Time:** 0.047s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -121,11 +121,49 @@ All tests passed!
 
 ---
 
-### 4. Half Adder ✅
+### 4. OR Gate ✅
+
+**File:** `or_gate.sv`
+**Description:** OR gate built using De Morgan's law with inverters + NAND
+**Execution Time:** 0.047s
+
+**Inputs Parsed:** ['inA', 'inB'] ✅
+**Outputs Parsed:** ['outY'] ✅
+**Truth Table:** Generated ✅
+**Test Cases:** 4/4 passed ✅
+
+**Complete Output:**
+```
+Parsing SystemVerilog file: or_gate.sv
+Module: or_gate
+Inputs: ['inA', 'inB']
+Outputs: ['outY']
+Truth Table:
+inA inB | outY
+--------------
+  0   0 |   0
+  0   1 |   1
+  1   0 |   1
+  1   1 |   1
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+
+Test Results: 4/4 passed
+All tests passed!
+
+```
+
+---
+
+### 5. Half Adder ✅
 
 **File:** `half_adder.sv`
 **Description:** Half adder with XOR sum and AND carry logic
-**Execution Time:** 0.058s
+**Execution Time:** 0.046s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -159,11 +197,11 @@ All tests passed!
 
 ---
 
-### 5. Full Adder ✅
+### 6. Full Adder ✅
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.059s
+**Execution Time:** 0.046s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -205,11 +243,11 @@ All tests passed!
 
 ---
 
-### 6. 1-bit ALU ✅
+### 7. 1-bit ALU ✅
 
 **File:** `alu_1bit.sv`
 **Description:** 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
-**Execution Time:** 0.074s
+**Execution Time:** 0.059s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1', 'Op2'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -332,11 +370,11 @@ All tests passed!
 
 ---
 
-### 7. Complex Logic ✅
+### 8. Complex Logic ✅
 
 **File:** `complex_logic.sv`
 **Description:** Multi-output module with various bitwise operations
-**Execution Time:** 0.058s
+**Execution Time:** 0.045s
 
 **Inputs Parsed:** ['a', 'b', 'c'] ✅
 **Outputs Parsed:** ['out1', 'out2', 'out3'] ✅
@@ -367,7 +405,7 @@ Truth Table:
 
 ## System Information
 
-- **Python:** 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
+- **Python:** 3.13.2 (main, Feb 12 2025, 14:49:53) [MSC v.1942 64 bit (AMD64)]
 - **Platform:** win32
 - **Working Directory:** C:\Users\jared\pysvsim
 - **pysvsim Script:** pysvsim.py

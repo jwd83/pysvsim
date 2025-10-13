@@ -54,6 +54,14 @@ TEST_CASES = [
         expected_outputs=["outY"]
     ),
     TestCase(
+        name="OR Gate",
+        verilog_file="or_gate.sv",
+        test_file="tests_or_gate.json",
+        description="OR gate built using De Morgan's law with inverters + NAND",
+        expected_inputs=["inA", "inB"],
+        expected_outputs=["outY"]
+    ),
+    TestCase(
         name="Half Adder",
         verilog_file="half_adder.sv",
         test_file="tests_half_adder.json",

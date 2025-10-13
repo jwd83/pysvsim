@@ -108,10 +108,18 @@ See the included example files:
 - `nand_gate.sv`: Simple NAND gate implementation
 - `inverter.sv`: Inverter built from NAND gate instantiation
 - `and_gate.sv`: AND gate built from NAND gate and inverter modules
+- `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND
+- `half_adder.sv`: Half adder with XOR sum and AND carry logic
+- `full_adder.sv`: Full adder built from two half adders with carry chain
+- `alu_1bit.sv`: 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
 - `complex_logic.sv`: Multi-output module with various operations
-- `tests.json`: Example test cases for the NAND gate
-- `inverter_tests.json`: Test cases for the inverter
-- `and_gate_tests.json`: Test cases for the AND gate
+- `tests_nand_gate.json`: Test cases for the NAND gate
+- `tests_inverter.json`: Test cases for the inverter
+- `tests_and_gate.json`: Test cases for the AND gate
+- `tests_or_gate.json`: Test cases for the OR gate
+- `tests_half_adder.json`: Test cases for the half adder
+- `tests_full_adder.json`: Test cases for the full adder
+- `tests_alu_1bit.json`: Test cases for the 1-bit ALU
 
 ## Limitations
 
