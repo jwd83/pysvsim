@@ -159,6 +159,7 @@ See the included example files:
 - `full_adder.sv`: Full adder built from two half adders with carry chain
 - `alu_1bit.sv`: Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD)
 - `adder_4bit_bus.sv`: **4-bit adder using proper bus notation** - demonstrates modern SystemVerilog design
+- `mux_4to1.sv`: **4:1 multiplexer with bus inputs** - hierarchical design using decoders and select logic
 
 ### JSON Test Files
 - `tests_*.json`: Comprehensive test cases for all modules with full input coverage
