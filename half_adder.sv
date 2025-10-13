@@ -4,9 +4,19 @@ module half_adder (
     output Sum,
     output Carry
 );
-    // Half adder logic:
-    // Sum = A XOR B
-    // Carry = A AND B
-    assign Sum = A ^ B;
-    assign Carry = A & B;
+    // Half adder built using hierarchical modules:
+    // Sum = A XOR B (using xor_gate module)
+    // Carry = A AND B (using and_gate module)
+    
+    xor_gate xor1 (
+        .inA(A),
+        .inB(B),
+        .outY(Sum)
+    );
+    
+    and_gate and1 (
+        .inA(A),
+        .inB(B),
+        .outY(Carry)
+    );
 endmodule

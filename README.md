@@ -110,7 +110,7 @@ See the included example files:
 - `and_gate.sv`: AND gate built from NAND gate and inverter modules
 - `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND
 - `xor_gate.sv`: XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-- `half_adder.sv`: Half adder with XOR sum and AND carry logic
+- `half_adder.sv`: Half adder built from XOR and AND gate modules
 - `full_adder.sv`: Full adder built from two half adders with carry chain
 - `alu_1bit.sv`: 1-bit ALU slice with 8 operations (AND, OR, XOR, ADD, SUB, NOT, PASS)
 - `complex_logic.sv`: Multi-output module with various operations

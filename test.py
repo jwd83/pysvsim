@@ -73,7 +73,7 @@ TEST_CASES = [
         name="Half Adder",
         verilog_file="half_adder.sv",
         test_file="tests_half_adder.json",
-        description="Half adder with XOR sum and AND carry logic",
+        description="Half adder built from XOR and AND gate modules (hierarchical design)",
         expected_inputs=["A", "B"],
         expected_outputs=["Sum", "Carry"]
     ),
