@@ -62,6 +62,14 @@ TEST_CASES = [
         expected_outputs=["outY"]
     ),
     TestCase(
+        name="XOR Gate",
+        verilog_file="xor_gate.sv",
+        test_file="tests_xor_gate.json",
+        description="XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules",
+        expected_inputs=["inA", "inB"],
+        expected_outputs=["outY"]
+    ),
+    TestCase(
         name="Half Adder",
         verilog_file="half_adder.sv",
         test_file="tests_half_adder.json",
