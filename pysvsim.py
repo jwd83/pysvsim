@@ -96,36 +96,93 @@ class SystemVerilogParser:
     
     def _parse_ports(self, content: str, port_list: str):
         """Parse input and output port declarations, including buses."""
-        # Find bus declarations like: input [3:0] A, output [7:0] result
-        bus_port_pattern = r'(input|output)\s+\[(\d+):(\d+)\]\s+(\w+)'
-        bus_declarations = re.findall(bus_port_pattern, content)
+        # First, try to parse from the port list in the module declaration
+        # This handles cases where ports are declared in the module header
+        self._parse_port_list(port_list)
         
-        for port_type, msb, lsb, port_name in bus_declarations:
+        # Port list parsing is complete. Additional port declarations in module body
+        # would be for internal signals, not module ports, so we skip content-based
+        # port parsing to avoid conflicts.
+    
+    def _parse_port_list(self, port_list: str):
+        """Parse the port list from the module declaration header."""
+        # Remove extra whitespace and handle multi-line declarations
+        port_list = ' '.join(port_list.split())
+        
+        # Parse by finding all input/output sections
+        # Split the port list into sections starting with input or output
+        sections = []
+        current_section = ""
+        current_type = None
+        
+        # Tokenize the port list, including 'wire' keyword which can appear after input/output
+        tokens = re.findall(r'\b(?:input|output|wire)\b|\[[^\]]+\]|\w+|,', port_list)
+        
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
+            
+            if token in ['input', 'output']:
+                # Save previous section if exists
+                if current_type and current_section:
+                    self._parse_port_section(current_type, current_section)
+                
+                # Start new section
+                current_type = token
+                current_section = ""
+            elif token == 'wire':
+                # Skip 'wire' keyword - it's optional and doesn't affect functionality
+                pass
+            elif token.startswith('[') and token.endswith(']'):
+                # Bus specification
+                current_section += " " + token
+            elif token == ',':
+                # Comma separator
+                current_section += token
+            elif token.isalnum() or '_' in token:
+                # Signal name
+                current_section += " " + token
+            
+            i += 1
+        
+        # Process the last section
+        if current_type and current_section:
+            self._parse_port_section(current_type, current_section)
+    
+    def _parse_port_section(self, port_type: str, section: str):
+        """Parse a single port section (input or output)."""
+        section = section.strip()
+        
+        # Check if this is a bus declaration
+        bus_match = re.match(r'\s*\[(\d+):(\d+)\]\s*(.+)', section)
+        if bus_match:
+            # Bus declaration
+            msb, lsb, port_names = bus_match.groups()
             msb, lsb = int(msb), int(lsb)
             width = abs(msb - lsb) + 1
             
-            # Store bus information
-            self.bus_info[port_name] = {'msb': msb, 'lsb': lsb, 'width': width}
+            # Parse signal names
+            names = [name.strip() for name in port_names.split(',') if name.strip()]
             
-            if port_type == 'input':
-                self.inputs.append(port_name)
-            elif port_type == 'output':
-                self.outputs.append(port_name)
-        
-        # Find single-bit declarations like: input A, output Y
-        single_port_pattern = r'(input|output)\s+(?!\[)(\w+)(?!\s*\[)'
-        single_declarations = re.findall(single_port_pattern, content)
-        
-        for port_type, port_name in single_declarations:
-            # Skip if already processed as a bus
-            if port_name not in self.bus_info:
-                # Single bit signal
-                self.bus_info[port_name] = {'msb': 0, 'lsb': 0, 'width': 1}
+            for port_name in names:
+                self.bus_info[port_name] = {'msb': msb, 'lsb': lsb, 'width': width}
                 
                 if port_type == 'input':
                     self.inputs.append(port_name)
                 elif port_type == 'output':
                     self.outputs.append(port_name)
+        else:
+            # Single-bit declarations
+            names = [name.strip() for name in section.split(',') if name.strip()]
+            
+            for port_name in names:
+                if port_name not in self.bus_info:
+                    self.bus_info[port_name] = {'msb': 0, 'lsb': 0, 'width': 1}
+                    
+                    if port_type == 'input':
+                        self.inputs.append(port_name)
+                    elif port_type == 'output':
+                        self.outputs.append(port_name)
     
     def _parse_wires(self, content: str):
         """Parse wire declarations, including bus wires."""
@@ -153,13 +210,21 @@ class SystemVerilogParser:
     
     def _parse_assignments(self, content: str):
         """Parse assign statements and build assignment expressions."""
-        assign_pattern = r'assign\s+(\w+)\s*=\s*([^;]+)\s*;'
+        # Enhanced pattern to capture bus slice assignments like out_hi[7:0] = in[15:8]
+        assign_pattern = r'assign\s+([\w\[\]:]+)\s*=\s*([^;]+)\s*;'
         assignments = re.findall(assign_pattern, content)
         
         for output_signal, expression in assignments:
             # Clean up the expression
             expression = expression.strip()
-            self.assignments[output_signal] = expression
+            
+            # Extract base signal name from bus slice notation like out_hi[7:0]
+            base_signal_match = re.match(r'(\w+)(?:\[\d+:\d+\])?', output_signal)
+            if base_signal_match:
+                base_signal = base_signal_match.group(1)
+                self.assignments[base_signal] = expression
+            else:
+                self.assignments[output_signal] = expression
     
     def _parse_instantiations(self, content: str):
         """Parse module instantiations."""
@@ -223,18 +288,36 @@ class LogicEvaluator:
         for inst in self.instantiations:
             self._evaluate_instantiation(inst, signal_values)
         
-        # Evaluate each assignment
+        # Evaluate all assignments (including intermediate wires) until no more changes
+        # This handles cases where assignments depend on each other
+        max_iterations = len(self.assignments) + 10  # Prevent infinite loops
+        iteration = 0
+        
+        while iteration < max_iterations:
+            changed = False
+            iteration += 1
+            
+            for signal_name, expression in self.assignments.items():
+                try:
+                    new_value = self._evaluate_expression(expression, signal_values)
+                    if signal_name not in signal_values or signal_values[signal_name] != new_value:
+                        signal_values[signal_name] = new_value
+                        changed = True
+                        # If this is a bus, expand to individual bits
+                        if signal_name in self.bus_info and self.bus_info[signal_name]['width'] > 1:
+                            self._expand_bus_to_bits(signal_name, new_value, signal_values)
+                except:
+                    # Skip assignments that can't be evaluated yet (dependencies not ready)
+                    continue
+            
+            # If no changes were made, we're done
+            if not changed:
+                break
+        
+        # Extract output values
         output_values = {}
         for output_name in self.outputs:
-            if output_name in self.assignments:
-                expression = self.assignments[output_name]
-                value = self._evaluate_expression(expression, signal_values)
-                output_values[output_name] = value
-                signal_values[output_name] = value
-                # If this is a bus, expand to individual bits
-                if output_name in self.bus_info and self.bus_info[output_name]['width'] > 1:
-                    self._expand_bus_to_bits(output_name, value, signal_values)
-            elif output_name in signal_values:  # Output from instantiation
+            if output_name in signal_values:
                 output_values[output_name] = signal_values[output_name]
             else:
                 # Check if this is a bus that needs to be collected from individual bits
@@ -254,7 +337,27 @@ class LogicEvaluator:
         if eval_expr in signal_values:
             return signal_values[eval_expr]
         
-        # Handle bus bit selection like A[2], B[0] first
+        # Handle bus slice expressions like A[7:0], in[15:8] first
+        bus_slice_pattern = r'(\w+)\[(\d+):(\d+)\]'
+        def replace_bus_slice(match):
+            bus_name = match.group(1)
+            msb = int(match.group(2))
+            lsb = int(match.group(3))
+            
+            # Extract the bus value
+            if bus_name in signal_values:
+                bus_value = signal_values[bus_name]
+                # Extract the specified bits
+                width = abs(msb - lsb) + 1
+                shift = lsb if msb >= lsb else msb
+                mask = (1 << width) - 1
+                slice_value = (bus_value >> shift) & mask
+                return str(slice_value)
+            return match.group(0)  # Return original if not found
+        
+        eval_expr = re.sub(bus_slice_pattern, replace_bus_slice, eval_expr)
+        
+        # Handle single bus bit selection like A[2], B[0]
         bit_select_pattern = r'(\w+)\[(\d+)\]'
         def replace_bit_select(match):
             bus_name = match.group(1)
