@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-13 07:10:11
+**Generated:** 2025-10-14 16:58:48
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 **File:** `nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.050s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.032s
+**Execution Time:** 0.048s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -87,7 +87,7 @@ All tests passed!
 
 **File:** `and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.060s
+**Execution Time:** 0.047s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.055s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.065s
+**Execution Time:** 0.057s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -201,7 +201,7 @@ All tests passed!
 
 **File:** `nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.053s
+**Execution Time:** 0.062s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -239,7 +239,7 @@ All tests passed!
 
 **File:** `half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
-**Execution Time:** 0.062s
+**Execution Time:** 0.060s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -277,7 +277,7 @@ All tests passed!
 
 **File:** `full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.110s
+**Execution Time:** 0.116s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -323,7 +323,7 @@ All tests passed!
 
 **File:** `alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.510s
+**Execution Time:** 0.575s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -402,7 +402,7 @@ All tests passed!
 
 **File:** `adder_4bit_bus.sv`
 **Description:** 4-bit ripple carry adder using proper SystemVerilog bus notation
-**Execution Time:** 3.916s
+**Execution Time:** 4.664s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -702,7 +702,7 @@ All tests passed!
 
 **File:** `mux_4to1.sv`
 **Description:** 4:1 multiplexer using hierarchical design with bus inputs and select logic
-**Execution Time:** 0.354s
+**Execution Time:** 0.443s
 
 **Inputs Parsed:** ['data_in', 'select'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -826,7 +826,7 @@ All tests passed!
 
 ## System Information
 
-- **Python:** 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
+- **Python:** 3.13.2 (main, Feb 12 2025, 14:49:53) [MSC v.1942 64 bit (AMD64)]
 - **Platform:** win32
 - **Working Directory:** C:\Users\jared\pysvsim
 - **pysvsim Script:** pysvsim.py
