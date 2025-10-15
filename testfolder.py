@@ -30,13 +30,16 @@ from typing import List, Tuple, Dict, Optional
 class TestResult:
     """Container for test results."""
     def __init__(self, file_path: str, success: bool, error_message: str = "", 
-                 runtime: float = 0.0, inputs: List[str] = None, outputs: List[str] = None):
+                 runtime: float = 0.0, inputs: List[str] = None, outputs: List[str] = None,
+                 truth_table_output: str = "", full_output: str = ""):
         self.file_path = file_path
         self.success = success
         self.error_message = error_message
         self.runtime = runtime
         self.inputs = inputs or []
         self.outputs = outputs or []
+        self.truth_table_output = truth_table_output
+        self.full_output = full_output
 
 
 class SystemVerilogTester:
@@ -91,10 +94,11 @@ class SystemVerilogTester:
             if result.returncode == 0:
                 # Parse output to extract inputs and outputs
                 inputs, outputs = self.parse_pysvsim_output(result.stdout)
-                return TestResult(file_path, True, "", runtime, inputs, outputs)
+                truth_table = self.extract_truth_table(result.stdout)
+                return TestResult(file_path, True, "", runtime, inputs, outputs, truth_table, result.stdout)
             else:
                 error_msg = result.stderr.strip() or result.stdout.strip()
-                return TestResult(file_path, False, error_msg, runtime)
+                return TestResult(file_path, False, error_msg, runtime, [], [], "", result.stdout + "\n" + result.stderr)
                 
         except subprocess.TimeoutExpired:
             runtime = time.time() - start_time
@@ -128,9 +132,30 @@ class SystemVerilogTester:
         
         return inputs, outputs
     
+    def extract_truth_table(self, output: str) -> str:
+        """Extract the truth table section from pysvsim.py output."""
+        lines = output.split('\n')
+        truth_table_lines = []
+        in_truth_table = False
+        
+        for line in lines:
+            if "Truth Table:" in line:
+                in_truth_table = True
+                truth_table_lines.append(line)
+                continue
+            
+            if in_truth_table:
+                if line.strip() == "" and truth_table_lines:
+                    # End of truth table (empty line after table content)
+                    break
+                if line.strip():  # Non-empty line
+                    truth_table_lines.append(line)
+        
+        return '\n'.join(truth_table_lines)
+    
     def run_tests(self, directory: str) -> Dict[str, any]:
         """Run tests on all .sv files in the directory."""
-        print(f"🔍 Searching for .sv files in: {directory}")
+        print(f"Searching for .sv files in: {directory}")
         
         try:
             sv_files = self.find_sv_files(directory)
@@ -139,10 +164,10 @@ class SystemVerilogTester:
             return {"success": False, "error": str(e)}
         
         if not sv_files:
-            print("⚠️  No .sv files found in the specified directory.")
+            print("WARNING: No .sv files found in the specified directory.")
             return {"success": True, "files_tested": 0, "results": []}
         
-        print(f"📁 Found {len(sv_files)} .sv files")
+        print(f"Found {len(sv_files)} .sv files")
         
         if not self.summary_only:
             print("\n" + "="*80)
@@ -165,48 +190,63 @@ class SystemVerilogTester:
             if result.success:
                 successful_tests += 1
                 if not self.summary_only:
-                    status = "✅ PASSED"
+                    status = "[PASS]"
                     if self.verbose:
                         status += f" ({result.runtime:.2f}s)"
                         if result.inputs:
                             status += f" - Inputs: {len(result.inputs)}, Outputs: {len(result.outputs)}"
                     print(f"    {status}")
+                    
+                    # Show truth table for successful tests
+                    if self.verbose and result.truth_table_output:
+                        print(f"\n    {result.truth_table_output.replace(chr(10), chr(10) + '    ')}")
+                        print()  # Extra line for spacing
             else:
                 if not self.summary_only:
-                    status = f"❌ FAILED ({result.runtime:.2f}s)"
-                    if self.verbose:
-                        status += f"\n    Error: {result.error_message}"
+                    status = f"[FAIL] ({result.runtime:.2f}s)"
                     print(f"    {status}")
+                    
+                    if self.verbose:
+                        print(f"    Error: {result.error_message}")
+                        
+                        # Show detailed failure information
+                        if result.full_output.strip():
+                            print(f"    Full output:")
+                            # Indent each line of the full output
+                            for line in result.full_output.split('\n'):
+                                if line.strip():
+                                    print(f"      {line}")
+                        print()  # Extra line for spacing
                 
                 if not self.continue_on_error:
-                    print(f"\n🛑 Stopping due to error (use --continue-on-error to continue)")
+                    print(f"\nStopping due to error (use --continue-on-error to continue)")
                     break
         
         # Print summary
         print(f"\n" + "="*80)
         print("TEST SUMMARY")
         print("="*80)
-        print(f"📊 Files tested: {len(self.results)}")
-        print(f"✅ Successful: {successful_tests}")
-        print(f"❌ Failed: {len(self.results) - successful_tests}")
-        print(f"⏱️  Total runtime: {total_runtime:.2f}s")
+        print(f"Files tested: {len(self.results)}")
+        print(f"Successful: {successful_tests}")
+        print(f"Failed: {len(self.results) - successful_tests}")
+        print(f"Total runtime: {total_runtime:.2f}s")
         
         if successful_tests > 0:
             avg_runtime = total_runtime / len(self.results)
-            print(f"📈 Average time per file: {avg_runtime:.2f}s")
+            print(f"Average time per file: {avg_runtime:.2f}s")
         
         # Show failed files if any
         failed_results = [r for r in self.results if not r.success]
         if failed_results and not self.summary_only:
-            print(f"\n❌ FAILED FILES ({len(failed_results)}):")
+            print(f"\nFAILED FILES ({len(failed_results)}):")
             for result in failed_results:
                 relative_path = os.path.relpath(result.file_path, directory)
                 print(f"   {relative_path}")
                 if self.verbose and result.error_message:
-                    print(f"     → {result.error_message}")
+                    print(f"     Error: {result.error_message}")
         
         success_rate = (successful_tests / len(self.results)) * 100 if self.results else 0
-        print(f"\n🎯 Success rate: {success_rate:.1f}%")
+        print(f"\nSuccess rate: {success_rate:.1f}%")
         
         return {
             "success": True,
@@ -243,7 +283,7 @@ def main():
     # Handle stop-on-error flag
     continue_on_error = not args.stop_on_error if args.stop_on_error else args.continue_on_error
     
-    print("🧪 SystemVerilog Recursive Tester")
+    print("SystemVerilog Recursive Tester")
     print("=" * 50)
     
     tester = SystemVerilogTester(
@@ -264,10 +304,10 @@ def main():
             sys.exit(1)
             
     except KeyboardInterrupt:
-        print("\n\n⏹️  Testing interrupted by user")
+        print("\n\nTesting interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nUnexpected error: {e}")
         sys.exit(1)
 
 

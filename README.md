@@ -39,11 +39,38 @@ python pysvsim.py --file adder_4bit_bus.sv --test tests_adder_4bit_bus.json --ma
 python test.py
 ```
 
+### Batch Testing with `testfolder.py`
+
+```bash
+# Test all .sv files in a directory recursively
+python testfolder.py ./tmp
+
+# Show detailed results with full truth tables and error information
+python testfolder.py ./tmp --verbose
+
+# Quick summary statistics only
+python testfolder.py ./tmp --summary-only
+
+# Limit test combinations and stop on first error for debugging
+python testfolder.py ./tmp --max-combinations 16 --stop-on-error --verbose
+```
+
 ## Command Line Arguments
+
+### `pysvsim.py` Arguments
 
 - `--file <verilog_file>`: SystemVerilog file to simulate (required)
 - `--test <json_file>`: JSON test file (optional)
 - `--max-combinations N`: Maximum number of input combinations to test (default: 256)
+
+### `testfolder.py` Arguments
+
+- `directory`: Directory to search for .sv files recursively (required)
+- `--max-combinations N`: Maximum number of input combinations per file (default: 64)
+- `--verbose`: Show detailed output including full truth tables and error information
+- `--summary-only`: Only show summary statistics, not individual test results
+- `--continue-on-error`: Continue testing other files even if some fail (default: True)
+- `--stop-on-error`: Stop testing when the first error occurs
 
 ## SystemVerilog Support
 
@@ -135,6 +162,90 @@ Each test case contains:
 - **Input values**: All inputs must be specified (integers for buses, 0/1 for single bits)
 - **Expected outputs**: `expect` object with expected output values
 
+## Testing Scripts
+
+The simulator includes comprehensive testing tools for both individual files and batch processing:
+
+### `test.py` - Comprehensive Test Suite
+
+Runs all predefined tests and generates detailed reports:
+
+```bash
+python test.py
+```
+
+**Features:**
+- Tests all included SystemVerilog modules with their corresponding JSON test files
+- Generates truth tables for each module
+- Creates a detailed `report.md` file with test results
+- Shows success/failure statistics
+- Includes full verbosity with no truth table truncation
+
+### `testfolder.py` - Recursive Directory Testing
+
+Recursively tests all `.sv` files in a directory structure:
+
+```bash
+python testfolder.py <directory> [options]
+```
+
+**Key Features:**
+- **Recursive Discovery**: Automatically finds all `.sv` files in subdirectories
+- **Batch Processing**: Tests hundreds of files efficiently with timeouts
+- **Detailed Truth Tables**: Shows complete truth tables for successful tests (with `--verbose`)
+- **Comprehensive Error Reporting**: Shows full parsing output and error context for failures
+- **Success Rate Analysis**: Provides statistics on supported vs unsupported SystemVerilog features
+- **Flexible Output**: Summary-only mode or detailed verbose output
+
+**Example Output - Successful Test:**
+```
+[PASS] (0.05s) - Inputs: 3, Outputs: 4
+
+Truth Table:
+     a      b      c |      w      x      y      z
+--------------------------------------------------
+     0      0      0 |      0      0      0      0
+     0      0      1 |      0      0      0      1
+     0      1      0 |      0      1      1      0
+     [... complete truth table ...]
+```
+
+**Example Output - Failed Test:**
+```
+[FAIL] (0.05s)
+Error: Error: 'reg out_alwaysblock'
+Full output:
+  Parsing SystemVerilog file: procedures/029-AlwaysBlocks.sv
+  Module: top_module
+  Inputs: ['a', 'b']
+  Outputs: ['out_assign', 'reg out_alwaysblock']
+  Error: 'reg out_alwaysblock'  # Shows exactly where parsing failed
+```
+
+**Use Cases:**
+- **HDL Course Validation**: Test homework solutions from courses like HDLBits
+- **Simulator Development**: Validate parser improvements and feature additions
+- **Educational Assessment**: Quickly assess which SystemVerilog constructs are supported
+- **Debugging**: Identify specific parsing failures and unsupported syntax
+
+**Typical Success Rates:**
+- **Basic Combinational Logic**: 90-100% (simple gates, multiplexers, decoders)
+- **Intermediate Combinational**: 70-85% (complex expressions, buses, arithmetic)
+- **Sequential Logic**: 0-10% (uses `reg`, `always` - not supported yet)
+- **Module Hierarchies**: Variable (depends on external module availability)
+
+**Example Usage:**
+```bash
+# Test HDLBits homework solutions with verbose output
+python testfolder.py ./hdlbits_solutions --verbose --max-combinations 32
+
+# Quick assessment of a large codebase
+python testfolder.py ./verilog_designs --summary-only
+
+# Debug specific parsing issues
+python testfolder.py ./problematic_files --verbose --stop-on-error
+```
+
 ## Architecture
 
 The simulator consists of four main components:
@@ -163,7 +274,10 @@ See the included example files:
 
 ### JSON Test Files
 - `tests_*.json`: Comprehensive test cases for all modules with full input coverage
-- `test.py`: **Automated test runner** - runs all tests and generates detailed reports
+
+### Testing Scripts
+- `test.py`: **Automated test runner** - runs all predefined tests and generates detailed reports
+- `testfolder.py`: **Batch testing tool** - recursively tests all .sv files in a directory with detailed output
 - `report.md`: Generated test report with truth tables and pass/fail status
 
 ## Limitations
