@@ -113,6 +113,14 @@ TEST_CASES = [
         expected_outputs=["Sum", "Cout"],
     ),
     TestCase(
+        name="Demux 1-to-2",
+        verilog_file="demux_1to2.sv",
+        test_file="demux_1to2.json",
+        description="1-to-2 demultiplexer using behavioral Verilog",
+        expected_inputs=["IN", "SEL"],
+        expected_outputs=["OUT0", "OUT1"],
+    ),
+    TestCase(
         name="4:1 Multiplexer",
         verilog_file="mux_4to1.sv",
         test_file="mux_4to1.json",
