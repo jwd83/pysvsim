@@ -241,8 +241,8 @@ class SystemVerilogParser:
 
             # Parse port connections
             port_connections = {}
-            # Pattern to match .port_name(signal_name) connections including bit selections like A[0]
-            conn_pattern = r"\.([\w]+)\(([\w\[\]]+)\)"
+            # Pattern to match .port_name(signal_name) connections including bit selections like A[0] and bus slices like A[3:0]
+            conn_pattern = r"\.([\w]+)\(([\w\[\]:]+)\)"
             connections_found = re.findall(conn_pattern, connections)
 
             for port_name, signal_name in connections_found:
@@ -453,14 +453,29 @@ class LogicEvaluator:
                 if signal_name in signal_values:
                     signal_value = signal_values[signal_name]
                 else:
-                    # Check if it's a bit selection like A[0]
-                    bit_select_match = re.match(r"(\w+)\[(\d+)\]", signal_name)
-                    if bit_select_match:
-                        bus_name = bit_select_match.group(1)
-                        bit_index = int(bit_select_match.group(2))
-                        bit_signal_name = f"{bus_name}[{bit_index}]"
-                        if bit_signal_name in signal_values:
-                            signal_value = signal_values[bit_signal_name]
+                    # Check if it's a bus slice like A[3:0]
+                    bus_slice_match = re.match(r"(\w+)\[(\d+):(\d+)\]", signal_name)
+                    if bus_slice_match:
+                        bus_name = bus_slice_match.group(1)
+                        msb = int(bus_slice_match.group(2))
+                        lsb = int(bus_slice_match.group(3))
+                        
+                        if bus_name in signal_values:
+                            # Extract the bus slice from the parent bus
+                            bus_value = signal_values[bus_name]
+                            width = abs(msb - lsb) + 1
+                            shift = lsb if msb >= lsb else msb
+                            mask = (1 << width) - 1
+                            signal_value = (bus_value >> shift) & mask
+                    else:
+                        # Check if it's a bit selection like A[0]
+                        bit_select_match = re.match(r"(\w+)\[(\d+)\]", signal_name)
+                        if bit_select_match:
+                            bus_name = bit_select_match.group(1)
+                            bit_index = int(bit_select_match.group(2))
+                            bit_signal_name = f"{bus_name}[{bit_index}]"
+                            if bit_signal_name in signal_values:
+                                signal_value = signal_values[bit_signal_name]
 
                 if signal_value is not None:
                     inst_input_values[port_name] = signal_value
@@ -484,16 +499,40 @@ class LogicEvaluator:
         # Map outputs back to the parent module's signals
         for port_name, signal_name in connections.items():
             if port_name in module_info["outputs"]:
-                # Handle direct signal assignment
-                signal_values[signal_name] = inst_outputs[port_name]
+                # Check if it's a bus slice assignment like outSum[3:0]
+                bus_slice_match = re.match(r"(\w+)\[(\d+):(\d+)\]", signal_name)
+                if bus_slice_match:
+                    bus_name = bus_slice_match.group(1)
+                    msb = int(bus_slice_match.group(2))
+                    lsb = int(bus_slice_match.group(3))
+                    output_value = inst_outputs[port_name]
+                    
+                    # Initialize bus if not exists
+                    if bus_name not in signal_values:
+                        signal_values[bus_name] = 0
+                    
+                    # Update the specific slice of the bus
+                    width = abs(msb - lsb) + 1
+                    shift = lsb if msb >= lsb else msb
+                    mask = (1 << width) - 1
+                    
+                    # Clear the target bits and set new value
+                    signal_values[bus_name] = (signal_values[bus_name] & ~(mask << shift)) | ((output_value & mask) << shift)
+                    
+                    # Also expand this updated bus to individual bits for consistency
+                    if bus_name in self.bus_info and self.bus_info[bus_name]["width"] > 1:
+                        self._expand_bus_to_bits(bus_name, signal_values[bus_name], signal_values)
+                else:
+                    # Handle direct signal assignment
+                    signal_values[signal_name] = inst_outputs[port_name]
 
-                # Also handle bit selection assignment like Sum[0]
-                bit_select_match = re.match(r"(\w+)\[(\d+)\]", signal_name)
-                if bit_select_match:
-                    bus_name = bit_select_match.group(1)
-                    bit_index = int(bit_select_match.group(2))
-                    bit_signal_name = f"{bus_name}[{bit_index}]"
-                    signal_values[bit_signal_name] = inst_outputs[port_name]
+                    # Also handle bit selection assignment like Sum[0]
+                    bit_select_match = re.match(r"(\w+)\[(\d+)\]", signal_name)
+                    if bit_select_match:
+                        bus_name = bit_select_match.group(1)
+                        bit_index = int(bit_select_match.group(2))
+                        bit_signal_name = f"{bus_name}[{bit_index}]"
+                        signal_values[bit_signal_name] = inst_outputs[port_name]
 
     def _expand_bus_to_bits(
         self, bus_name: str, bus_value: int, signal_values: Dict[str, int]

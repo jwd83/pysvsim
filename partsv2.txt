@@ -1,14 +1,14 @@
 SystemVerilog Recursive Tester
 ==================================================
 Searching for .sv files in: .\partsv2\
-Found 10 .sv files
+Found 11 .sv files
 
 ================================================================================
 TESTING RESULTS
 ================================================================================
 
-[  1/10] Testing: adder_4bit.sv
-    [PASS] (4.87s) - Inputs: 3, Outputs: 2
+[  1/11] Testing: adder_4bit.sv
+    [PASS] (4.90s) - Inputs: 3, Outputs: 2
 
     Truth Table:
     inA[3:0] inB[3:0] inCarry | outSum[3:0] outCarry
@@ -527,8 +527,19 @@ TESTING RESULTS
         15     15      1 |     15      1
 
 
-[  2/10] Testing: and_gate.sv
-    [PASS] (0.06s) - Inputs: 2, Outputs: 1
+[  2/11] Testing: adder_8bit.sv
+    [FAIL] (0.05s)
+    Error: Error: Signal 'inA[0]' not found for instantiation 'u_fa0'
+    Full output:
+      Parsing SystemVerilog file: partsv2\adder_8bit.sv
+      Module: adder_8bit
+      Inputs: ['inA', 'inB', 'inCarry']
+      Outputs: ['outSum', 'outCarry']
+      Error: Signal 'inA[0]' not found for instantiation 'u_fa0'
+
+
+[  3/11] Testing: and_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
 
     Truth Table:
        inA    inB |   outY
@@ -539,8 +550,8 @@ TESTING RESULTS
          1      1 |      1
 
 
-[  3/10] Testing: full_adder.sv
-    [PASS] (0.08s) - Inputs: 3, Outputs: 2
+[  4/11] Testing: full_adder.sv
+    [PASS] (0.07s) - Inputs: 3, Outputs: 2
 
     Truth Table:
        inA    inB inCarry | outSum outCarry
@@ -555,7 +566,7 @@ TESTING RESULTS
          1      1      1 |      1      1
 
 
-[  4/10] Testing: half_adder.sv
+[  5/11] Testing: half_adder.sv
     [PASS] (0.06s) - Inputs: 2, Outputs: 2
 
     Truth Table:
@@ -567,8 +578,8 @@ TESTING RESULTS
          1      1 |      0      1
 
 
-[  5/10] Testing: nand_gate.sv
-    [PASS] (0.06s) - Inputs: 2, Outputs: 1
+[  6/11] Testing: nand_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
 
     Truth Table:
        inA    inB |   outY
@@ -579,7 +590,7 @@ TESTING RESULTS
          1      1 |      0
 
 
-[  6/10] Testing: nor_gate.sv
+[  7/11] Testing: nor_gate.sv
     [PASS] (0.06s) - Inputs: 2, Outputs: 1
 
     Truth Table:
@@ -591,7 +602,7 @@ TESTING RESULTS
          1      1 |      0
 
 
-[  7/10] Testing: not_gate.sv
+[  8/11] Testing: not_gate.sv
     [PASS] (0.05s) - Inputs: 1, Outputs: 1
 
     Truth Table:
@@ -601,8 +612,8 @@ TESTING RESULTS
          1 |      0
 
 
-[  8/10] Testing: or_gate.sv
-    [PASS] (0.05s) - Inputs: 2, Outputs: 1
+[  9/11] Testing: or_gate.sv
+    [PASS] (0.06s) - Inputs: 2, Outputs: 1
 
     Truth Table:
        inA    inB |   outY
@@ -613,8 +624,8 @@ TESTING RESULTS
          1      1 |      1
 
 
-[  9/10] Testing: xnor_gate.sv
-    [PASS] (0.07s) - Inputs: 2, Outputs: 1
+[ 10/11] Testing: xnor_gate.sv
+    [PASS] (0.06s) - Inputs: 2, Outputs: 1
 
     Truth Table:
        inA    inB |   outY
@@ -625,7 +636,7 @@ TESTING RESULTS
          1      1 |      1
 
 
-[ 10/10] Testing: xor_gate.sv
+[ 11/11] Testing: xor_gate.sv
     [PASS] (0.06s) - Inputs: 2, Outputs: 1
 
     Truth Table:
@@ -640,10 +651,14 @@ TESTING RESULTS
 ================================================================================
 TEST SUMMARY
 ================================================================================
-Files tested: 10
+Files tested: 11
 Successful: 10
-Failed: 0
-Total runtime: 5.42s
-Average time per file: 0.54s
+Failed: 1
+Total runtime: 5.47s
+Average time per file: 0.50s
 
-Success rate: 100.0%
+FAILED FILES (1):
+   adder_8bit.sv
+     Error: Error: Signal 'inA[0]' not found for instantiation 'u_fa0'
+
+Success rate: 90.9%
