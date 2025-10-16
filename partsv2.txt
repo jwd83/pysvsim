@@ -1,0 +1,101 @@
+SystemVerilog Recursive Tester
+==================================================
+Searching for .sv files in: partsv2\
+Found 7 .sv files
+
+================================================================================
+TESTING RESULTS
+================================================================================
+
+[  1/7] Testing: and_gate.sv
+    [PASS] (0.06s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      0
+         0      1 |      0
+         1      0 |      0
+         1      1 |      1
+
+
+[  2/7] Testing: nand_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      1
+         0      1 |      1
+         1      0 |      1
+         1      1 |      0
+
+
+[  3/7] Testing: nor_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      1
+         0      1 |      0
+         1      0 |      0
+         1      1 |      0
+
+
+[  4/7] Testing: not_gate.sv
+    [PASS] (0.05s) - Inputs: 1, Outputs: 1
+
+    Truth Table:
+       inA |   outY
+    ---------------
+         0 |      1
+         1 |      0
+
+
+[  5/7] Testing: or_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      0
+         0      1 |      1
+         1      0 |      1
+         1      1 |      1
+
+
+[  6/7] Testing: xnor_gate.sv
+    [PASS] (0.06s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      1
+         0      1 |      0
+         1      0 |      0
+         1      1 |      1
+
+
+[  7/7] Testing: xor_gate.sv
+    [PASS] (0.05s) - Inputs: 2, Outputs: 1
+
+    Truth Table:
+       inA    inB |   outY
+    ----------------------
+         0      0 |      0
+         0      1 |      1
+         1      0 |      1
+         1      1 |      0
+
+
+================================================================================
+TEST SUMMARY
+================================================================================
+Files tested: 7
+Successful: 7
+Failed: 0
+Total runtime: 0.38s
+Average time per file: 0.05s
+
+Success rate: 100.0%
