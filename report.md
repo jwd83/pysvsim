@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-15 20:56:40
+**Generated:** 2025-10-15 21:40:10
 
 ## Summary
 
@@ -13,9 +13,9 @@
 
 ### 1. NAND Gate ✅
 
-**File:** `nand_gate.sv`
+**File:** `parts/nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.051s
+**Execution Time:** 0.049s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -24,7 +24,7 @@
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: nand_gate.sv
+Parsing SystemVerilog file: parts/nand_gate.sv
 Module: nand_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
@@ -51,9 +51,9 @@ All tests passed!
 
 ### 2. Inverter ✅
 
-**File:** `inverter.sv`
+**File:** `parts/inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.052s
+**Execution Time:** 0.050s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -62,7 +62,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: inverter.sv
+Parsing SystemVerilog file: parts/inverter.sv
 Module: inverter
 Inputs: ['in']
 Outputs: ['out']
@@ -85,9 +85,9 @@ All tests passed!
 
 ### 3. AND Gate ✅
 
-**File:** `and_gate.sv`
+**File:** `parts/and_gate.sv`
 **Description:** AND gate built from hierarchical NAND + inverter modules
-**Execution Time:** 0.050s
+**Execution Time:** 0.056s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -96,7 +96,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: and_gate.sv
+Parsing SystemVerilog file: parts/and_gate.sv
 Module: and_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
@@ -123,9 +123,9 @@ All tests passed!
 
 ### 4. OR Gate ✅
 
-**File:** `or_gate.sv`
+**File:** `parts/or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.060s
+**Execution Time:** 0.054s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -134,7 +134,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: or_gate.sv
+Parsing SystemVerilog file: parts/or_gate.sv
 Module: or_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
@@ -161,9 +161,9 @@ All tests passed!
 
 ### 5. XOR Gate ✅
 
-**File:** `xor_gate.sv`
+**File:** `parts/xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.071s
+**Execution Time:** 0.062s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -172,7 +172,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: xor_gate.sv
+Parsing SystemVerilog file: parts/xor_gate.sv
 Module: xor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
@@ -199,9 +199,9 @@ All tests passed!
 
 ### 6. NOR Gate ✅
 
-**File:** `nor_gate.sv`
+**File:** `parts/nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.061s
+**Execution Time:** 0.055s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -210,7 +210,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: nor_gate.sv
+Parsing SystemVerilog file: parts/nor_gate.sv
 Module: nor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
@@ -237,7 +237,7 @@ All tests passed!
 
 ### 7. Half Adder ✅
 
-**File:** `half_adder.sv`
+**File:** `parts/half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
 **Execution Time:** 0.069s
 
@@ -248,7 +248,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: half_adder.sv
+Parsing SystemVerilog file: parts/half_adder.sv
 Module: half_adder
 Inputs: ['A', 'B']
 Outputs: ['Sum', 'Carry']
@@ -275,9 +275,9 @@ All tests passed!
 
 ### 8. Full Adder ✅
 
-**File:** `full_adder.sv`
+**File:** `parts/full_adder.sv`
 **Description:** Full adder built from two half adders with carry chain
-**Execution Time:** 0.126s
+**Execution Time:** 0.129s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -286,7 +286,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: full_adder.sv
+Parsing SystemVerilog file: parts/full_adder.sv
 Module: full_adder
 Inputs: ['A', 'B', 'Cin']
 Outputs: ['Sum', 'Cout']
@@ -321,9 +321,9 @@ All tests passed!
 
 ### 9. 1-bit ALU ✅
 
-**File:** `alu_1bit.sv`
+**File:** `parts/alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.625s
+**Execution Time:** 0.681s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -332,7 +332,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: alu_1bit.sv
+Parsing SystemVerilog file: parts/alu_1bit.sv
 Module: alu_1bit
 Inputs: ['A', 'B', 'Cin', 'Op0', 'Op1']
 Outputs: ['Result', 'Cout']
@@ -400,9 +400,9 @@ All tests passed!
 
 ### 10. 4-bit Adder ✅
 
-**File:** `adder_4bit_bus.sv`
+**File:** `parts/adder_4bit_bus.sv`
 **Description:** 4-bit ripple carry adder using proper SystemVerilog bus notation
-**Execution Time:** 5.111s
+**Execution Time:** 5.337s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -411,7 +411,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: adder_4bit_bus.sv
+Parsing SystemVerilog file: parts/adder_4bit_bus.sv
 Module: adder_4bit_bus
 Inputs: ['A', 'B', 'Cin']
 Outputs: ['Sum', 'Cout']
@@ -700,9 +700,9 @@ All tests passed!
 
 ### 11. Demux 1-to-2 ✅
 
-**File:** `demux_1to2.sv`
+**File:** `parts/demux_1to2.sv`
 **Description:** 1-to-2 demultiplexer using behavioral Verilog
-**Execution Time:** 0.062s
+**Execution Time:** 0.059s
 
 **Inputs Parsed:** ['IN', 'SEL'] ✅
 **Outputs Parsed:** ['OUT0', 'OUT1'] ✅
@@ -711,7 +711,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: demux_1to2.sv
+Parsing SystemVerilog file: parts/demux_1to2.sv
 Module: demux_1to2
 Inputs: ['IN', 'SEL']
 Outputs: ['OUT0', 'OUT1']
@@ -738,9 +738,9 @@ All tests passed!
 
 ### 12. 4:1 Multiplexer ✅
 
-**File:** `mux_4to1.sv`
+**File:** `parts/mux_4to1.sv`
 **Description:** 4:1 multiplexer using hierarchical design with bus inputs and select logic
-**Execution Time:** 0.468s
+**Execution Time:** 0.490s
 
 **Inputs Parsed:** ['data_in', 'select'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -749,7 +749,7 @@ All tests passed!
 
 **Complete Output:**
 ```
-Parsing SystemVerilog file: mux_4to1.sv
+Parsing SystemVerilog file: parts/mux_4to1.sv
 Module: mux_4to1
 Inputs: ['data_in', 'select']
 Outputs: ['out']
