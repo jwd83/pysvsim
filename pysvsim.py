@@ -537,6 +537,11 @@ class LogicEvaluator:
                 # This is a bus slice expression - don't force to single bit
                 return result
             
+            # Check if the original expression contains a bus slice (like ~b[2:0])
+            if re.search(r"\w+\[\d+:\d+\]", expression.strip()):
+                # Expression contains bus slice - don't force to single bit
+                return result
+            
             # Default to single bit for unknown signals or single-bit signals
             return result & 1
         except Exception as e:

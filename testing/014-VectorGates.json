@@ -32,7 +32,7 @@
     {
         "a": 3, "b": 5,
         "expect": {
-            "out_or_bitwise": 7, "out_or_logical": 1, "out_not": 28
+            "out_or_bitwise": 7, "out_or_logical": 1, "out_not": 20
         }
     },
     {
@@ -44,7 +44,7 @@
     {
         "a": 2, "b": 4,
         "expect": {
-            "out_or_bitwise": 6, "out_or_logical": 1, "out_not": 21
+            "out_or_bitwise": 6, "out_or_logical": 1, "out_not": 29
         }
     }
 ]

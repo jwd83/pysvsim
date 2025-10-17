@@ -210,15 +210,15 @@ Test 10 passed
 [INFO] Generated truth table with 64 combinations
 
 Running tests...
-Test 1 failed: out_not = 9, expected 63
-Test 2 failed: out_not = 8, expected 62
-Test 3 failed: out_not = 1, expected 55
-Test 4 failed: out_not = 8, expected 56
-Test 5 failed: out_not = 1, expected 7
-Test 6 failed: out_not = 0, expected 28
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
 Test 7 passed
-Test 8 failed: out_not = 9, expected 21
-[INFO] Test results: 1/8 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
 
 [INFO] Testing testing\015-Gates4.sv
 [INFO] Using test file: testing\015-Gates4.json
@@ -817,7 +817,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\010-7458.json
 Test Success:  [PASS]
 Tests Passed:  5/5 (100.0%)
-Execution Time: 0.034s
+Execution Time: 0.045s
 
 
 Truth Table:
@@ -1087,7 +1087,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\011-Vector0.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -1109,7 +1109,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\012-Vector1.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.008s
+Execution Time: 0.012s
 
 
 Truth Table:
@@ -1379,7 +1379,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\013-Vector2.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.023s
+Execution Time: 0.027s
 
 
 Truth Table:
@@ -1647,76 +1647,76 @@ File: testing\014-VectorGates.sv
 Parse Success: [PASS]
 Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
-Test Success:  [FAIL]
-Tests Passed:  1/8 (12.5%)
-Execution Time: 0.010s
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.011s
 
 
 Truth Table:
 a[2:0] b[2:0] | out_or_bitwise[2:0] out_or_logical out_not[5:0]
 ---------------------------------------------------------------
-     0      0 |      0      0      9
-     0      1 |      1      1      1
-     0      2 |      2      1      9
-     0      3 |      3      1      1
-     0      4 |      4      1      9
-     0      5 |      5      1      1
-     0      6 |      6      1      9
-     0      7 |      7      1      1
-     1      0 |      1      1      8
-     1      1 |      1      1      0
-     1      2 |      3      1      8
-     1      3 |      3      1      0
-     1      4 |      5      1      8
-     1      5 |      5      1      0
-     1      6 |      7      1      8
-     1      7 |      7      1      0
-     2      0 |      2      1      9
-     2      1 |      3      1      1
-     2      2 |      2      1      9
-     2      3 |      3      1      1
-     2      4 |      6      1      9
-     2      5 |      7      1      1
-     2      6 |      6      1      9
-     2      7 |      7      1      1
-     3      0 |      3      1      8
-     3      1 |      3      1      0
-     3      2 |      3      1      8
-     3      3 |      3      1      0
-     3      4 |      7      1      8
-     3      5 |      7      1      0
-     3      6 |      7      1      8
-     3      7 |      7      1      0
-     4      0 |      4      1      9
-     4      1 |      5      1      1
-     4      2 |      6      1      9
-     4      3 |      7      1      1
-     4      4 |      4      1      9
-     4      5 |      5      1      1
-     4      6 |      6      1      9
-     4      7 |      7      1      1
-     5      0 |      5      1      8
-     5      1 |      5      1      0
-     5      2 |      7      1      8
-     5      3 |      7      1      0
-     5      4 |      5      1      8
-     5      5 |      5      1      0
-     5      6 |      7      1      8
-     5      7 |      7      1      0
-     6      0 |      6      1      9
-     6      1 |      7      1      1
-     6      2 |      6      1      9
-     6      3 |      7      1      1
-     6      4 |      6      1      9
-     6      5 |      7      1      1
+     0      0 |      0      0     63
+     0      1 |      1      1     55
+     0      2 |      2      1     47
+     0      3 |      3      1     39
+     0      4 |      4      1     31
+     0      5 |      5      1     23
+     0      6 |      6      1     15
+     0      7 |      7      1      7
+     1      0 |      1      1     62
+     1      1 |      1      1     54
+     1      2 |      3      1     46
+     1      3 |      3      1     38
+     1      4 |      5      1     30
+     1      5 |      5      1     22
+     1      6 |      7      1     14
+     1      7 |      7      1      6
+     2      0 |      2      1     61
+     2      1 |      3      1     53
+     2      2 |      2      1     45
+     2      3 |      3      1     37
+     2      4 |      6      1     29
+     2      5 |      7      1     21
+     2      6 |      6      1     13
+     2      7 |      7      1      5
+     3      0 |      3      1     60
+     3      1 |      3      1     52
+     3      2 |      3      1     44
+     3      3 |      3      1     36
+     3      4 |      7      1     28
+     3      5 |      7      1     20
+     3      6 |      7      1     12
+     3      7 |      7      1      4
+     4      0 |      4      1     59
+     4      1 |      5      1     51
+     4      2 |      6      1     43
+     4      3 |      7      1     35
+     4      4 |      4      1     27
+     4      5 |      5      1     19
+     4      6 |      6      1     11
+     4      7 |      7      1      3
+     5      0 |      5      1     58
+     5      1 |      5      1     50
+     5      2 |      7      1     42
+     5      3 |      7      1     34
+     5      4 |      5      1     26
+     5      5 |      5      1     18
+     5      6 |      7      1     10
+     5      7 |      7      1      2
+     6      0 |      6      1     57
+     6      1 |      7      1     49
+     6      2 |      6      1     41
+     6      3 |      7      1     33
+     6      4 |      6      1     25
+     6      5 |      7      1     17
      6      6 |      6      1      9
      6      7 |      7      1      1
-     7      0 |      7      1      8
-     7      1 |      7      1      0
-     7      2 |      7      1      8
-     7      3 |      7      1      0
-     7      4 |      7      1      8
-     7      5 |      7      1      0
+     7      0 |      7      1     56
+     7      1 |      7      1     48
+     7      2 |      7      1     40
+     7      3 |      7      1     32
+     7      4 |      7      1     24
+     7      5 |      7      1     16
      7      6 |      7      1      8
      7      7 |      7      1      0
 
@@ -2613,7 +2613,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.520s
+Execution Time: 0.590s
 
 
 Truth Table:
@@ -2883,7 +2883,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.064s
+Execution Time: 1.118s
 
 
 Truth Table:
@@ -3171,7 +3171,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.147s
+Execution Time: 0.156s
 
 
 Truth Table:
@@ -3441,7 +3441,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\full_adder.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.009s
+Execution Time: 0.010s
 
 
 Truth Table:
@@ -3463,7 +3463,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\half_adder.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.003s
 
 
 Truth Table:
@@ -3481,7 +3481,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -3787,7 +3787,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.292s
+Execution Time: 0.300s
 
 
 Truth Table:
@@ -4073,7 +4073,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.074s
+Execution Time: 0.075s
 
 
 Truth Table:
@@ -4361,7 +4361,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.237s
+Execution Time: 0.226s
 
 
 Truth Table:
@@ -4649,7 +4649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.376s
+Execution Time: 0.360s
 
 
 Truth Table:
@@ -4937,7 +4937,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.274s
+Execution Time: 0.287s
 
 
 Truth Table:
@@ -5204,22 +5204,21 @@ inA[7:0] inB[7:0] | outY[7:0]
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        34/37 (91.9%)
+Overall Success:        35/37 (94.6%)
 Parse Failures:         0
 Truth Table Failures:   0
 Files with JSON Tests:  37
-Test Case Failures:     3
+Test Case Failures:     2
 Total Test Cases:       250
-Passed Test Cases:      232/250 (92.8%)
-Total Execution Time:   3.177s
-Average Time per File:  0.086s
+Passed Test Cases:      239/250 (95.6%)
+Total Execution Time:   3.328s
+Average Time per File:  0.090s
 
-Failed Files (3):
-  [FAIL] testing\014-VectorGates.sv (Test failures)
+Failed Files (2):
   [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
   [FAIL] testing\019-Vector5.sv (Test failures)
 ============================================================
 
-Total runtime: 3.177s
+Total runtime: 3.329s
 
-Exiting with code 1 (3 files failed)
+Exiting with code 1 (2 files failed)
