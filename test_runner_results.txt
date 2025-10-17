@@ -1,23 +1,51 @@
-SystemVerilog Test Runner
-========================================
+SystemVerilog Test Runner (Maximum Verbosity)
+==================================================
 Target: testing\
 Max combinations: 256
-Mode: Summary only (no truth tables)
+Mode: Full verbose output with detailed reports
 
 Found 37 SystemVerilog file(s) to test
 
-Running tests...
-Test 1 passed
-[PASS] testing\001-GettingStarted.sv (1/1 tests passed)
+[INFO] Testing testing\001-GettingStarted.sv
+[INFO] Using test file: testing\001-GettingStarted.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: []
+[INFO] Outputs: ['one']
+[INFO] Generated truth table with 1 combinations
 
 Running tests...
 Test 1 passed
-[PASS] testing\002-OutputZero.sv (1/1 tests passed)
+[INFO] Test results: 1/1 passed
+
+[INFO] Testing testing\002-OutputZero.sv
+[INFO] Using test file: testing\002-OutputZero.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: []
+[INFO] Outputs: ['zero']
+[INFO] Generated truth table with 1 combinations
+
+Running tests...
+Test 1 passed
+[INFO] Test results: 1/1 passed
+
+[INFO] Testing testing\003-Wire.sv
+[INFO] Using test file: testing\003-Wire.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 2 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
-[PASS] testing\003-Wire.sv (2/2 tests passed)
+[INFO] Test results: 2/2 passed
+
+[INFO] Testing testing\004-Wire4.sv
+[INFO] Using test file: testing\004-Wire4.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b', 'c']
+[INFO] Outputs: ['w', 'x', 'y', 'z']
+[INFO] Generated truth table with 8 combinations
 
 Running tests...
 Test 1 passed
@@ -26,33 +54,68 @@ Test 3 passed
 Test 4 passed
 Test 5 passed
 Test 6 passed
-[PASS] testing\004-Wire4.sv (6/6 tests passed)
+[INFO] Test results: 6/6 passed
+
+[INFO] Testing testing\005-Notgate.sv
+[INFO] Using test file: testing\005-Notgate.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 2 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
-[PASS] testing\005-Notgate.sv (2/2 tests passed)
+[INFO] Test results: 2/2 passed
+
+[INFO] Testing testing\006-Andgate.sv
+[INFO] Using test file: testing\006-Andgate.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 4 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\006-Andgate.sv (4/4 tests passed)
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\007-Norgate.sv
+[INFO] Using test file: testing\007-Norgate.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 4 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\007-Norgate.sv (4/4 tests passed)
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\008-Xnorgate.sv
+[INFO] Using test file: testing\008-Xnorgate.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 4 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\008-Xnorgate.sv (4/4 tests passed)
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\009-DeclaringWires.sv
+[INFO] Using test file: testing\009-DeclaringWires.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b', 'c', 'd']
+[INFO] Outputs: ['out', 'out_n']
+[INFO] Generated truth table with 16 combinations
 
 Running tests...
 Test 1 passed
@@ -63,7 +126,15 @@ Test 5 passed
 Test 6 passed
 Test 7 passed
 Test 8 passed
-[PASS] testing\009-DeclaringWires.sv (8/8 tests passed)
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\010-7458.sv
+[INFO] Using test file: testing\010-7458.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['p1a', 'p1b', 'p1c', 'p1d', 'p1e', 'p1f', 'p2a', 'p2b', 'p2c', 'p2d']
+[INFO] Outputs: ['p1y', 'p2y']
+Warning: Too many input combinations (1024). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -71,7 +142,14 @@ Test 2 passed
 Test 3 passed
 Test 4 passed
 Test 5 passed
-[PASS] testing\010-7458.sv (5/5 tests passed)
+[INFO] Test results: 5/5 passed
+
+[INFO] Testing testing\011-Vector0.sv
+[INFO] Using test file: testing\011-Vector0.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['vec']
+[INFO] Outputs: ['outv', 'o2', 'o1', 'o0']
+[INFO] Generated truth table with 8 combinations
 
 Running tests...
 Test 1 passed
@@ -82,7 +160,15 @@ Test 5 passed
 Test 6 passed
 Test 7 passed
 Test 8 passed
-[PASS] testing\011-Vector0.sv (8/8 tests passed)
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\012-Vector1.sv
+[INFO] Using test file: testing\012-Vector1.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out_hi', 'out_lo']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -93,7 +179,15 @@ Test 5 passed
 Test 6 passed
 Test 7 passed
 Test 8 passed
-[PASS] testing\012-Vector1.sv (8/8 tests passed)
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\013-Vector2.sv
+[INFO] Using test file: testing\013-Vector2.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out']
+Warning: Too many input combinations (4294967296). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -106,7 +200,14 @@ Test 7 passed
 Test 8 passed
 Test 9 passed
 Test 10 passed
-[PASS] testing\013-Vector2.sv (10/10 tests passed)
+[INFO] Test results: 10/10 passed
+
+[INFO] Testing testing\014-VectorGates.sv
+[INFO] Using test file: testing\014-VectorGates.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b']
+[INFO] Outputs: ['out_or_bitwise', 'out_or_logical', 'out_not']
+[INFO] Generated truth table with 64 combinations
 
 Running tests...
 Test 1 failed: out_not = 9, expected 63
@@ -117,7 +218,14 @@ Test 5 failed: out_not = 1, expected 7
 Test 6 failed: out_not = 0, expected 28
 Test 7 passed
 Test 8 failed: out_not = 9, expected 21
-[FAIL] testing\014-VectorGates.sv (1/8 tests passed)
+[INFO] Test results: 1/8 passed
+
+[INFO] Testing testing\015-Gates4.sv
+[INFO] Using test file: testing\015-Gates4.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out_and', 'out_or', 'out_xor']
+[INFO] Generated truth table with 16 combinations
 
 Running tests...
 Test 1 passed
@@ -128,7 +236,15 @@ Test 5 passed
 Test 6 passed
 Test 7 passed
 Test 8 passed
-[PASS] testing\015-Gates4.sv (8/8 tests passed)
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\016-Vector3.sv
+[INFO] Using test file: testing\016-Vector3.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b', 'c', 'd', 'e', 'f']
+[INFO] Outputs: ['w', 'x', 'y', 'z']
+Warning: Too many input combinations (1073741824). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -144,7 +260,14 @@ Test 7 failed: z = 127, expected 31
 Test 8 failed: w = 7, expected 15
 Test 8 failed: x = 193, expected 128
 Test 8 failed: y = 240, expected 124
-[FAIL] testing\016-Vector3.sv (6/8 tests passed)
+[INFO] Test results: 6/8 passed
+
+[INFO] Testing testing\017-Vectorr.sv
+[INFO] Using test file: testing\017-Vectorr.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -157,7 +280,14 @@ Test 7 passed
 Test 8 passed
 Test 9 passed
 Test 10 passed
-[PASS] testing\017-Vectorr.sv (10/10 tests passed)
+[INFO] Test results: 10/10 passed
+
+[INFO] Testing testing\018-Vector4SignExtension.sv
+[INFO] Using test file: testing\018-Vector4SignExtension.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['in']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -168,7 +298,14 @@ Test 5 passed
 Test 6 failed: out = 129, expected 4294967169
 Test 7 passed
 Test 8 failed: out = 192, expected 4294967232
-[FAIL] testing\018-Vector4SignExtension.sv (4/8 tests passed)
+[INFO] Test results: 4/8 passed
+
+[INFO] Testing testing\019-Vector5.sv
+[INFO] Using test file: testing\019-Vector5.json
+[INFO] Parsed module: top_module
+[INFO] Inputs: ['a', 'b', 'c', 'd', 'e']
+[INFO] Outputs: ['out']
+[INFO] Generated truth table with 32 combinations
 
 Running tests...
 Test 1 failed: out = 0, expected 33554431
@@ -178,7 +315,15 @@ Test 4 failed: out = 0, expected 524288
 Test 5 failed: out = 0, expected 33554431
 Test 6 failed: out = 0, expected 16842752
 Test 7 failed: out = 0, expected 17825792
-[FAIL] testing\019-Vector5.sv (0/7 tests passed)
+[INFO] Test results: 0/7 passed
+
+[INFO] Testing testing\adder_4bit.sv
+[INFO] Using test file: testing\adder_4bit.json
+[INFO] Parsed module: adder_4bit
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+Warning: Too many input combinations (512). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -191,7 +336,15 @@ Test 7 passed
 Test 8 passed
 Test 9 passed
 Test 10 passed
-[PASS] testing\adder_4bit.sv (10/10 tests passed)
+[INFO] Test results: 10/10 passed
+
+[INFO] Testing testing\adder_8bit.sv
+[INFO] Using test file: testing\adder_8bit.json
+[INFO] Parsed module: adder_8bit
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+Warning: Too many input combinations (131072). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -204,54 +357,29 @@ Test 7 passed
 Test 8 passed
 Test 9 passed
 Test 10 passed
-[PASS] testing\adder_8bit.sv (10/10 tests passed)
+[INFO] Test results: 10/10 passed
+
+[INFO] Testing testing\and_gate.sv
+[INFO] Using test file: testing\and_gate.json
+[INFO] Parsed module: and_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\and_gate.sv (4/4 tests passed)
+[INFO] Test results: 4/4 passed
 
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-Test 5 passed
-Test 6 passed
-Test 7 passed
-Test 8 passed
-Test 9 passed
-Test 10 passed
-Test 11 passed
-Test 12 passed
-[PASS] testing\and_gate_8bit.sv (12/12 tests passed)
-
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-Test 5 passed
-Test 6 passed
-Test 7 passed
-Test 8 passed
-[PASS] testing\full_adder.sv (8/8 tests passed)
-
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-[PASS] testing\half_adder.sv (4/4 tests passed)
-
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-[PASS] testing\nand_gate.sv (4/4 tests passed)
+[INFO] Testing testing\and_gate_8bit.sv
+[INFO] Using test file: testing\and_gate_8bit.json
+[INFO] Parsed module: and_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -266,14 +394,61 @@ Test 9 passed
 Test 10 passed
 Test 11 passed
 Test 12 passed
-[PASS] testing\nand_gate_8bit.sv (12/12 tests passed)
+[INFO] Test results: 12/12 passed
+
+[INFO] Testing testing\full_adder.sv
+[INFO] Using test file: testing\full_adder.json
+[INFO] Parsed module: full_adder
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+[INFO] Generated truth table with 8 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\nor_gate.sv (4/4 tests passed)
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\half_adder.sv
+[INFO] Using test file: testing\half_adder.json
+[INFO] Parsed module: half_adder
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outSum', 'outCarry']
+[INFO] Generated truth table with 4 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\nand_gate.sv
+[INFO] Using test file: testing\nand_gate.json
+[INFO] Parsed module: nand_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\nand_gate_8bit.sv
+[INFO] Using test file: testing\nand_gate_8bit.json
+[INFO] Parsed module: nand_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -288,52 +463,29 @@ Test 9 passed
 Test 10 passed
 Test 11 passed
 Test 12 passed
-[PASS] testing\nor_gate_8bit.sv (12/12 tests passed)
+[INFO] Test results: 12/12 passed
 
-Running tests...
-Test 1 passed
-Test 2 passed
-[PASS] testing\not_gate.sv (2/2 tests passed)
-
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-Test 5 passed
-Test 6 passed
-Test 7 passed
-Test 8 passed
-[PASS] testing\not_gate_8bit.sv (8/8 tests passed)
+[INFO] Testing testing\nor_gate.sv
+[INFO] Using test file: testing\nor_gate.json
+[INFO] Parsed module: nor_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\or_gate.sv (4/4 tests passed)
+[INFO] Test results: 4/4 passed
 
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-Test 5 passed
-Test 6 passed
-Test 7 passed
-Test 8 passed
-Test 9 passed
-Test 10 passed
-Test 11 passed
-Test 12 passed
-[PASS] testing\or_gate_8bit.sv (12/12 tests passed)
-
-Running tests...
-Test 1 passed
-Test 2 passed
-Test 3 passed
-Test 4 passed
-[PASS] testing\xnor_gate.sv (4/4 tests passed)
+[INFO] Testing testing\nor_gate_8bit.sv
+[INFO] Using test file: testing\nor_gate_8bit.json
+[INFO] Parsed module: nor_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -348,14 +500,59 @@ Test 9 passed
 Test 10 passed
 Test 11 passed
 Test 12 passed
-[PASS] testing\xnor_gate_8bit.sv (12/12 tests passed)
+[INFO] Test results: 12/12 passed
+
+[INFO] Testing testing\not_gate.sv
+[INFO] Using test file: testing\not_gate.json
+[INFO] Parsed module: not_gate
+[INFO] Inputs: ['inA']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 2 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+[INFO] Test results: 2/2 passed
+
+[INFO] Testing testing\not_gate_8bit.sv
+[INFO] Using test file: testing\not_gate_8bit.json
+[INFO] Parsed module: not_gate_8bit
+[INFO] Inputs: ['inA']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
 Test 2 passed
 Test 3 passed
 Test 4 passed
-[PASS] testing\xor_gate.sv (4/4 tests passed)
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing testing\or_gate.sv
+[INFO] Using test file: testing\or_gate.json
+[INFO] Parsed module: or_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\or_gate_8bit.sv
+[INFO] Using test file: testing\or_gate_8bit.json
+[INFO] Parsed module: or_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
 
 Running tests...
 Test 1 passed
@@ -370,7 +567,601 @@ Test 9 passed
 Test 10 passed
 Test 11 passed
 Test 12 passed
-[PASS] testing\xor_gate_8bit.sv (12/12 tests passed)
+[INFO] Test results: 12/12 passed
+
+[INFO] Testing testing\xnor_gate.sv
+[INFO] Using test file: testing\xnor_gate.json
+[INFO] Parsed module: xnor_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\xnor_gate_8bit.sv
+[INFO] Using test file: testing\xnor_gate_8bit.json
+[INFO] Parsed module: xnor_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[INFO] Test results: 12/12 passed
+
+[INFO] Testing testing\xor_gate.sv
+[INFO] Using test file: testing\xor_gate.json
+[INFO] Parsed module: xor_gate
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+[INFO] Generated truth table with 4 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[INFO] Test results: 4/4 passed
+
+[INFO] Testing testing\xor_gate_8bit.sv
+[INFO] Using test file: testing\xor_gate_8bit.json
+[INFO] Parsed module: xor_gate_8bit
+[INFO] Inputs: ['inA', 'inB']
+[INFO] Outputs: ['outY']
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[INFO] Test results: 12/12 passed
+
+================================================================================
+DETAILED TEST REPORT
+================================================================================
+
+File: testing\001-GettingStarted.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\001-GettingStarted.json
+Test Success:  [PASS]
+Tests Passed:  1/1 (100.0%)
+Execution Time: 0.002s
+
+Truth Table:
+  1 combinations generated
+    Row 1: {'one': 1}
+
+File: testing\002-OutputZero.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\002-OutputZero.json
+Test Success:  [PASS]
+Tests Passed:  1/1 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  1 combinations generated
+    Row 1: {'zero': 0}
+
+File: testing\003-Wire.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\003-Wire.json
+Test Success:  [PASS]
+Tests Passed:  2/2 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  2 combinations generated
+    Row 1: {'in': 0, 'out': 0}
+    Row 2: {'in': 1, 'out': 1}
+
+File: testing\004-Wire4.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\004-Wire4.json
+Test Success:  [PASS]
+Tests Passed:  6/6 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  8 combinations generated
+    Row 1: {'a': 0, 'b': 0, 'c': 0, 'w': 0, 'x': 0, 'y': 0, 'z': 0}
+    Row 2: {'a': 0, 'b': 0, 'c': 1, 'w': 0, 'x': 0, 'y': 0, 'z': 1}
+    Row 3: {'a': 0, 'b': 1, 'c': 0, 'w': 0, 'x': 1, 'y': 1, 'z': 0}
+    Row 4: {'a': 0, 'b': 1, 'c': 1, 'w': 0, 'x': 1, 'y': 1, 'z': 1}
+    Row 5: {'a': 1, 'b': 0, 'c': 0, 'w': 1, 'x': 0, 'y': 0, 'z': 0}
+    Row 6: {'a': 1, 'b': 0, 'c': 1, 'w': 1, 'x': 0, 'y': 0, 'z': 1}
+    Row 7: {'a': 1, 'b': 1, 'c': 0, 'w': 1, 'x': 1, 'y': 1, 'z': 0}
+    Row 8: {'a': 1, 'b': 1, 'c': 1, 'w': 1, 'x': 1, 'y': 1, 'z': 1}
+
+File: testing\005-Notgate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\005-Notgate.json
+Test Success:  [PASS]
+Tests Passed:  2/2 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  2 combinations generated
+    Row 1: {'in': 0, 'out': 1}
+    Row 2: {'in': 1, 'out': 0}
+
+File: testing\006-Andgate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\006-Andgate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'a': 0, 'b': 0, 'out': 0}
+    Row 2: {'a': 0, 'b': 1, 'out': 0}
+    Row 3: {'a': 1, 'b': 0, 'out': 0}
+    Row 4: {'a': 1, 'b': 1, 'out': 1}
+
+File: testing\007-Norgate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\007-Norgate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'a': 0, 'b': 0, 'out': 1}
+    Row 2: {'a': 0, 'b': 1, 'out': 0}
+    Row 3: {'a': 1, 'b': 0, 'out': 0}
+    Row 4: {'a': 1, 'b': 1, 'out': 0}
+
+File: testing\008-Xnorgate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\008-Xnorgate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'a': 0, 'b': 0, 'out': 1}
+    Row 2: {'a': 0, 'b': 1, 'out': 0}
+    Row 3: {'a': 1, 'b': 0, 'out': 0}
+    Row 4: {'a': 1, 'b': 1, 'out': 1}
+
+File: testing\009-DeclaringWires.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\009-DeclaringWires.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.004s
+
+Truth Table:
+  16 combinations generated
+
+File: testing\010-7458.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\010-7458.json
+Test Success:  [PASS]
+Tests Passed:  5/5 (100.0%)
+Execution Time: 0.038s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\011-Vector0.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\011-Vector0.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  8 combinations generated
+    Row 1: {'vec': 0, 'outv': 0, 'o2': 0, 'o1': 0, 'o0': 0}
+    Row 2: {'vec': 1, 'outv': 1, 'o2': 0, 'o1': 0, 'o0': 1}
+    Row 3: {'vec': 2, 'outv': 2, 'o2': 0, 'o1': 1, 'o0': 0}
+    Row 4: {'vec': 3, 'outv': 3, 'o2': 0, 'o1': 1, 'o0': 1}
+    Row 5: {'vec': 4, 'outv': 4, 'o2': 1, 'o1': 0, 'o0': 0}
+    Row 6: {'vec': 5, 'outv': 5, 'o2': 1, 'o1': 0, 'o0': 1}
+    Row 7: {'vec': 6, 'outv': 6, 'o2': 1, 'o1': 1, 'o0': 0}
+    Row 8: {'vec': 7, 'outv': 7, 'o2': 1, 'o1': 1, 'o0': 1}
+
+File: testing\012-Vector1.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\012-Vector1.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.009s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\013-Vector2.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\013-Vector2.json
+Test Success:  [PASS]
+Tests Passed:  10/10 (100.0%)
+Execution Time: 0.022s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\014-VectorGates.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\014-VectorGates.json
+Test Success:  [FAIL]
+Tests Passed:  1/8 (12.5%)
+Execution Time: 0.010s
+
+Truth Table:
+  64 combinations generated
+
+File: testing\015-Gates4.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\015-Gates4.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.003s
+
+Truth Table:
+  16 combinations generated
+
+File: testing\016-Vector3.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\016-Vector3.json
+Test Success:  [FAIL]
+Tests Passed:  6/8 (75.0%)
+Execution Time: 0.006s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\017-Vectorr.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\017-Vectorr.json
+Test Success:  [PASS]
+Tests Passed:  10/10 (100.0%)
+Execution Time: 0.004s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\018-Vector4SignExtension.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\018-Vector4SignExtension.json
+Test Success:  [FAIL]
+Tests Passed:  4/8 (50.0%)
+Execution Time: 0.004s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\019-Vector5.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\019-Vector5.json
+Test Success:  [FAIL]
+Tests Passed:  0/7 (0.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  32 combinations generated
+
+File: testing\adder_4bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\adder_4bit.json
+Test Success:  [PASS]
+Tests Passed:  10/10 (100.0%)
+Execution Time: 0.532s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\adder_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\adder_8bit.json
+Test Success:  [PASS]
+Tests Passed:  10/10 (100.0%)
+Execution Time: 1.035s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\and_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\and_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 0}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 0}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 0}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 1}
+
+File: testing\and_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\and_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.145s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\full_adder.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\full_adder.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.009s
+
+Truth Table:
+  8 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'inCarry': 0, 'outSum': 0, 'outCarry': 0}
+    Row 2: {'inA': 0, 'inB': 0, 'inCarry': 1, 'outSum': 1, 'outCarry': 0}
+    Row 3: {'inA': 0, 'inB': 1, 'inCarry': 0, 'outSum': 1, 'outCarry': 0}
+    Row 4: {'inA': 0, 'inB': 1, 'inCarry': 1, 'outSum': 0, 'outCarry': 1}
+    Row 5: {'inA': 1, 'inB': 0, 'inCarry': 0, 'outSum': 1, 'outCarry': 0}
+    Row 6: {'inA': 1, 'inB': 0, 'inCarry': 1, 'outSum': 0, 'outCarry': 1}
+    Row 7: {'inA': 1, 'inB': 1, 'inCarry': 0, 'outSum': 0, 'outCarry': 1}
+    Row 8: {'inA': 1, 'inB': 1, 'inCarry': 1, 'outSum': 1, 'outCarry': 1}
+
+File: testing\half_adder.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\half_adder.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.002s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outSum': 0, 'outCarry': 0}
+    Row 2: {'inA': 0, 'inB': 1, 'outSum': 1, 'outCarry': 0}
+    Row 3: {'inA': 1, 'inB': 0, 'outSum': 1, 'outCarry': 0}
+    Row 4: {'inA': 1, 'inB': 1, 'outSum': 0, 'outCarry': 1}
+
+File: testing\nand_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\nand_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.000s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 1}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 1}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 1}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 0}
+
+File: testing\nand_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\nand_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.067s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\nor_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\nor_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.002s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 1}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 0}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 0}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 0}
+
+File: testing\nor_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\nor_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.291s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\not_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\not_gate.json
+Test Success:  [PASS]
+Tests Passed:  2/2 (100.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  2 combinations generated
+    Row 1: {'inA': 0, 'outY': 1}
+    Row 2: {'inA': 1, 'outY': 0}
+
+File: testing\not_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\not_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.074s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\or_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\or_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 0}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 1}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 1}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 1}
+
+File: testing\or_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\or_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.209s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\xnor_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\xnor_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.002s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 1}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 0}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 0}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 1}
+
+File: testing\xnor_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\xnor_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.346s
+
+Truth Table:
+  256 combinations generated
+
+File: testing\xor_gate.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\xor_gate.json
+Test Success:  [PASS]
+Tests Passed:  4/4 (100.0%)
+Execution Time: 0.001s
+
+Truth Table:
+  4 combinations generated
+    Row 1: {'inA': 0, 'inB': 0, 'outY': 0}
+    Row 2: {'inA': 0, 'inB': 1, 'outY': 1}
+    Row 3: {'inA': 1, 'inB': 0, 'outY': 1}
+    Row 4: {'inA': 1, 'inB': 1, 'outY': 0}
+
+File: testing\xor_gate_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    testing\xor_gate_8bit.json
+Test Success:  [PASS]
+Tests Passed:  12/12 (100.0%)
+Execution Time: 0.263s
+
+Truth Table:
+  256 combinations generated
 
 ============================================================
 SUMMARY REPORT
@@ -378,21 +1169,21 @@ SUMMARY REPORT
 Files Tested:           37
 Overall Success:        33/37 (89.2%)
 Parse Failures:         0
-Truth Table Failures:   37
+Truth Table Failures:   0
 Files with JSON Tests:  37
 Test Case Failures:     4
 Total Test Cases:       250
 Passed Test Cases:      230/250 (92.0%)
-Total Execution Time:   0.161s
-Average Time per File:  0.004s
+Total Execution Time:   3.087s
+Average Time per File:  0.083s
 
 Failed Files (4):
-  [FAIL] testing\014-VectorGates.sv (Truth table error)
-  [FAIL] testing\016-Vector3.sv (Truth table error)
-  [FAIL] testing\018-Vector4SignExtension.sv (Truth table error)
-  [FAIL] testing\019-Vector5.sv (Truth table error)
+  [FAIL] testing\014-VectorGates.sv (Test failures)
+  [FAIL] testing\016-Vector3.sv (Test failures)
+  [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
+  [FAIL] testing\019-Vector5.sv (Test failures)
 ============================================================
 
-Total runtime: 0.162s
+Total runtime: 3.087s
 
 Exiting with code 1 (4 files failed)

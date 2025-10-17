@@ -4,20 +4,15 @@ SystemVerilog Test Runner
 
 A comprehensive testing framework for SystemVerilog files that automatically
 discovers and runs JSON test cases, generates truth tables, and produces
-detailed test reports.
+detailed test reports with maximum verbosity.
 
 Usage:
-    python test_runner.py <file_or_folder> [options]
+    python test_runner.py <file_or_folder>
     
 Examples:
     python test_runner.py testing/005-Notgate.sv
     python test_runner.py testing/
-    python test_runner.py testing/ --verbose
-    python test_runner.py testing/ --summary-only
-    python test_runner.py testing/ --max-combinations 64
 """
-
-import argparse
 import json
 import os
 import sys
@@ -59,12 +54,12 @@ class TestReport:
 class SystemVerilogTestRunner:
     """Main test runner for SystemVerilog files and test suites"""
     
-    def __init__(self, max_combinations: int = 256, verbose: bool = False, 
-                 summary_only: bool = False, continue_on_error: bool = True):
-        self.max_combinations = max_combinations
-        self.verbose = verbose
-        self.summary_only = summary_only
-        self.continue_on_error = continue_on_error
+    def __init__(self):
+        # Fixed settings for maximum verbosity
+        self.max_combinations = 256
+        self.verbose = True
+        self.summary_only = False
+        self.continue_on_error = True
         self.reports: List[TestReport] = []
         
     def find_sv_files(self, path: str) -> List[str]:
@@ -299,93 +294,38 @@ class SystemVerilogTestRunner:
 
 def main():
     """Main entry point for the test runner"""
-    parser = argparse.ArgumentParser(
-        description="SystemVerilog Test Runner - Comprehensive testing framework",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    python test_runner.py testing/005-Notgate.sv
-    python test_runner.py testing/
-    python test_runner.py testing/ --verbose
-    python test_runner.py testing/ --summary-only
-    python test_runner.py testing/ --max-combinations 64 --continue-on-error
-        """
-    )
-    
-    parser.add_argument(
-        "path",
-        help="SystemVerilog file or directory to test"
-    )
-    parser.add_argument(
-        "--max-combinations",
-        type=int,
-        default=256,
-        help="Maximum number of truth table combinations to generate (default: 256)"
-    )
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output with detailed progress information"
-    )
-    parser.add_argument(
-        "--summary-only",
-        action="store_true",
-        help="Skip truth table generation, only run tests"
-    )
-    parser.add_argument(
-        "--continue-on-error",
-        action="store_true",
-        default=True,
-        help="Continue testing other files when one fails (default: True)"
-    )
-    parser.add_argument(
-        "--stop-on-first-error",
-        action="store_true",
-        help="Stop testing when the first error occurs"
-    )
-    parser.add_argument(
-        "--detailed-report",
-        action="store_true",
-        help="Show detailed report including truth tables and error details"
-    )
-    
-    args = parser.parse_args()
-    
-    # Handle conflicting options
-    if args.stop_on_first_error:
-        args.continue_on_error = False
-    
-    # Verify path exists
-    if not os.path.exists(args.path):
-        print(f"Error: Path '{args.path}' does not exist")
+    # Simple command line argument handling - just expect the path
+    if len(sys.argv) != 2:
+        print("Usage: python test_runner.py <file_or_folder>")
+        print("\nExamples:")
+        print("    python test_runner.py testing/005-Notgate.sv")
+        print("    python test_runner.py testing/")
         sys.exit(1)
     
-    # Create and run test runner
-    runner = SystemVerilogTestRunner(
-        max_combinations=args.max_combinations,
-        verbose=args.verbose,
-        summary_only=args.summary_only,
-        continue_on_error=args.continue_on_error
-    )
+    path = sys.argv[1]
     
-    print("SystemVerilog Test Runner")
-    print("=" * 40)
-    print(f"Target: {args.path}")
-    print(f"Max combinations: {args.max_combinations}")
-    if args.summary_only:
-        print("Mode: Summary only (no truth tables)")
-    if args.verbose:
-        print("Mode: Verbose output enabled")
+    # Verify path exists
+    if not os.path.exists(path):
+        print(f"Error: Path '{path}' does not exist")
+        sys.exit(1)
+    
+    # Create test runner with maximum verbosity settings
+    runner = SystemVerilogTestRunner()
+    
+    print("SystemVerilog Test Runner (Maximum Verbosity)")
+    print("=" * 50)
+    print(f"Target: {path}")
+    print(f"Max combinations: {runner.max_combinations}")
+    print("Mode: Full verbose output with detailed reports")
     print()
     
     # Run tests
     start_time = time.time()
-    runner.run_tests(args.path)
+    runner.run_tests(path)
     end_time = time.time()
     
-    # Print reports
-    if args.detailed_report or args.verbose:
-        runner.print_detailed_report()
+    # Always print detailed report since we want maximum verbosity
+    runner.print_detailed_report()
     
     runner.print_summary_report()
     
