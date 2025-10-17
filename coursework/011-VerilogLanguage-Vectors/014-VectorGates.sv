@@ -12,9 +12,9 @@ module top_module(
     assign out_or_bitwise = a | b;
 
     // original solution
-    // assign out_or_logical = a[0] | a[1] | a[2] | b[0] | b[1] | b[2];
+    assign out_or_logical = a[0] | a[1] | a[2] | b[0] | b[1] | b[2];
 
     // alternative solution with reduction operators
-    assign out_or_logical = |a | |b;
+    // assign out_or_logical = |a | |b;
 
 endmodule
