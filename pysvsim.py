@@ -561,7 +561,7 @@ class LogicEvaluator:
         return expression
 
     def _evaluate_concatenation(self, concat_expr: str, signal_values: Dict[str, int]) -> int:
-        """Evaluate concatenation expressions like {a, b, c}."""
+        """Evaluate concatenation expressions like {a, b, c} and replication like {N{expr}}."""
         # Remove curly braces
         inner_expr = concat_expr[1:-1].strip()
         
@@ -570,8 +570,47 @@ class LogicEvaluator:
         
         result = 0
         for part in parts:
+            part_width = 1  # Default width
+            replication_match = None  # Initialize for each part
+            
+            # Check if this part is itself a concatenation (nested braces)
+            if part.startswith('{') and part.endswith('}'):
+                # Recursively evaluate nested concatenation
+                part_value = self._evaluate_concatenation(part, signal_values)
+                # For nested concatenations, we need to calculate the actual width
+                # by analyzing the inner content
+                part_width = self._calculate_concatenation_width(part, signal_values)
+            
+            # Check for replication pattern like {N{expression}}
+            elif (replication_match := re.match(r'(\d+)\{(.+?)\}', part)):
+                # Handle replication: N{expression}
+                count = int(replication_match.group(1))
+                expr = replication_match.group(2).strip()
+                
+                # Evaluate the replicated expression
+                replicated_value = self._evaluate_expression(expr, signal_values)
+                
+                # Determine the width of the replicated expression
+                # For single bit expressions, width is 1
+                expr_width = 1  # Default for single bits like in[7]
+                if expr in self.bus_info:
+                    expr_width = self.bus_info[expr]["width"]
+                elif re.match(r"\w+\[\d+:\d+\]", expr):
+                    # Handle bus slice width calculation
+                    slice_match = re.match(r"\w+\[(\d+):(\d+)\]", expr)
+                    if slice_match:
+                        msb, lsb = int(slice_match.group(1)), int(slice_match.group(2))
+                        expr_width = abs(msb - lsb) + 1
+                
+                # Create the replicated bits
+                part_value = 0
+                for i in range(count):
+                    part_value = (part_value << expr_width) | (replicated_value & ((1 << expr_width) - 1))
+                
+                part_width = count * expr_width
+            
             # Evaluate each part of the concatenation
-            if part in signal_values:
+            elif part in signal_values:
                 part_value = signal_values[part]
             else:
                 # Handle literal constants like 2'b11, 4'hF, 8'd255
@@ -611,19 +650,57 @@ class LogicEvaluator:
                     else:
                         part_value = 0
             
-            # Determine the width of this part
-            if part in signal_values and part in self.bus_info:
-                part_width = self.bus_info[part]["width"]
-            elif re.match(r"(\d+)'[bhdBHD]", part):  # Literal constant
-                literal_match = re.match(r"(\d+)'[bhdBHD]", part)
-                part_width = int(literal_match.group(1))
-            else:
-                part_width = 1  # Default to single bit
+            # Determine the width of this part (if not already set by replication logic)
+            if not replication_match:
+                if part in signal_values and part in self.bus_info:
+                    part_width = self.bus_info[part]["width"]
+                elif re.match(r"(\d+)'[bhdBHD]", part):  # Literal constant
+                    literal_match = re.match(r"(\d+)'[bhdBHD]", part)
+                    part_width = int(literal_match.group(1))
+                # part_width already defaults to 1
             
             # Shift previous results and add this part (MSB first)
             result = (result << part_width) | (part_value & ((1 << part_width) - 1))
         
         return result
+
+    def _calculate_concatenation_width(self, concat_expr: str, signal_values: Dict[str, int]) -> int:
+        """Calculate the total bit width of a concatenation expression."""
+        # Remove curly braces
+        inner_expr = concat_expr[1:-1].strip()
+        
+        # Split by comma and calculate width of each part
+        parts = [part.strip() for part in inner_expr.split(',')]
+        
+        total_width = 0
+        for part in parts:
+            # Check for replication pattern like {N{expression}}
+            replication_match = re.match(r'(\d+)\{(.+?)\}', part)
+            if replication_match:
+                count = int(replication_match.group(1))
+                expr = replication_match.group(2).strip()
+                
+                # Determine width of replicated expression
+                expr_width = 1  # Default for single bits like in[7]
+                if expr in self.bus_info:
+                    expr_width = self.bus_info[expr]["width"]
+                elif re.match(r"\w+\[\d+:\d+\]", expr):
+                    slice_match = re.match(r"\w+\[(\d+):(\d+)\]", expr)
+                    if slice_match:
+                        msb, lsb = int(slice_match.group(1)), int(slice_match.group(2))
+                        expr_width = abs(msb - lsb) + 1
+                
+                total_width += count * expr_width
+            
+            elif part in signal_values and part in self.bus_info:
+                total_width += self.bus_info[part]["width"]
+            elif re.match(r"(\d+)'[bhdBHD]", part):  # Literal constant
+                literal_match = re.match(r"(\d+)'[bhdBHD]", part)
+                total_width += int(literal_match.group(1))
+            else:
+                total_width += 1  # Default single bit
+        
+        return total_width
 
     def _evaluate_instantiation(
         self, inst: Dict[str, Any], signal_values: Dict[str, int]

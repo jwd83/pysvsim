@@ -287,13 +287,13 @@ Test 10 passed
 Running tests...
 Test 1 passed
 Test 2 passed
-Test 3 failed: out = 128, expected 4294967168
-Test 4 failed: out = 255, expected 4294967295
+Test 3 passed
+Test 4 passed
 Test 5 passed
-Test 6 failed: out = 129, expected 4294967169
+Test 6 passed
 Test 7 passed
-Test 8 failed: out = 192, expected 4294967232
-[INFO] Test results: 4/8 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
 
 [INFO] Testing testing\019-Vector5.sv
 [INFO] Using test file: testing\019-Vector5.json
@@ -733,7 +733,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\006-Andgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -751,7 +751,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\007-Norgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -769,7 +769,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\008-Xnorgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -787,7 +787,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\009-DeclaringWires.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.004s
+Execution Time: 0.005s
 
 
 Truth Table:
@@ -817,7 +817,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\010-7458.json
 Test Success:  [PASS]
 Tests Passed:  5/5 (100.0%)
-Execution Time: 0.045s
+Execution Time: 0.035s
 
 
 Truth Table:
@@ -1087,7 +1087,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\011-Vector0.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.000s
 
 
 Truth Table:
@@ -1109,7 +1109,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\012-Vector1.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.008s
 
 
 Truth Table:
@@ -1379,7 +1379,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\013-Vector2.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.027s
+Execution Time: 0.026s
 
 
 Truth Table:
@@ -1649,7 +1649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.011s
+Execution Time: 0.009s
 
 
 Truth Table:
@@ -2027,7 +2027,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\017-Vectorr.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.004s
+Execution Time: 0.005s
 
 
 Truth Table:
@@ -2295,9 +2295,9 @@ File: testing\018-Vector4SignExtension.sv
 Parse Success: [PASS]
 Truth Table:   [PASS]
 JSON Tests:    testing\018-Vector4SignExtension.json
-Test Success:  [FAIL]
-Tests Passed:  4/8 (50.0%)
-Execution Time: 0.003s
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.006s
 
 
 Truth Table:
@@ -2431,134 +2431,134 @@ in[7:0] | out[31:0]
    125 |    125
    126 |    126
    127 |    127
-   128 |    128
-   129 |    129
-   130 |    130
-   131 |    131
-   132 |    132
-   133 |    133
-   134 |    134
-   135 |    135
-   136 |    136
-   137 |    137
-   138 |    138
-   139 |    139
-   140 |    140
-   141 |    141
-   142 |    142
-   143 |    143
-   144 |    144
-   145 |    145
-   146 |    146
-   147 |    147
-   148 |    148
-   149 |    149
-   150 |    150
-   151 |    151
-   152 |    152
-   153 |    153
-   154 |    154
-   155 |    155
-   156 |    156
-   157 |    157
-   158 |    158
-   159 |    159
-   160 |    160
-   161 |    161
-   162 |    162
-   163 |    163
-   164 |    164
-   165 |    165
-   166 |    166
-   167 |    167
-   168 |    168
-   169 |    169
-   170 |    170
-   171 |    171
-   172 |    172
-   173 |    173
-   174 |    174
-   175 |    175
-   176 |    176
-   177 |    177
-   178 |    178
-   179 |    179
-   180 |    180
-   181 |    181
-   182 |    182
-   183 |    183
-   184 |    184
-   185 |    185
-   186 |    186
-   187 |    187
-   188 |    188
-   189 |    189
-   190 |    190
-   191 |    191
-   192 |    192
-   193 |    193
-   194 |    194
-   195 |    195
-   196 |    196
-   197 |    197
-   198 |    198
-   199 |    199
-   200 |    200
-   201 |    201
-   202 |    202
-   203 |    203
-   204 |    204
-   205 |    205
-   206 |    206
-   207 |    207
-   208 |    208
-   209 |    209
-   210 |    210
-   211 |    211
-   212 |    212
-   213 |    213
-   214 |    214
-   215 |    215
-   216 |    216
-   217 |    217
-   218 |    218
-   219 |    219
-   220 |    220
-   221 |    221
-   222 |    222
-   223 |    223
-   224 |    224
-   225 |    225
-   226 |    226
-   227 |    227
-   228 |    228
-   229 |    229
-   230 |    230
-   231 |    231
-   232 |    232
-   233 |    233
-   234 |    234
-   235 |    235
-   236 |    236
-   237 |    237
-   238 |    238
-   239 |    239
-   240 |    240
-   241 |    241
-   242 |    242
-   243 |    243
-   244 |    244
-   245 |    245
-   246 |    246
-   247 |    247
-   248 |    248
-   249 |    249
-   250 |    250
-   251 |    251
-   252 |    252
-   253 |    253
-   254 |    254
-   255 |    255
+   128 | 4294967168
+   129 | 4294967169
+   130 | 4294967170
+   131 | 4294967171
+   132 | 4294967172
+   133 | 4294967173
+   134 | 4294967174
+   135 | 4294967175
+   136 | 4294967176
+   137 | 4294967177
+   138 | 4294967178
+   139 | 4294967179
+   140 | 4294967180
+   141 | 4294967181
+   142 | 4294967182
+   143 | 4294967183
+   144 | 4294967184
+   145 | 4294967185
+   146 | 4294967186
+   147 | 4294967187
+   148 | 4294967188
+   149 | 4294967189
+   150 | 4294967190
+   151 | 4294967191
+   152 | 4294967192
+   153 | 4294967193
+   154 | 4294967194
+   155 | 4294967195
+   156 | 4294967196
+   157 | 4294967197
+   158 | 4294967198
+   159 | 4294967199
+   160 | 4294967200
+   161 | 4294967201
+   162 | 4294967202
+   163 | 4294967203
+   164 | 4294967204
+   165 | 4294967205
+   166 | 4294967206
+   167 | 4294967207
+   168 | 4294967208
+   169 | 4294967209
+   170 | 4294967210
+   171 | 4294967211
+   172 | 4294967212
+   173 | 4294967213
+   174 | 4294967214
+   175 | 4294967215
+   176 | 4294967216
+   177 | 4294967217
+   178 | 4294967218
+   179 | 4294967219
+   180 | 4294967220
+   181 | 4294967221
+   182 | 4294967222
+   183 | 4294967223
+   184 | 4294967224
+   185 | 4294967225
+   186 | 4294967226
+   187 | 4294967227
+   188 | 4294967228
+   189 | 4294967229
+   190 | 4294967230
+   191 | 4294967231
+   192 | 4294967232
+   193 | 4294967233
+   194 | 4294967234
+   195 | 4294967235
+   196 | 4294967236
+   197 | 4294967237
+   198 | 4294967238
+   199 | 4294967239
+   200 | 4294967240
+   201 | 4294967241
+   202 | 4294967242
+   203 | 4294967243
+   204 | 4294967244
+   205 | 4294967245
+   206 | 4294967246
+   207 | 4294967247
+   208 | 4294967248
+   209 | 4294967249
+   210 | 4294967250
+   211 | 4294967251
+   212 | 4294967252
+   213 | 4294967253
+   214 | 4294967254
+   215 | 4294967255
+   216 | 4294967256
+   217 | 4294967257
+   218 | 4294967258
+   219 | 4294967259
+   220 | 4294967260
+   221 | 4294967261
+   222 | 4294967262
+   223 | 4294967263
+   224 | 4294967264
+   225 | 4294967265
+   226 | 4294967266
+   227 | 4294967267
+   228 | 4294967268
+   229 | 4294967269
+   230 | 4294967270
+   231 | 4294967271
+   232 | 4294967272
+   233 | 4294967273
+   234 | 4294967274
+   235 | 4294967275
+   236 | 4294967276
+   237 | 4294967277
+   238 | 4294967278
+   239 | 4294967279
+   240 | 4294967280
+   241 | 4294967281
+   242 | 4294967282
+   243 | 4294967283
+   244 | 4294967284
+   245 | 4294967285
+   246 | 4294967286
+   247 | 4294967287
+   248 | 4294967288
+   249 | 4294967289
+   250 | 4294967290
+   251 | 4294967291
+   252 | 4294967292
+   253 | 4294967293
+   254 | 4294967294
+   255 | 4294967295
 
 File: testing\019-Vector5.sv
 ------------------------------------------------------------
@@ -2613,7 +2613,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.590s
+Execution Time: 0.575s
 
 
 Truth Table:
@@ -2883,7 +2883,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.118s
+Execution Time: 1.153s
 
 
 Truth Table:
@@ -3171,7 +3171,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.156s
+Execution Time: 0.171s
 
 
 Truth Table:
@@ -3463,7 +3463,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\half_adder.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.003s
+Execution Time: 0.002s
 
 
 Truth Table:
@@ -3481,7 +3481,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.000s
 
 
 Truth Table:
@@ -3787,7 +3787,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.300s
+Execution Time: 0.307s
 
 
 Truth Table:
@@ -4073,7 +4073,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.075s
+Execution Time: 0.082s
 
 
 Truth Table:
@@ -4361,7 +4361,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.226s
+Execution Time: 0.241s
 
 
 Truth Table:
@@ -4631,7 +4631,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.003s
+Execution Time: 0.002s
 
 
 Truth Table:
@@ -4649,7 +4649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.360s
+Execution Time: 0.373s
 
 
 Truth Table:
@@ -4937,7 +4937,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.287s
+Execution Time: 0.278s
 
 
 Truth Table:
@@ -5204,21 +5204,20 @@ inA[7:0] inB[7:0] | outY[7:0]
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        35/37 (94.6%)
+Overall Success:        36/37 (97.3%)
 Parse Failures:         0
 Truth Table Failures:   0
 Files with JSON Tests:  37
-Test Case Failures:     2
+Test Case Failures:     1
 Total Test Cases:       250
-Passed Test Cases:      239/250 (95.6%)
-Total Execution Time:   3.328s
-Average Time per File:  0.090s
+Passed Test Cases:      243/250 (97.2%)
+Total Execution Time:   3.379s
+Average Time per File:  0.091s
 
-Failed Files (2):
-  [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
+Failed Files (1):
   [FAIL] testing\019-Vector5.sv (Test failures)
 ============================================================
 
-Total runtime: 3.329s
+Total runtime: 3.380s
 
-Exiting with code 1 (2 files failed)
+Exiting with code 1 (1 files failed)
