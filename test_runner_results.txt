@@ -1,0 +1,282 @@
+SystemVerilog Test Runner
+========================================
+Target: testing\
+Max combinations: 256
+
+Found 37 SystemVerilog file(s) to test
+
+Running tests...
+Test 1 passed
+[PASS] testing\001-GettingStarted.sv (1/1 tests passed)
+
+Running tests...
+Test 1 passed
+[PASS] testing\002-OutputZero.sv (1/1 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+[PASS] testing\003-Wire.sv (2/2 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+[PASS] testing\004-Wire4.sv (6/6 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+[PASS] testing\005-Notgate.sv (2/2 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\006-Andgate.sv (4/4 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\007-Norgate.sv (4/4 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\008-Xnorgate.sv (4/4 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\009-DeclaringWires.sv (8/8 tests passed)
+Warning: Too many input combinations (1024). Limiting to first 256 combinations.
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+[PASS] testing\010-7458.sv (5/5 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\011-Vector0.sv (8/8 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\012-Vector1.sv (8/8 tests passed)
+Warning: Too many input combinations (4294967296). Limiting to first 256 combinations.
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 failed: out = 3721182122, expected 3722304989
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 failed: out = 3569595041, expected 3570362017
+[FAIL] testing\013-Vector2.sv (8/10 tests passed)
+
+Running tests...
+Test 1 failed: out_not = 9, expected 63
+Test 2 failed: out_not = 8, expected 62
+Test 3 failed: out_not = 1, expected 55
+Test 4 failed: out_not = 8, expected 56
+Test 5 failed: out_not = 1, expected 7
+Test 6 failed: out_not = 0, expected 28
+Test 7 passed
+Test 8 failed: out_not = 9, expected 21
+[FAIL] testing\014-VectorGates.sv (1/8 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\015-Gates4.sv (8/8 tests passed)
+Warning: Too many input combinations (1073741824). Limiting to first 256 combinations.
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 failed: w = 8, expected 9
+Test 7 failed: x = 136, expected 2
+Test 7 failed: y = 136, expected 66
+Test 7 failed: z = 127, expected 31
+Test 8 failed: w = 7, expected 15
+Test 8 failed: x = 193, expected 128
+Test 8 failed: y = 240, expected 124
+[FAIL] testing\016-Vector3.sv (6/8 tests passed)
+[FAIL] testing\017-Vectorr.sv (0/0 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 failed: out = 128, expected 4294967168
+Test 4 failed: out = 255, expected 4294967295
+Test 5 passed
+Test 6 failed: out = 129, expected 4294967169
+Test 7 passed
+Test 8 failed: out = 192, expected 4294967232
+[FAIL] testing\018-Vector4SignExtension.sv (4/8 tests passed)
+
+Running tests...
+Test 1 failed: out = 0, expected 33554431
+Test 2 failed: out = 0, expected 16777216
+Test 3 failed: out = 0, expected 17301504
+Test 4 failed: out = 0, expected 524288
+Test 5 failed: out = 0, expected 33554431
+Test 6 failed: out = 0, expected 16842752
+Test 7 failed: out = 0, expected 17825792
+[FAIL] testing\019-Vector5.sv (0/7 tests passed)
+Warning: Too many input combinations (512). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\adder_4bit.sv (0/10 tests passed)
+Warning: Too many input combinations (131072). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\adder_8bit.sv (0/10 tests passed)
+
+Running tests...
+[FAIL] testing\and_gate.sv (0/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\and_gate_8bit.sv (0/12 tests passed)
+
+Running tests...
+[FAIL] testing\full_adder.sv (0/8 tests passed)
+
+Running tests...
+[FAIL] testing\half_adder.sv (0/4 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\nand_gate.sv (4/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\nand_gate_8bit.sv (0/12 tests passed)
+
+Running tests...
+[FAIL] testing\nor_gate.sv (0/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\nor_gate_8bit.sv (0/12 tests passed)
+
+Running tests...
+[FAIL] testing\not_gate.sv (0/2 tests passed)
+
+Running tests...
+[FAIL] testing\not_gate_8bit.sv (0/8 tests passed)
+
+Running tests...
+[FAIL] testing\or_gate.sv (0/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\or_gate_8bit.sv (0/12 tests passed)
+
+Running tests...
+[FAIL] testing\xnor_gate.sv (0/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\xnor_gate_8bit.sv (0/12 tests passed)
+
+Running tests...
+[FAIL] testing\xor_gate.sv (0/4 tests passed)
+Warning: Too many input combinations (65536). Limiting to first 256 combinations.
+
+Running tests...
+[FAIL] testing\xor_gate_8bit.sv (0/12 tests passed)
+
+============================================================
+SUMMARY REPORT
+============================================================
+Files Tested:           37
+Overall Success:        14/37 (37.8%)
+Parse Failures:         0
+Truth Table Failures:   17
+Files with JSON Tests:  37
+Test Case Failures:     23
+Total Test Cases:       240
+Passed Test Cases:      84/240 (35.0%)
+Total Execution Time:   0.109s
+Average Time per File:  0.003s
+
+Failed Files (23):
+  [FAIL] testing\013-Vector2.sv (Test failures)
+  [FAIL] testing\014-VectorGates.sv (Test failures)
+  [FAIL] testing\016-Vector3.sv (Test failures)
+  [FAIL] testing\017-Vectorr.sv (Test failures)
+  [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
+  [FAIL] testing\019-Vector5.sv (Test failures)
+  [FAIL] testing\adder_4bit.sv (Truth table error)
+  [FAIL] testing\adder_8bit.sv (Truth table error)
+  [FAIL] testing\and_gate.sv (Truth table error)
+  [FAIL] testing\and_gate_8bit.sv (Truth table error)
+  [FAIL] testing\full_adder.sv (Truth table error)
+  [FAIL] testing\half_adder.sv (Truth table error)
+  [FAIL] testing\nand_gate_8bit.sv (Truth table error)
+  [FAIL] testing\nor_gate.sv (Truth table error)
+  [FAIL] testing\nor_gate_8bit.sv (Truth table error)
+  [FAIL] testing\not_gate.sv (Truth table error)
+  [FAIL] testing\not_gate_8bit.sv (Truth table error)
+  [FAIL] testing\or_gate.sv (Truth table error)
+  [FAIL] testing\or_gate_8bit.sv (Truth table error)
+  [FAIL] testing\xnor_gate.sv (Truth table error)
+  [FAIL] testing\xnor_gate_8bit.sv (Truth table error)
+  [FAIL] testing\xor_gate.sv (Truth table error)
+  [FAIL] testing\xor_gate_8bit.sv (Truth table error)
+============================================================
+
+Total runtime: 0.110s
+
+Exiting with code 1 (23 files failed)
