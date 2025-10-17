@@ -1,20 +1,25 @@
+// ------------------- NOR Gate Using NAND -------------------
+// Function: Output is inverted OR
+// Truth table:
+// inA | inB | outY
+//  0  |  0  |  1
+//  0  |  1  |  0
+//  1  |  0  |  0
+//  1  |  1  |  0
 module nor_gate (
-    input inA,
-    input inB,
-    output outY
+    input  logic inA,
+    input  logic inB,
+    output logic outY
 );
-    // NOR gate built using NOT OR: ~(A | B)
-    // Step 1: Generate OR of inputs
-    wire or_result;
-    or_gate or1 (
+    logic or_out;
+
+    // Step 1: Use OR gate built from NANDs
+    or_gate u_or (
         .inA(inA),
         .inB(inB),
-        .outY(or_result)
+        .outY(or_out)
     );
-    
-    // Step 2: Invert the OR result to get NOR
-    inverter inv1 (
-        .in(or_result),
-        .out(outY)
-    );
+
+    // Step 2: NOT the OR result
+    not_gate u_not (.inA(or_out), .outY(outY));
 endmodule

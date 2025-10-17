@@ -1,29 +1,47 @@
+// ===========================================================
+// Full Adder using Two Half Adders
+// ===========================================================
+// Inputs: inA, inB, inCarry
+// Outputs: outSum, outCarry
+// Truth table:
+// inA | inB | inCarry | outSum | outCarry
+//  0  |  0  |    0    |    0   |    0
+//  0  |  0  |    1    |    1   |    0
+//  0  |  1  |    0    |    1   |    0
+//  0  |  1  |    1    |    0   |    1
+//  1  |  0  |    0    |    1   |    0
+//  1  |  0  |    1    |    0   |    1
+//  1  |  1  |    0    |    0   |    1
+//  1  |  1  |    1    |    1   |    1
 module full_adder (
-    input A,
-    input B,
-    input Cin,
-    output Sum,
-    output Cout
+    input  logic inA,
+    input  logic inB,
+    input  logic inCarry,
+    output logic outSum,
+    output logic outCarry
 );
-    // Full adder built from two half adders and an OR gate
-    // First half adder: A + B
-    wire sum1, carry1;
-    half_adder ha1 (
-        .A(A),
-        .B(B),
-        .Sum(sum1),
-        .Carry(carry1)
+    logic sum_half1, carry_half1, carry_half2;
+
+    // First half adder for inA and inB
+    half_adder u_half1 (
+        .inA(inA),
+        .inB(inB),
+        .outSum(sum_half1),
+        .outCarry(carry_half1)
     );
-    
-    // Second half adder: sum1 + Cin
-    wire carry2;
-    half_adder ha2 (
-        .A(sum1),
-        .B(Cin),
-        .Sum(Sum),
-        .Carry(carry2)
+
+    // Second half adder for sum of first half adder and inCarry
+    half_adder u_half2 (
+        .inA(sum_half1),
+        .inB(inCarry),
+        .outSum(outSum),
+        .outCarry(carry_half2)
     );
-    
-    // Output carry is OR of both half adder carries
-    assign Cout = carry1 | carry2;
+
+    // Final carry is OR of the two half adder carries
+    or_gate u_or_carry (
+        .inA(carry_half1),
+        .inB(carry_half2),
+        .outY(outCarry)
+    );
 endmodule

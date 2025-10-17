@@ -1,6 +1,0 @@
-[
-    { "IN": 0, "SEL": 0, "expect": { "OUT0": 0, "OUT1": 0 } },
-    { "IN": 0, "SEL": 1, "expect": { "OUT0": 0, "OUT1": 0 } },
-    { "IN": 1, "SEL": 0, "expect": { "OUT0": 1, "OUT1": 0 } },
-    { "IN": 1, "SEL": 1, "expect": { "OUT0": 0, "OUT1": 1 } }
-]

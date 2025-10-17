@@ -1,41 +1,27 @@
+// ------------------- XOR Gate Using NAND -------------------
+// Function: Output is 1 if inputs are different
+// Truth table:
+// inA | inB | outY
+//  0  |  0  |  0
+//  0  |  1  |  1
+//  1  |  0  |  1
+//  1  |  1  |  0
 module xor_gate (
-    input inA,
-    input inB,
-    output outY
+    input  logic inA,
+    input  logic inB,
+    output logic outY
 );
-    // XOR gate built using: A ⊕ B = (A & ~B) | (~A & B)
-    // Step 1: Invert A and B
-    wire not_A, not_B;
-    inverter inv1 (
-        .in(inA),
-        .out(not_A)
-    );
-    
-    inverter inv2 (
-        .in(inB),
-        .out(not_B)
-    );
-    
-    // Step 2: Generate A & ~B
-    wire a_and_not_b;
-    and_gate and1 (
-        .inA(inA),
-        .inB(not_B),
-        .outY(a_and_not_b)
-    );
-    
-    // Step 3: Generate ~A & B
-    wire not_a_and_b;
-    and_gate and2 (
-        .inA(not_A),
-        .inB(inB),
-        .outY(not_a_and_b)
-    );
-    
-    // Step 4: OR the results: (A & ~B) | (~A & B)
-    or_gate or1 (
-        .inA(a_and_not_b),
-        .inB(not_a_and_b),
-        .outY(outY)
-    );
+    logic nand1_out, nand2_out, nand3_out, nand4_out;
+
+    // Step 1: NAND of the inputs
+    nand_gate u_nand1 (.inA(inA), .inB(inB), .outY(nand1_out));
+
+    // Step 2: NAND of inA and nand1_out
+    nand_gate u_nand2 (.inA(inA), .inB(nand1_out), .outY(nand2_out));
+
+    // Step 3: NAND of inB and nand1_out
+    nand_gate u_nand3 (.inA(inB), .inB(nand1_out), .outY(nand3_out));
+
+    // Step 4: NAND of nand2_out and nand3_out gives XOR
+    nand_gate u_nand4 (.inA(nand2_out), .inB(nand3_out), .outY(outY));
 endmodule

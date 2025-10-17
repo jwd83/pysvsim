@@ -1,22 +1,31 @@
+// ===========================================================
+// Half Adder using NAND-based Gates
+// ===========================================================
+// Inputs: inA, inB
+// Outputs: outSum (A XOR B), outCarry (A AND B)
+// Truth table:
+// inA | inB | outSum | outCarry
+//  0  |  0  |    0   |    0
+//  0  |  1  |    1   |    0
+//  1  |  0  |    1   |    0
+//  1  |  1  |    0   |    1
 module half_adder (
-    input A,
-    input B,
-    output Sum,
-    output Carry
+    input  logic inA,
+    input  logic inB,
+    output logic outSum,
+    output logic outCarry
 );
-    // Half adder built using hierarchical modules:
-    // Sum = A XOR B (using xor_gate module)
-    // Carry = A AND B (using and_gate module)
-    
-    xor_gate xor1 (
-        .inA(A),
-        .inB(B),
-        .outY(Sum)
+    // Sum is XOR of inputs
+    xor_gate u_xor (
+        .inA(inA),
+        .inB(inB),
+        .outY(outSum)
     );
-    
-    and_gate and1 (
-        .inA(A),
-        .inB(B),
-        .outY(Carry)
+
+    // Carry is AND of inputs
+    and_gate u_and (
+        .inA(inA),
+        .inB(inB),
+        .outY(outCarry)
     );
 endmodule

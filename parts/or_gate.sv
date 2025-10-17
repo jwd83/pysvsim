@@ -1,25 +1,26 @@
+// ------------------- OR Gate Using NAND -------------------
+// Function: Output is 1 if at least one input is 1
+// Truth table:
+// inA | inB | outY
+//  0  |  0  |  0
+//  0  |  1  |  1
+//  1  |  0  |  1
+//  1  |  1  |  1
 module or_gate (
-    input inA,
-    input inB,
-    output outY
+    input  logic inA,
+    input  logic inB,
+    output logic outY
 );
-    // OR gate built using De Morgan's law: A | B = ~(~A & ~B)
-    // Step 1: Invert A and B
-    wire not_A, not_B;
-    inverter inv1 (
-        .in(inA),
-        .out(not_A)
-    );
-    
-    inverter inv2 (
-        .in(inB),
-        .out(not_B)
-    );
-    
-    // Step 2: NAND the inverted inputs: ~A NAND ~B = ~(~A & ~B) = A | B
-    nand_gate nand1 (
-        .inA(not_A),
-        .inB(not_B),
+    logic notA, notB;
+
+    // Step 1: NOT the inputs
+    not_gate u_notA (.inA(inA), .outY(notA));
+    not_gate u_notB (.inA(inB), .outY(notB));
+
+    // Step 2: NAND of the negated inputs gives OR
+    nand_gate u_nand (
+        .inA(notA),
+        .inB(notB),
         .outY(outY)
     );
 endmodule
