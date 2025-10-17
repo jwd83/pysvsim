@@ -100,15 +100,15 @@ Warning: Too many input combinations (4294967296). Limiting to first 256 combina
 Running tests...
 Test 1 passed
 Test 2 passed
-Test 3 failed: out = 3721182122, expected 3722304989
+Test 3 passed
 Test 4 passed
 Test 5 passed
 Test 6 passed
 Test 7 passed
 Test 8 passed
 Test 9 passed
-Test 10 failed: out = 3569595041, expected 3570362017
-[FAIL] testing\013-Vector2.sv (8/10 tests passed)
+Test 10 passed
+[PASS] testing\013-Vector2.sv (10/10 tests passed)
 
 Running tests...
 Test 1 failed: out_not = 9, expected 63
@@ -241,18 +241,17 @@ Running tests...
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        14/37 (37.8%)
+Overall Success:        15/37 (40.5%)
 Parse Failures:         0
 Truth Table Failures:   17
 Files with JSON Tests:  37
-Test Case Failures:     23
+Test Case Failures:     22
 Total Test Cases:       240
-Passed Test Cases:      84/240 (35.0%)
-Total Execution Time:   0.109s
+Passed Test Cases:      86/240 (35.8%)
+Total Execution Time:   0.108s
 Average Time per File:  0.003s
 
-Failed Files (23):
-  [FAIL] testing\013-Vector2.sv (Test failures)
+Failed Files (22):
   [FAIL] testing\014-VectorGates.sv (Test failures)
   [FAIL] testing\016-Vector3.sv (Test failures)
   [FAIL] testing\017-Vectorr.sv (Test failures)
@@ -277,6 +276,6 @@ Failed Files (23):
   [FAIL] testing\xor_gate_8bit.sv (Truth table error)
 ============================================================
 
-Total runtime: 0.110s
+Total runtime: 0.109s
 
-Exiting with code 1 (23 files failed)
+Exiting with code 1 (22 files failed)
