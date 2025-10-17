@@ -181,22 +181,70 @@ Test 7 failed: out = 0, expected 17825792
 [FAIL] testing\019-Vector5.sv (0/7 tests passed)
 
 Running tests...
-[FAIL] testing\adder_4bit.sv (0/10 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+[PASS] testing\adder_4bit.sv (10/10 tests passed)
 
 Running tests...
-[FAIL] testing\adder_8bit.sv (0/10 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+[PASS] testing\adder_8bit.sv (10/10 tests passed)
 
 Running tests...
-[FAIL] testing\and_gate.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\and_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\and_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\and_gate_8bit.sv (12/12 tests passed)
 
 Running tests...
-[FAIL] testing\full_adder.sv (0/8 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\full_adder.sv (8/8 tests passed)
 
 Running tests...
-[FAIL] testing\half_adder.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\half_adder.sv (4/4 tests passed)
 
 Running tests...
 Test 1 passed
@@ -206,76 +254,145 @@ Test 4 passed
 [PASS] testing\nand_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\nand_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\nand_gate_8bit.sv (12/12 tests passed)
 
 Running tests...
-[FAIL] testing\nor_gate.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\nor_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\nor_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\nor_gate_8bit.sv (12/12 tests passed)
 
 Running tests...
-[FAIL] testing\not_gate.sv (0/2 tests passed)
+Test 1 passed
+Test 2 passed
+[PASS] testing\not_gate.sv (2/2 tests passed)
 
 Running tests...
-[FAIL] testing\not_gate_8bit.sv (0/8 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[PASS] testing\not_gate_8bit.sv (8/8 tests passed)
 
 Running tests...
-[FAIL] testing\or_gate.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\or_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\or_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\or_gate_8bit.sv (12/12 tests passed)
 
 Running tests...
-[FAIL] testing\xnor_gate.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\xnor_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\xnor_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\xnor_gate_8bit.sv (12/12 tests passed)
 
 Running tests...
-[FAIL] testing\xor_gate.sv (0/4 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+[PASS] testing\xor_gate.sv (4/4 tests passed)
 
 Running tests...
-[FAIL] testing\xor_gate_8bit.sv (0/12 tests passed)
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+Test 11 passed
+Test 12 passed
+[PASS] testing\xor_gate_8bit.sv (12/12 tests passed)
 
 ============================================================
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        16/37 (43.2%)
+Overall Success:        33/37 (89.2%)
 Parse Failures:         0
 Truth Table Failures:   37
 Files with JSON Tests:  37
-Test Case Failures:     21
+Test Case Failures:     4
 Total Test Cases:       250
-Passed Test Cases:      96/250 (38.4%)
-Total Execution Time:   0.023s
-Average Time per File:  0.001s
+Passed Test Cases:      230/250 (92.0%)
+Total Execution Time:   0.161s
+Average Time per File:  0.004s
 
-Failed Files (21):
+Failed Files (4):
   [FAIL] testing\014-VectorGates.sv (Truth table error)
   [FAIL] testing\016-Vector3.sv (Truth table error)
   [FAIL] testing\018-Vector4SignExtension.sv (Truth table error)
   [FAIL] testing\019-Vector5.sv (Truth table error)
-  [FAIL] testing\adder_4bit.sv (Truth table error)
-  [FAIL] testing\adder_8bit.sv (Truth table error)
-  [FAIL] testing\and_gate.sv (Truth table error)
-  [FAIL] testing\and_gate_8bit.sv (Truth table error)
-  [FAIL] testing\full_adder.sv (Truth table error)
-  [FAIL] testing\half_adder.sv (Truth table error)
-  [FAIL] testing\nand_gate_8bit.sv (Truth table error)
-  [FAIL] testing\nor_gate.sv (Truth table error)
-  [FAIL] testing\nor_gate_8bit.sv (Truth table error)
-  [FAIL] testing\not_gate.sv (Truth table error)
-  [FAIL] testing\not_gate_8bit.sv (Truth table error)
-  [FAIL] testing\or_gate.sv (Truth table error)
-  [FAIL] testing\or_gate_8bit.sv (Truth table error)
-  [FAIL] testing\xnor_gate.sv (Truth table error)
-  [FAIL] testing\xnor_gate_8bit.sv (Truth table error)
-  [FAIL] testing\xor_gate.sv (Truth table error)
-  [FAIL] testing\xor_gate_8bit.sv (Truth table error)
 ============================================================
 
-Total runtime: 0.024s
+Total runtime: 0.162s
 
-Exiting with code 1 (21 files failed)
+Exiting with code 1 (4 files failed)

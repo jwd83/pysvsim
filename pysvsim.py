@@ -308,6 +308,7 @@ class LogicEvaluator:
         bus_info: Dict[str, Dict] = None,
         slice_assignments: List[Dict[str, Any]] = None,
         concat_assignments: List[Dict[str, Any]] = None,
+        current_file_path: str = None,
     ):
         self.inputs = inputs
         self.outputs = outputs
@@ -316,6 +317,7 @@ class LogicEvaluator:
         self.concat_assignments = concat_assignments or []
         self.instantiations = instantiations or []
         self.bus_info = bus_info or {}
+        self.current_file_path = current_file_path
 
     def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
         """
@@ -686,6 +688,7 @@ class LogicEvaluator:
             module_info.get("bus_info", {}),
             module_info.get("slice_assignments", []),
             module_info.get("concat_assignments", []),
+            self.current_file_path,
         )
 
         # Evaluate the instantiated module
@@ -771,10 +774,16 @@ class LogicEvaluator:
             # print(f"Loading module '{module_name}' from current directory")
         else:
             # look for module in the same folder as the main file being simulated
-            module_file = os.path.join(os.path.dirname(gargs.file), f"{module_name}.sv")
-            if os.path.exists(module_file):
-                load_file = True
-                # print(f"Loading module '{module_name}' from {module_file}")
+            if self.current_file_path:
+                module_file = os.path.join(os.path.dirname(self.current_file_path), f"{module_name}.sv")
+                if os.path.exists(module_file):
+                    load_file = True
+                    # print(f"Loading module '{module_name}' from {module_file}")
+            elif hasattr(gargs, 'file') and gargs.file:
+                module_file = os.path.join(os.path.dirname(gargs.file), f"{module_name}.sv")
+                if os.path.exists(module_file):
+                    load_file = True
+                    # print(f"Loading module '{module_name}' from {module_file}")
             # print(f"Looking for module '{module_name}' in {module_file}")
         if load_file:
             try:
@@ -1008,6 +1017,7 @@ def main():
             module_info.get("bus_info", {}),
             module_info.get("slice_assignments", []),
             module_info.get("concat_assignments", []),
+            args.file,
         )
 
         # Generate and display truth table

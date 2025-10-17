@@ -125,6 +125,7 @@ class SystemVerilogTestRunner:
                 module_info.get("bus_info", {}),
                 module_info.get("slice_assignments", []),
                 module_info.get("concat_assignments", []),
+                sv_file,
             )
             
             # Generate truth table if requested
