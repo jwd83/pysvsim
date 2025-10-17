@@ -19,6 +19,16 @@ from typing import Dict, List, Tuple, Any, Optional
 from itertools import product
 
 
+# Global module cache to prevent repeated parsing of the same modules
+GLOBAL_MODULE_CACHE = {}
+
+
+def clear_module_cache():
+    """Clear the global module cache. Useful for testing or when modules change."""
+    global GLOBAL_MODULE_CACHE
+    GLOBAL_MODULE_CACHE.clear()
+
+
 class SystemVerilogParser:
     """Parser for a subset of SystemVerilog focused on basic combinational logic."""
 
@@ -273,7 +283,6 @@ class LogicEvaluator:
         self.assignments = assignments
         self.instantiations = instantiations or []
         self.bus_info = bus_info or {}
-        self.loaded_modules = {}  # Cache for loaded modules
 
     def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
         """
@@ -435,13 +444,15 @@ class LogicEvaluator:
         connections = inst["connections"]
 
         # Load the referenced module if not already loaded
-        if module_type not in self.loaded_modules:
+        if module_type not in GLOBAL_MODULE_CACHE:
             self._load_module(module_type)
+        # else:
+        #     print(f"Using cached module '{module_type}'")
 
-        if module_type not in self.loaded_modules:
+        if module_type not in GLOBAL_MODULE_CACHE:
             raise ValueError(f"Could not load module '{module_type}'")
 
-        module_info = self.loaded_modules[module_type]
+        module_info = GLOBAL_MODULE_CACHE[module_type]
 
         # Build input values for the instantiated module
         inst_input_values = {}
@@ -583,9 +594,10 @@ class LogicEvaluator:
             # print(f"Looking for module '{module_name}' in {module_file}")
         if load_file:
             try:
+                # print(f"Loading module '{module_name}' from disk: {module_file}")
                 parser = SystemVerilogParser()
                 module_info = parser.parse_file(module_file)
-                self.loaded_modules[module_name] = module_info
+                GLOBAL_MODULE_CACHE[module_name] = module_info
             except Exception as e:
                 print(f"Warning: Could not load module '{module_name}': {e}")
         else:
@@ -779,9 +791,19 @@ def main():
         default=256,
         help="Maximum number of input combinations to test (default: 256)",
     )
+    parser.add_argument(
+        "--clear-cache",
+        action="store_true",
+        help="Clear the global module cache before running",
+    )
 
     args = parser.parse_args()
     gargs = args
+
+    # Clear cache if requested
+    if args.clear_cache:
+        clear_module_cache()
+        print("Global module cache cleared.")
 
     try:
         # Parse SystemVerilog file
