@@ -39,8 +39,12 @@ class SystemVerilogParser:
         self.wires = []
         self.bus_info = {}  # Track bus widths and ranges
         self.assignments = {}
-        self.slice_assignments = []  # Track bus slice assignments like out[31:24] = in[7:0]
-        self.concat_assignments = []  # Track concatenation assignments like {w, x, y, z} = expr
+        self.slice_assignments = (
+            []
+        )  # Track bus slice assignments like out[31:24] = in[7:0]
+        self.concat_assignments = (
+            []
+        )  # Track concatenation assignments like {w, x, y, z} = expr
         self.instantiations = []
         self.filepath = ""
 
@@ -132,7 +136,9 @@ class SystemVerilogParser:
         current_type = None
 
         # Tokenize the port list, including 'wire' and 'logic' keywords which can appear after input/output
-        tokens = re.findall(r"\b(?:input|output|wire|logic)\b|\[[^\]]+\]|\w+|,", port_list)
+        tokens = re.findall(
+            r"\b(?:input|output|wire|logic)\b|\[[^\]]+\]|\w+|,", port_list
+        )
 
         i = 0
         while i < len(tokens):
@@ -205,7 +211,7 @@ class SystemVerilogParser:
         # Handle bus wire declarations with initialization like: wire [24:0] v1 = expression;
         bus_wire_init_pattern = r"wire\s+\[(\d+):(\d+)\]\s+(\w+)\s*=\s*([^;]+)\s*;"
         bus_wire_init_declarations = re.findall(bus_wire_init_pattern, content)
-        
+
         for msb, lsb, wire_name, expression in bus_wire_init_declarations:
             msb, lsb = int(msb), int(lsb)
             width = abs(msb - lsb) + 1
@@ -213,18 +219,18 @@ class SystemVerilogParser:
             self.wires.append(wire_name)
             # Treat the initialization as an assignment
             self.assignments[wire_name] = expression.strip()
-        
+
         # Handle single-bit wire declarations with initialization like: wire temp = expression;
         single_wire_init_pattern = r"wire\s+(\w+)\s*=\s*([^;]+)\s*;"
         single_wire_init_declarations = re.findall(single_wire_init_pattern, content)
-        
+
         for wire_name, expression in single_wire_init_declarations:
             if wire_name not in self.bus_info:
                 self.bus_info[wire_name] = {"msb": 0, "lsb": 0, "width": 1}
                 self.wires.append(wire_name)
                 # Treat the initialization as an assignment
                 self.assignments[wire_name] = expression.strip()
-        
+
         # Handle bus wire declarations like: wire [3:0] temp;
         bus_wire_pattern = r"wire\s+\[(\d+):(\d+)\]\s+(\w+)\s*;"
         bus_wire_declarations = re.findall(bus_wire_pattern, content)
@@ -259,14 +265,13 @@ class SystemVerilogParser:
             expression = expression.strip()
 
             # Check if this is a concatenation assignment like {w, x, y, z} = expr
-            if output_signal.startswith('{') and output_signal.endswith('}'):
+            if output_signal.startswith("{") and output_signal.endswith("}"):
                 # Parse concatenation target
                 targets = output_signal[1:-1].strip()  # Remove braces
-                target_list = [t.strip() for t in targets.split(',')]
-                self.concat_assignments.append({
-                    "targets": target_list,
-                    "expression": expression
-                })
+                target_list = [t.strip() for t in targets.split(",")]
+                self.concat_assignments.append(
+                    {"targets": target_list, "expression": expression}
+                )
             # Check if this is a bus slice assignment like out[31:24] = in[7:0]
             else:
                 slice_match = re.match(r"(\w+)\[(\d+):(\d+)\]", output_signal)
@@ -275,15 +280,19 @@ class SystemVerilogParser:
                     signal_name = slice_match.group(1)
                     msb = int(slice_match.group(2))
                     lsb = int(slice_match.group(3))
-                    self.slice_assignments.append({
-                        "signal": signal_name,
-                        "msb": msb,
-                        "lsb": lsb,
-                        "expression": expression
-                    })
+                    self.slice_assignments.append(
+                        {
+                            "signal": signal_name,
+                            "msb": msb,
+                            "lsb": lsb,
+                            "expression": expression,
+                        }
+                    )
                 else:
                     # Regular assignment
-                    base_signal_match = re.match(r"(\w+)(?:\[\d+:\d+\])?", output_signal)
+                    base_signal_match = re.match(
+                        r"(\w+)(?:\[\d+:\d+\])?", output_signal
+                    )
                     if base_signal_match:
                         base_signal = base_signal_match.group(1)
                         self.assignments[base_signal] = expression
@@ -377,7 +386,9 @@ class LogicEvaluator:
 
             for signal_name, expression in self.assignments.items():
                 try:
-                    new_value = self._evaluate_expression(expression, signal_values, signal_name)
+                    new_value = self._evaluate_expression(
+                        expression, signal_values, signal_name
+                    )
                     if (
                         signal_name not in signal_values
                         or signal_values[signal_name] != new_value
@@ -406,38 +417,42 @@ class LogicEvaluator:
             msb = slice_assign["msb"]
             lsb = slice_assign["lsb"]
             expression = slice_assign["expression"]
-            
+
             # Evaluate the slice expression - determine the target width for the expression
             expr_width = width = abs(msb - lsb) + 1
             slice_value = self._evaluate_expression(expression, signal_values)
             # Mask to the expected width
             mask_expr = (1 << expr_width) - 1
             slice_value = slice_value & mask_expr
-            
+
             # Initialize the target signal if it doesn't exist
             if signal_name not in signal_values:
                 signal_values[signal_name] = 0
-            
+
             # Update the specific slice of the bus
             width = abs(msb - lsb) + 1
             shift = lsb if msb >= lsb else msb
             mask = (1 << width) - 1
-            
+
             # Clear the target bits and set the new value
-            signal_values[signal_name] = (signal_values[signal_name] & ~(mask << shift)) | ((slice_value & mask) << shift)
-            
+            signal_values[signal_name] = (
+                signal_values[signal_name] & ~(mask << shift)
+            ) | ((slice_value & mask) << shift)
+
             # Also expand this updated bus to individual bits for consistency
             if signal_name in self.bus_info and self.bus_info[signal_name]["width"] > 1:
-                self._expand_bus_to_bits(signal_name, signal_values[signal_name], signal_values)
+                self._expand_bus_to_bits(
+                    signal_name, signal_values[signal_name], signal_values
+                )
 
         # Process concatenation assignments after slice assignments
         for concat_assign in self.concat_assignments:
             targets = concat_assign["targets"]
             expression = concat_assign["expression"]
-            
+
             # Evaluate the expression to get the combined value
             combined_value = self._evaluate_expression(expression, signal_values)
-            
+
             # Calculate total width needed for all targets
             total_width = 0
             target_widths = []
@@ -448,17 +463,19 @@ class LogicEvaluator:
                     width = 1  # Default to single bit
                 target_widths.append(width)
                 total_width += width
-            
+
             # Split the combined value across targets (MSB first)
             current_value = combined_value
-            for i, target in enumerate(reversed(targets)):  # Process in reverse order (LSB first)
+            for i, target in enumerate(
+                reversed(targets)
+            ):  # Process in reverse order (LSB first)
                 width = target_widths[len(targets) - 1 - i]
                 mask = (1 << width) - 1
                 target_value = current_value & mask
                 current_value >>= width
-                
+
                 signal_values[target] = target_value
-                
+
                 # Also expand this bus to individual bits for consistency
                 if target in self.bus_info and self.bus_info[target]["width"] > 1:
                     self._expand_bus_to_bits(target, target_value, signal_values)
@@ -492,7 +509,7 @@ class LogicEvaluator:
             return signal_values[eval_expr]
 
         # Handle concatenation expressions like {a, b, c}
-        if eval_expr.startswith('{') and eval_expr.endswith('}'):
+        if eval_expr.startswith("{") and eval_expr.endswith("}"):
             return self._evaluate_concatenation(eval_expr, signal_values)
 
         # Handle bus slice expressions like A[7:0], in[15:8] first
@@ -545,7 +562,7 @@ class LogicEvaluator:
             # Evaluate the expression safely
             result = eval(eval_expr)
             result = int(result)
-            
+
             # Apply bit masking based on target signal width or expression content
             if target_signal and target_signal in self.bus_info:
                 bus_info = self.bus_info[target_signal]
@@ -554,17 +571,17 @@ class LogicEvaluator:
                     width = bus_info["width"]
                     mask = (1 << width) - 1
                     return result & mask
-            
+
             # Check if the original expression was a bus slice (like in[7:0])
             if re.match(r"\w+\[\d+:\d+\]", expression.strip()):
                 # This is a bus slice expression - don't force to single bit
                 return result
-            
+
             # Check if the original expression contains a bus slice (like ~b[2:0])
             if re.search(r"\w+\[\d+:\d+\]", expression.strip()):
                 # Expression contains bus slice - don't force to single bit
                 return result
-            
+
             # Default to single bit for unknown signals or single-bit signals
             return result & 1
         except Exception as e:
@@ -583,36 +600,38 @@ class LogicEvaluator:
 
         return expression
 
-    def _evaluate_concatenation(self, concat_expr: str, signal_values: Dict[str, int]) -> int:
+    def _evaluate_concatenation(
+        self, concat_expr: str, signal_values: Dict[str, int]
+    ) -> int:
         """Evaluate concatenation expressions like {a, b, c} and replication like {N{expr}}."""
         # Remove curly braces
         inner_expr = concat_expr[1:-1].strip()
-        
+
         # Split by comma and evaluate each part
-        parts = [part.strip() for part in inner_expr.split(',')]
-        
+        parts = [part.strip() for part in inner_expr.split(",")]
+
         result = 0
         for part in parts:
             part_width = 1  # Default width
             replication_match = None  # Initialize for each part
-            
+
             # Check if this part is itself a concatenation (nested braces)
-            if part.startswith('{') and part.endswith('}'):
+            if part.startswith("{") and part.endswith("}"):
                 # Recursively evaluate nested concatenation
                 part_value = self._evaluate_concatenation(part, signal_values)
                 # For nested concatenations, we need to calculate the actual width
                 # by analyzing the inner content
                 part_width = self._calculate_concatenation_width(part, signal_values)
-            
+
             # Check for replication pattern like {N{expression}}
-            elif (replication_match := re.match(r'(\d+)\{(.+?)\}', part)):
+            elif replication_match := re.match(r"(\d+)\{(.+?)\}", part):
                 # Handle replication: N{expression}
                 count = int(replication_match.group(1))
                 expr = replication_match.group(2).strip()
-                
+
                 # Evaluate the replicated expression
                 replicated_value = self._evaluate_expression(expr, signal_values)
-                
+
                 # Determine the width of the replicated expression
                 # For single bit expressions, width is 1
                 expr_width = 1  # Default for single bits like in[7]
@@ -624,14 +643,16 @@ class LogicEvaluator:
                     if slice_match:
                         msb, lsb = int(slice_match.group(1)), int(slice_match.group(2))
                         expr_width = abs(msb - lsb) + 1
-                
+
                 # Create the replicated bits
                 part_value = 0
                 for i in range(count):
-                    part_value = (part_value << expr_width) | (replicated_value & ((1 << expr_width) - 1))
-                
+                    part_value = (part_value << expr_width) | (
+                        replicated_value & ((1 << expr_width) - 1)
+                    )
+
                 part_width = count * expr_width
-            
+
             # Evaluate each part of the concatenation
             elif part in signal_values:
                 part_value = signal_values[part]
@@ -642,16 +663,16 @@ class LogicEvaluator:
                     width = int(literal_match.group(1))
                     base = literal_match.group(2).lower()
                     value_str = literal_match.group(3)
-                    
-                    if base == 'b':  # Binary
+
+                    if base == "b":  # Binary
                         part_value = int(value_str, 2)
-                    elif base == 'h':  # Hexadecimal
+                    elif base == "h":  # Hexadecimal
                         part_value = int(value_str, 16)
-                    elif base == 'd':  # Decimal
+                    elif base == "d":  # Decimal
                         part_value = int(value_str, 10)
                     else:
                         part_value = 0
-                    
+
                     # Mask to specified width
                     part_value &= (1 << width) - 1
                 # Handle bit selections like in[0], in[1], etc.
@@ -672,7 +693,7 @@ class LogicEvaluator:
                                 part_value = 0
                     else:
                         part_value = 0
-            
+
             # Determine the width of this part (if not already set by replication logic)
             if not replication_match:
                 if part in signal_values and part in self.bus_info:
@@ -681,28 +702,30 @@ class LogicEvaluator:
                     literal_match = re.match(r"(\d+)'[bhdBHD]", part)
                     part_width = int(literal_match.group(1))
                 # part_width already defaults to 1
-            
+
             # Shift previous results and add this part (MSB first)
             result = (result << part_width) | (part_value & ((1 << part_width) - 1))
-        
+
         return result
 
-    def _calculate_concatenation_width(self, concat_expr: str, signal_values: Dict[str, int]) -> int:
+    def _calculate_concatenation_width(
+        self, concat_expr: str, signal_values: Dict[str, int]
+    ) -> int:
         """Calculate the total bit width of a concatenation expression."""
         # Remove curly braces
         inner_expr = concat_expr[1:-1].strip()
-        
+
         # Split by comma and calculate width of each part
-        parts = [part.strip() for part in inner_expr.split(',')]
-        
+        parts = [part.strip() for part in inner_expr.split(",")]
+
         total_width = 0
         for part in parts:
             # Check for replication pattern like {N{expression}}
-            replication_match = re.match(r'(\d+)\{(.+?)\}', part)
+            replication_match = re.match(r"(\d+)\{(.+?)\}", part)
             if replication_match:
                 count = int(replication_match.group(1))
                 expr = replication_match.group(2).strip()
-                
+
                 # Determine width of replicated expression
                 expr_width = 1  # Default for single bits like in[7]
                 if expr in self.bus_info:
@@ -712,9 +735,9 @@ class LogicEvaluator:
                     if slice_match:
                         msb, lsb = int(slice_match.group(1)), int(slice_match.group(2))
                         expr_width = abs(msb - lsb) + 1
-                
+
                 total_width += count * expr_width
-            
+
             elif part in signal_values and part in self.bus_info:
                 total_width += self.bus_info[part]["width"]
             elif re.match(r"(\d+)'[bhdBHD]", part):  # Literal constant
@@ -722,7 +745,7 @@ class LogicEvaluator:
                 total_width += int(literal_match.group(1))
             else:
                 total_width += 1  # Default single bit
-        
+
         return total_width
 
     def _evaluate_instantiation(
@@ -759,7 +782,7 @@ class LogicEvaluator:
                         bus_name = bus_slice_match.group(1)
                         msb = int(bus_slice_match.group(2))
                         lsb = int(bus_slice_match.group(3))
-                        
+
                         if bus_name in signal_values:
                             # Extract the bus slice from the parent bus
                             bus_value = signal_values[bus_name]
@@ -809,22 +832,29 @@ class LogicEvaluator:
                     msb = int(bus_slice_match.group(2))
                     lsb = int(bus_slice_match.group(3))
                     output_value = inst_outputs[port_name]
-                    
+
                     # Initialize bus if not exists
                     if bus_name not in signal_values:
                         signal_values[bus_name] = 0
-                    
+
                     # Update the specific slice of the bus
                     width = abs(msb - lsb) + 1
                     shift = lsb if msb >= lsb else msb
                     mask = (1 << width) - 1
-                    
+
                     # Clear the target bits and set new value
-                    signal_values[bus_name] = (signal_values[bus_name] & ~(mask << shift)) | ((output_value & mask) << shift)
-                    
+                    signal_values[bus_name] = (
+                        signal_values[bus_name] & ~(mask << shift)
+                    ) | ((output_value & mask) << shift)
+
                     # Also expand this updated bus to individual bits for consistency
-                    if bus_name in self.bus_info and self.bus_info[bus_name]["width"] > 1:
-                        self._expand_bus_to_bits(bus_name, signal_values[bus_name], signal_values)
+                    if (
+                        bus_name in self.bus_info
+                        and self.bus_info[bus_name]["width"] > 1
+                    ):
+                        self._expand_bus_to_bits(
+                            bus_name, signal_values[bus_name], signal_values
+                        )
                 else:
                     # Handle direct signal assignment
                     signal_values[signal_name] = inst_outputs[port_name]
@@ -866,6 +896,50 @@ class LogicEvaluator:
 
         return bus_value
 
+    def count_nand_gates(self) -> int:
+        """Count the total number of NAND gates in the module hierarchy."""
+        return self._count_nand_gates_recursive("top_module", set())
+
+    def _count_nand_gates_recursive(self, module_name: str, visited: set) -> int:
+        """Recursively count NAND gates in a module and its sub-modules."""
+        # Avoid infinite recursion
+        if module_name in visited:
+            return 0
+        visited.add(module_name)
+
+        # Check if this is the primitive NAND gate
+        if module_name == "nand_gate":
+            return 1
+
+        # Load module if not already loaded
+        if module_name not in GLOBAL_MODULE_CACHE:
+            # For the top module, use current module info
+            if module_name == "top_module":
+                # Create a temporary module info from current evaluator
+                temp_module_info = {
+                    "name": "top_module",
+                    "instantiations": self.instantiations,
+                }
+                GLOBAL_MODULE_CACHE[module_name] = temp_module_info
+            else:
+                self._load_module(module_name)
+
+        if module_name not in GLOBAL_MODULE_CACHE:
+            return 0
+
+        module_info = GLOBAL_MODULE_CACHE[module_name]
+        total_nands = 0
+
+        # Count NAND gates in all instantiated sub-modules
+        for inst in module_info.get("instantiations", []):
+            sub_module_type = inst["module_type"]
+            sub_nands = self._count_nand_gates_recursive(
+                sub_module_type, visited.copy()
+            )
+            total_nands += sub_nands
+
+        return total_nands
+
     def _load_module(self, module_name: str):
         """Load a module from file."""
         import os
@@ -880,12 +954,16 @@ class LogicEvaluator:
         else:
             # look for module in the same folder as the main file being simulated
             if self.current_file_path:
-                module_file = os.path.join(os.path.dirname(self.current_file_path), f"{module_name}.sv")
+                module_file = os.path.join(
+                    os.path.dirname(self.current_file_path), f"{module_name}.sv"
+                )
                 if os.path.exists(module_file):
                     load_file = True
                     # print(f"Loading module '{module_name}' from {module_file}")
-            elif hasattr(gargs, 'file') and gargs.file:
-                module_file = os.path.join(os.path.dirname(gargs.file), f"{module_name}.sv")
+            elif hasattr(gargs, "file") and gargs.file:
+                module_file = os.path.join(
+                    os.path.dirname(gargs.file), f"{module_name}.sv"
+                )
                 if os.path.exists(module_file):
                     load_file = True
                     # print(f"Loading module '{module_name}' from {module_file}")
@@ -1124,6 +1202,10 @@ def main():
             module_info.get("concat_assignments", []),
             args.file,
         )
+
+        # Count NAND gates
+        nand_count = evaluator.count_nand_gates()
+        print(f"\nNAND Gate Count: {nand_count}")
 
         # Generate and display truth table
         truth_table_gen = TruthTableGenerator(evaluator)

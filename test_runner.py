@@ -40,6 +40,7 @@ class TestReport:
         self.truth_table = []
         self.evaluator = None
         self.execution_time = 0.0
+        self.nand_gate_count = 0
         
     @property
     def has_tests(self) -> bool:
@@ -126,6 +127,12 @@ class SystemVerilogTestRunner:
             
             # Store evaluator in report for later use
             report.evaluator = evaluator
+            
+            # Count NAND gates
+            report.nand_gate_count = evaluator.count_nand_gates()
+            
+            if self.verbose:
+                print(f"[INFO] NAND Gate Count: {report.nand_gate_count}")
             
             # Generate truth table if requested
             if not self.summary_only:
@@ -226,6 +233,7 @@ class SystemVerilogTestRunner:
                 print("JSON Tests:    No test file found")
             
             print(f"Execution Time: {report.execution_time:.3f}s")
+            print(f"NAND Gate Count: {report.nand_gate_count}")
             
             if report.error_message:
                 print(f"Error: {report.error_message}")
@@ -257,6 +265,8 @@ class SystemVerilogTestRunner:
         passed_test_cases = sum(r.passed_tests for r in self.reports)
         
         total_time = sum(r.execution_time for r in self.reports)
+        total_nand_gates = sum(r.nand_gate_count for r in self.reports)
+        avg_nand_gates = total_nand_gates / total_files if total_files > 0 else 0
         
         print("\n" + "="*60)
         print("SUMMARY REPORT")
@@ -271,6 +281,8 @@ class SystemVerilogTestRunner:
         print(f"Passed Test Cases:      {passed_test_cases}/{total_test_cases} ({passed_test_cases/total_test_cases*100 if total_test_cases > 0 else 0:.1f}%)")
         print(f"Total Execution Time:   {total_time:.3f}s")
         print(f"Average Time per File:  {total_time/total_files:.3f}s")
+        print(f"Total NAND Gates:       {total_nand_gates}")
+        print(f"Average NAND per File:  {avg_nand_gates:.1f}")
         
         # Show failed files
         failed_files = [r for r in self.reports if not r.success]

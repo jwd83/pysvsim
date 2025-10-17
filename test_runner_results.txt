@@ -11,6 +11,7 @@ Found 38 SystemVerilog file(s) to test
 [INFO] Parsed module: top_module
 [INFO] Inputs: []
 [INFO] Outputs: ['one']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 1 combinations
 
 Running tests...
@@ -22,6 +23,7 @@ Test 1 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: []
 [INFO] Outputs: ['zero']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 1 combinations
 
 Running tests...
@@ -33,6 +35,7 @@ Test 1 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 2 combinations
 
 Running tests...
@@ -45,6 +48,7 @@ Test 2 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b', 'c']
 [INFO] Outputs: ['w', 'x', 'y', 'z']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 8 combinations
 
 Running tests...
@@ -61,6 +65,7 @@ Test 6 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 2 combinations
 
 Running tests...
@@ -73,6 +78,7 @@ Test 2 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -87,6 +93,7 @@ Test 4 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -101,6 +108,7 @@ Test 4 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -115,6 +123,7 @@ Test 4 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b', 'c', 'd']
 [INFO] Outputs: ['out', 'out_n']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 16 combinations
 
 Running tests...
@@ -133,6 +142,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['p1a', 'p1b', 'p1c', 'p1d', 'p1e', 'p1f', 'p2a', 'p2b', 'p2c', 'p2d']
 [INFO] Outputs: ['p1y', 'p2y']
+[INFO] NAND Gate Count: 0
 Warning: Too many input combinations (1024). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -149,6 +159,7 @@ Test 5 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['vec']
 [INFO] Outputs: ['outv', 'o2', 'o1', 'o0']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 8 combinations
 
 Running tests...
@@ -167,6 +178,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out_hi', 'out_lo']
+[INFO] NAND Gate Count: 0
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -186,6 +198,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 Warning: Too many input combinations (4294967296). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -207,6 +220,7 @@ Test 10 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b']
 [INFO] Outputs: ['out_or_bitwise', 'out_or_logical', 'out_not']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 64 combinations
 
 Running tests...
@@ -225,6 +239,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out_and', 'out_or', 'out_xor']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 16 combinations
 
 Running tests...
@@ -243,6 +258,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b', 'c', 'd', 'e', 'f']
 [INFO] Outputs: ['w', 'x', 'y', 'z']
+[INFO] NAND Gate Count: 0
 Warning: Too many input combinations (1073741824). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -262,6 +278,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 256 combinations
 
 Running tests...
@@ -282,6 +299,7 @@ Test 10 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['in']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 256 combinations
 
 Running tests...
@@ -300,6 +318,7 @@ Test 8 passed
 [INFO] Parsed module: top_module
 [INFO] Inputs: ['a', 'b', 'c', 'd', 'e']
 [INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 32 combinations
 
 Running tests...
@@ -317,6 +336,7 @@ Test 7 passed
 [INFO] Parsed module: adder_16bit
 [INFO] Inputs: ['inA', 'inB', 'inCarry']
 [INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 240
 Warning: Too many input combinations (8589934592). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -336,6 +356,7 @@ Test 8 passed
 [INFO] Parsed module: adder_4bit
 [INFO] Inputs: ['inA', 'inB', 'inCarry']
 [INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 60
 Warning: Too many input combinations (512). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -357,6 +378,7 @@ Test 10 passed
 [INFO] Parsed module: adder_8bit
 [INFO] Inputs: ['inA', 'inB', 'inCarry']
 [INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 120
 Warning: Too many input combinations (131072). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -378,6 +400,7 @@ Test 10 passed
 [INFO] Parsed module: and_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 2
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -392,6 +415,7 @@ Test 4 passed
 [INFO] Parsed module: and_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 16
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -415,6 +439,7 @@ Test 12 passed
 [INFO] Parsed module: full_adder
 [INFO] Inputs: ['inA', 'inB', 'inCarry']
 [INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 15
 [INFO] Generated truth table with 8 combinations
 
 Running tests...
@@ -433,6 +458,7 @@ Test 8 passed
 [INFO] Parsed module: half_adder
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 6
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -447,6 +473,7 @@ Test 4 passed
 [INFO] Parsed module: nand_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 0
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -461,6 +488,7 @@ Test 4 passed
 [INFO] Parsed module: nand_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 8
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -484,6 +512,7 @@ Test 12 passed
 [INFO] Parsed module: nor_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 4
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -498,6 +527,7 @@ Test 4 passed
 [INFO] Parsed module: nor_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 32
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -521,6 +551,7 @@ Test 12 passed
 [INFO] Parsed module: not_gate
 [INFO] Inputs: ['inA']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 1
 [INFO] Generated truth table with 2 combinations
 
 Running tests...
@@ -533,6 +564,7 @@ Test 2 passed
 [INFO] Parsed module: not_gate_8bit
 [INFO] Inputs: ['inA']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 8
 [INFO] Generated truth table with 256 combinations
 
 Running tests...
@@ -551,6 +583,7 @@ Test 8 passed
 [INFO] Parsed module: or_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 3
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -565,6 +598,7 @@ Test 4 passed
 [INFO] Parsed module: or_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 24
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -588,6 +622,7 @@ Test 12 passed
 [INFO] Parsed module: xnor_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 5
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -602,6 +637,7 @@ Test 4 passed
 [INFO] Parsed module: xnor_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 40
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -625,6 +661,7 @@ Test 12 passed
 [INFO] Parsed module: xor_gate
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 4
 [INFO] Generated truth table with 4 combinations
 
 Running tests...
@@ -639,6 +676,7 @@ Test 4 passed
 [INFO] Parsed module: xor_gate_8bit
 [INFO] Inputs: ['inA', 'inB']
 [INFO] Outputs: ['outY']
+[INFO] NAND Gate Count: 32
 Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
@@ -668,7 +706,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\001-GettingStarted.json
 Test Success:  [PASS]
 Tests Passed:  1/1 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -683,7 +722,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\002-OutputZero.json
 Test Success:  [PASS]
 Tests Passed:  1/1 (100.0%)
-Execution Time: 0.006s
+Execution Time: 0.000s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -698,7 +738,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\003-Wire.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
-Execution Time: 0.005s
+Execution Time: 0.000s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -714,7 +755,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\004-Wire4.json
 Test Success:  [PASS]
 Tests Passed:  6/6 (100.0%)
-Execution Time: 0.009s
+Execution Time: 0.000s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -736,7 +778,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\005-Notgate.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
-Execution Time: 0.007s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -752,7 +795,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\006-Andgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.007s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -770,7 +814,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\007-Norgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.005s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -788,7 +833,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\008-Xnorgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.007s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -806,7 +852,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\009-DeclaringWires.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.008s
+Execution Time: 0.004s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -837,6 +884,7 @@ JSON Tests:    testing\010-7458.json
 Test Success:  [PASS]
 Tests Passed:  5/5 (100.0%)
 Execution Time: 0.036s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1106,7 +1154,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\011-Vector0.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.006s
+Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1128,7 +1177,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\012-Vector1.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.021s
+Execution Time: 0.010s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1398,7 +1448,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\013-Vector2.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.038s
+Execution Time: 0.022s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1668,7 +1719,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.016s
+Execution Time: 0.008s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1746,7 +1798,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\015-Gates4.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.003s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -1776,7 +1829,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\016-Vector3.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.006s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -2046,7 +2100,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\017-Vectorr.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.006s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -2316,7 +2371,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\018-Vector4SignExtension.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.006s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -2586,7 +2642,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\019-Vector5.json
 Test Success:  [PASS]
 Tests Passed:  7/7 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.005s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -2632,7 +2689,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_16bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 2.024s
+Execution Time: 2.397s
+NAND Gate Count: 240
 
 
 Truth Table:
@@ -2902,7 +2960,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.509s
+Execution Time: 0.770s
+NAND Gate Count: 60
 
 
 Truth Table:
@@ -3172,7 +3231,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.018s
+Execution Time: 1.234s
+NAND Gate Count: 120
 
 
 Truth Table:
@@ -3442,7 +3502,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.002s
+NAND Gate Count: 2
 
 
 Truth Table:
@@ -3460,7 +3521,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.161s
+Execution Time: 0.215s
+NAND Gate Count: 16
 
 
 Truth Table:
@@ -3730,7 +3792,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\full_adder.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.009s
+Execution Time: 0.014s
+NAND Gate Count: 15
 
 
 Truth Table:
@@ -3752,7 +3815,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\half_adder.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.003s
+NAND Gate Count: 6
 
 
 Truth Table:
@@ -3771,6 +3835,7 @@ JSON Tests:    testing\nand_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
 Execution Time: 0.001s
+NAND Gate Count: 0
 
 
 Truth Table:
@@ -3788,7 +3853,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.075s
+Execution Time: 0.098s
+NAND Gate Count: 8
 
 
 Truth Table:
@@ -4058,7 +4124,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.013s
+Execution Time: 0.002s
+NAND Gate Count: 4
 
 
 Truth Table:
@@ -4076,7 +4143,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.287s
+Execution Time: 0.381s
+NAND Gate Count: 32
 
 
 Truth Table:
@@ -4347,6 +4415,7 @@ JSON Tests:    testing\not_gate.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
 Execution Time: 0.001s
+NAND Gate Count: 1
 
 
 Truth Table:
@@ -4362,7 +4431,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.086s
+Execution Time: 0.099s
+NAND Gate Count: 8
 
 
 Truth Table:
@@ -4633,6 +4703,7 @@ JSON Tests:    testing\or_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
 Execution Time: 0.002s
+NAND Gate Count: 3
 
 
 Truth Table:
@@ -4650,7 +4721,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.232s
+Execution Time: 0.277s
+NAND Gate Count: 24
 
 
 Truth Table:
@@ -4920,7 +4992,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.002s
+NAND Gate Count: 5
 
 
 Truth Table:
@@ -4938,7 +5011,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.333s
+Execution Time: 0.436s
+NAND Gate Count: 40
 
 
 Truth Table:
@@ -5209,6 +5283,7 @@ JSON Tests:    testing\xor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
 Execution Time: 0.002s
+NAND Gate Count: 4
 
 
 Truth Table:
@@ -5226,7 +5301,8 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.275s
+Execution Time: 0.302s
+NAND Gate Count: 32
 
 
 Truth Table:
@@ -5500,10 +5576,12 @@ Files with JSON Tests:  38
 Test Case Failures:     0
 Total Test Cases:       258
 Passed Test Cases:      258/258 (100.0%)
-Total Execution Time:   5.277s
-Average Time per File:  0.139s
+Total Execution Time:   6.347s
+Average Time per File:  0.167s
+Total NAND Gates:       620
+Average NAND per File:  16.3
 ============================================================
 
-Total runtime: 5.278s
+Total runtime: 6.348s
 
 All tests passed! Exiting with code 0
