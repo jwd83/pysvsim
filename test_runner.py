@@ -38,6 +38,7 @@ class TestReport:
         self.total_tests = 0
         self.error_message = ""
         self.truth_table = []
+        self.evaluator = None
         self.execution_time = 0.0
         
     @property
@@ -122,6 +123,9 @@ class SystemVerilogTestRunner:
                 module_info.get("concat_assignments", []),
                 sv_file,
             )
+            
+            # Store evaluator in report for later use
+            report.evaluator = evaluator
             
             # Generate truth table if requested
             if not self.summary_only:
@@ -227,24 +231,14 @@ class SystemVerilogTestRunner:
                 print(f"Error: {report.error_message}")
             
             # Print truth table if available and verbose mode
-            if self.verbose and report.truth_table and report.truth_table_success:
-                print("\nTruth Table:")
-                truth_table_gen = TruthTableGenerator(None)  # We have the data already
-                truth_table_gen.evaluator = type('MockEvaluator', (), {
-                    'inputs': [],
-                    'outputs': [], 
-                    'bus_info': {}
-                })()
-                
-                # Extract inputs/outputs from first row
-                if report.truth_table:
-                    first_row = report.truth_table[0]
-                    # This is a simplified display - the actual truth table printing
-                    # would need the evaluator context for proper formatting
-                    print(f"  {len(report.truth_table)} combinations generated")
-                    if len(report.truth_table) <= 10:  # Show small truth tables
-                        for i, row in enumerate(report.truth_table):
-                            print(f"    Row {i+1}: {row}")
+            if self.verbose and report.truth_table and report.truth_table_success and report.evaluator:
+                try:
+                    # Create truth table generator and print the formatted table
+                    truth_table_gen = TruthTableGenerator(report.evaluator)
+                    print("\n")  # Add some spacing
+                    truth_table_gen.print_truth_table(report.truth_table)
+                except Exception as e:
+                    print(f"\nTruth Table: {len(report.truth_table)} combinations generated (formatting error: {e})")
     
     def print_summary_report(self) -> None:
         """Print summary statistics"""
