@@ -253,14 +253,9 @@ Test 3 passed
 Test 4 passed
 Test 5 passed
 Test 6 passed
-Test 7 failed: w = 8, expected 9
-Test 7 failed: x = 136, expected 2
-Test 7 failed: y = 136, expected 66
-Test 7 failed: z = 127, expected 31
-Test 8 failed: w = 7, expected 15
-Test 8 failed: x = 193, expected 128
-Test 8 failed: y = 240, expected 124
-[INFO] Test results: 6/8 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
 
 [INFO] Testing testing\017-Vectorr.sv
 [INFO] Using test file: testing\017-Vectorr.json
@@ -654,7 +649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\001-GettingStarted.json
 Test Success:  [PASS]
 Tests Passed:  1/1 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.001s
 
 Truth Table:
   1 combinations generated
@@ -760,7 +755,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\008-Xnorgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 Truth Table:
   4 combinations generated
@@ -844,7 +839,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
 Test Success:  [FAIL]
 Tests Passed:  1/8 (12.5%)
-Execution Time: 0.010s
+Execution Time: 0.008s
 
 Truth Table:
   64 combinations generated
@@ -866,8 +861,8 @@ File: testing\016-Vector3.sv
 Parse Success: [PASS]
 Truth Table:   [PASS]
 JSON Tests:    testing\016-Vector3.json
-Test Success:  [FAIL]
-Tests Passed:  6/8 (75.0%)
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
 Execution Time: 0.006s
 
 Truth Table:
@@ -916,7 +911,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.532s
+Execution Time: 0.566s
 
 Truth Table:
   256 combinations generated
@@ -928,7 +923,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.035s
+Execution Time: 1.070s
 
 Truth Table:
   256 combinations generated
@@ -956,7 +951,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.145s
+Execution Time: 0.141s
 
 Truth Table:
   256 combinations generated
@@ -1048,7 +1043,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.291s
+Execution Time: 0.296s
 
 Truth Table:
   256 combinations generated
@@ -1074,7 +1069,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.074s
+Execution Time: 0.069s
 
 Truth Table:
   256 combinations generated
@@ -1086,7 +1081,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.002s
 
 Truth Table:
   4 combinations generated
@@ -1102,7 +1097,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.209s
+Execution Time: 0.216s
 
 Truth Table:
   256 combinations generated
@@ -1130,7 +1125,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.346s
+Execution Time: 0.350s
 
 Truth Table:
   256 combinations generated
@@ -1158,7 +1153,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.263s
+Execution Time: 0.276s
 
 Truth Table:
   256 combinations generated
@@ -1167,23 +1162,22 @@ Truth Table:
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        33/37 (89.2%)
+Overall Success:        34/37 (91.9%)
 Parse Failures:         0
 Truth Table Failures:   0
 Files with JSON Tests:  37
-Test Case Failures:     4
+Test Case Failures:     3
 Total Test Cases:       250
-Passed Test Cases:      230/250 (92.0%)
-Total Execution Time:   3.087s
-Average Time per File:  0.083s
+Passed Test Cases:      232/250 (92.8%)
+Total Execution Time:   3.174s
+Average Time per File:  0.086s
 
-Failed Files (4):
+Failed Files (3):
   [FAIL] testing\014-VectorGates.sv (Test failures)
-  [FAIL] testing\016-Vector3.sv (Test failures)
   [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
   [FAIL] testing\019-Vector5.sv (Test failures)
 ============================================================
 
-Total runtime: 3.087s
+Total runtime: 3.174s
 
-Exiting with code 1 (4 files failed)
+Exiting with code 1 (3 files failed)
