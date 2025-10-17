@@ -1,6 +1,6 @@
 # pysvsim Test Report
 
-**Generated:** 2025-10-17 09:09:43
+**Generated:** 2025-10-17 09:27:12
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 **File:** `parts/nand_gate.sv`
 **Description:** Basic NAND gate implementation with assign statement
-**Execution Time:** 0.057s
+**Execution Time:** 0.053s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -53,7 +53,7 @@ All tests passed!
 
 **File:** `parts/inverter.sv`
 **Description:** Inverter built using NAND gate module instantiation
-**Execution Time:** 0.052s
+**Execution Time:** 0.053s
 
 **Inputs Parsed:** ['in'] ✅
 **Outputs Parsed:** ['out'] ✅
@@ -125,7 +125,7 @@ All tests passed!
 
 **File:** `parts/or_gate.sv`
 **Description:** OR gate built using De Morgan's law with inverters + NAND
-**Execution Time:** 0.053s
+**Execution Time:** 0.051s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -163,7 +163,7 @@ All tests passed!
 
 **File:** `parts/xor_gate.sv`
 **Description:** XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-**Execution Time:** 0.055s
+**Execution Time:** 0.054s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -201,7 +201,7 @@ All tests passed!
 
 **File:** `parts/nor_gate.sv`
 **Description:** NOR gate built using OR gate + inverter (NOT OR)
-**Execution Time:** 0.054s
+**Execution Time:** 0.053s
 
 **Inputs Parsed:** ['inA', 'inB'] ✅
 **Outputs Parsed:** ['outY'] ✅
@@ -239,7 +239,7 @@ All tests passed!
 
 **File:** `parts/half_adder.sv`
 **Description:** Half adder built from XOR and AND gate modules (hierarchical design)
-**Execution Time:** 0.056s
+**Execution Time:** 0.055s
 
 **Inputs Parsed:** ['A', 'B'] ✅
 **Outputs Parsed:** ['Sum', 'Carry'] ✅
@@ -323,7 +323,7 @@ All tests passed!
 
 **File:** `parts/alu_1bit.sv`
 **Description:** Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD) built from gate modules
-**Execution Time:** 0.160s
+**Execution Time:** 0.162s
 
 **Inputs Parsed:** ['A', 'B', 'Cin', 'Op0', 'Op1'] ✅
 **Outputs Parsed:** ['Result', 'Cout'] ✅
@@ -402,7 +402,7 @@ All tests passed!
 
 **File:** `parts/adder_4bit_bus.sv`
 **Description:** 4-bit ripple carry adder using proper SystemVerilog bus notation
-**Execution Time:** 0.913s
+**Execution Time:** 0.884s
 
 **Inputs Parsed:** ['A', 'B', 'Cin'] ✅
 **Outputs Parsed:** ['Sum', 'Cout'] ✅
@@ -740,7 +740,7 @@ All tests passed!
 
 **File:** `parts/mux_4to1.sv`
 **Description:** 4:1 multiplexer using hierarchical design with bus inputs and select logic
-**Execution Time:** 0.136s
+**Execution Time:** 0.135s
 
 **Inputs Parsed:** ['data_in', 'select'] ✅
 **Outputs Parsed:** ['out'] ✅
