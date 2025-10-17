@@ -201,7 +201,30 @@ class SystemVerilogParser:
                         self.outputs.append(port_name)
 
     def _parse_wires(self, content: str):
-        """Parse wire declarations, including bus wires."""
+        """Parse wire declarations, including bus wires and initialized wires."""
+        # Handle bus wire declarations with initialization like: wire [24:0] v1 = expression;
+        bus_wire_init_pattern = r"wire\s+\[(\d+):(\d+)\]\s+(\w+)\s*=\s*([^;]+)\s*;"
+        bus_wire_init_declarations = re.findall(bus_wire_init_pattern, content)
+        
+        for msb, lsb, wire_name, expression in bus_wire_init_declarations:
+            msb, lsb = int(msb), int(lsb)
+            width = abs(msb - lsb) + 1
+            self.bus_info[wire_name] = {"msb": msb, "lsb": lsb, "width": width}
+            self.wires.append(wire_name)
+            # Treat the initialization as an assignment
+            self.assignments[wire_name] = expression.strip()
+        
+        # Handle single-bit wire declarations with initialization like: wire temp = expression;
+        single_wire_init_pattern = r"wire\s+(\w+)\s*=\s*([^;]+)\s*;"
+        single_wire_init_declarations = re.findall(single_wire_init_pattern, content)
+        
+        for wire_name, expression in single_wire_init_declarations:
+            if wire_name not in self.bus_info:
+                self.bus_info[wire_name] = {"msb": 0, "lsb": 0, "width": 1}
+                self.wires.append(wire_name)
+                # Treat the initialization as an assignment
+                self.assignments[wire_name] = expression.strip()
+        
         # Handle bus wire declarations like: wire [3:0] temp;
         bus_wire_pattern = r"wire\s+\[(\d+):(\d+)\]\s+(\w+)\s*;"
         bus_wire_declarations = re.findall(bus_wire_pattern, content)

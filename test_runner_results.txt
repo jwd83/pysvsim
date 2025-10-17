@@ -303,14 +303,14 @@ Test 8 passed
 [INFO] Generated truth table with 32 combinations
 
 Running tests...
-Test 1 failed: out = 0, expected 33554431
-Test 2 failed: out = 0, expected 16777216
-Test 3 failed: out = 0, expected 17301504
-Test 4 failed: out = 0, expected 524288
-Test 5 failed: out = 0, expected 33554431
-Test 6 failed: out = 0, expected 16842752
-Test 7 failed: out = 0, expected 17825792
-[INFO] Test results: 0/7 passed
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+[INFO] Test results: 7/7 passed
 
 [INFO] Testing testing\adder_4bit.sv
 [INFO] Using test file: testing\adder_4bit.json
@@ -751,7 +751,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\007-Norgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.000s
 
 
 Truth Table:
@@ -787,7 +787,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\009-DeclaringWires.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.005s
+Execution Time: 0.004s
 
 
 Truth Table:
@@ -817,7 +817,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\010-7458.json
 Test Success:  [PASS]
 Tests Passed:  5/5 (100.0%)
-Execution Time: 0.035s
+Execution Time: 0.042s
 
 
 Truth Table:
@@ -1109,7 +1109,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\012-Vector1.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.008s
+Execution Time: 0.012s
 
 
 Truth Table:
@@ -1379,7 +1379,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\013-Vector2.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.026s
+Execution Time: 0.025s
 
 
 Truth Table:
@@ -1649,7 +1649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.009s
+Execution Time: 0.010s
 
 
 Truth Table:
@@ -1757,7 +1757,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\016-Vector3.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.006s
+Execution Time: 0.007s
 
 
 Truth Table:
@@ -2027,7 +2027,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\017-Vectorr.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.005s
+Execution Time: 0.008s
 
 
 Truth Table:
@@ -2297,7 +2297,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\018-Vector4SignExtension.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.006s
+Execution Time: 0.007s
 
 
 Truth Table:
@@ -2565,46 +2565,46 @@ File: testing\019-Vector5.sv
 Parse Success: [PASS]
 Truth Table:   [PASS]
 JSON Tests:    testing\019-Vector5.json
-Test Success:  [FAIL]
-Tests Passed:  0/7 (0.0%)
-Execution Time: 0.001s
+Test Success:  [PASS]
+Tests Passed:  7/7 (100.0%)
+Execution Time: 0.007s
 
 
 Truth Table:
      a      b      c      d      e | out[24:0]
 ----------------------------------------------
-     0      0      0      0      0 |      0
-     0      0      0      0      1 |      0
-     0      0      0      1      0 |      0
-     0      0      0      1      1 |      0
-     0      0      1      0      0 |      0
-     0      0      1      0      1 |      0
-     0      0      1      1      0 |      0
-     0      0      1      1      1 |      0
-     0      1      0      0      0 |      0
-     0      1      0      0      1 |      0
-     0      1      0      1      0 |      0
-     0      1      0      1      1 |      0
-     0      1      1      0      0 |      0
-     0      1      1      0      1 |      0
-     0      1      1      1      0 |      0
-     0      1      1      1      1 |      0
-     1      0      0      0      0 |      0
-     1      0      0      0      1 |      0
-     1      0      0      1      0 |      0
-     1      0      0      1      1 |      0
-     1      0      1      0      0 |      0
-     1      0      1      0      1 |      0
-     1      0      1      1      0 |      0
-     1      0      1      1      1 |      0
-     1      1      0      0      0 |      0
-     1      1      0      0      1 |      0
-     1      1      0      1      0 |      0
-     1      1      0      1      1 |      0
-     1      1      1      0      0 |      0
-     1      1      1      0      1 |      0
-     1      1      1      1      0 |      0
-     1      1      1      1      1 |      0
+     0      0      0      0      0 | 33554431
+     0      0      0      0      1 | 33554400
+     0      0      0      1      0 | 33553437
+     0      0      0      1      1 | 33553410
+     0      0      1      0      0 | 33522683
+     0      0      1      0      1 | 33522660
+     0      0      1      1      0 | 33521689
+     0      0      1      1      1 | 33521670
+     0      1      0      0      0 | 32538615
+     0      1      0      0      1 | 32538600
+     0      1      0      1      0 | 32537621
+     0      1      0      1      1 | 32537610
+     0      1      1      0      0 | 32506867
+     0      1      1      0      1 | 32506860
+     0      1      1      1      0 | 32505873
+     0      1      1      1      1 | 32505870
+     1      0      0      0      0 | 1048575
+     1      0      0      0      1 | 1048544
+     1      0      0      1      0 | 1047581
+     1      0      0      1      1 | 1047554
+     1      0      1      0      0 | 1016827
+     1      0      1      0      1 | 1016804
+     1      0      1      1      0 | 1015833
+     1      0      1      1      1 | 1015814
+     1      1      0      0      0 |  32759
+     1      1      0      0      1 |  32744
+     1      1      0      1      0 |  31765
+     1      1      0      1      1 |  31754
+     1      1      1      0      0 |   1011
+     1      1      1      0      1 |   1004
+     1      1      1      1      0 |     17
+     1      1      1      1      1 |     14
 
 File: testing\adder_4bit.sv
 ------------------------------------------------------------
@@ -2613,7 +2613,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.575s
+Execution Time: 0.587s
 
 
 Truth Table:
@@ -2883,7 +2883,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.153s
+Execution Time: 1.149s
 
 
 Truth Table:
@@ -3171,7 +3171,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.171s
+Execution Time: 0.146s
 
 
 Truth Table:
@@ -3441,7 +3441,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\full_adder.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.009s
 
 
 Truth Table:
@@ -3463,7 +3463,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\half_adder.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.003s
 
 
 Truth Table:
@@ -3481,7 +3481,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.000s
+Execution Time: 0.001s
 
 
 Truth Table:
@@ -3499,7 +3499,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.070s
+Execution Time: 0.071s
 
 
 Truth Table:
@@ -3787,7 +3787,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.307s
+Execution Time: 0.310s
 
 
 Truth Table:
@@ -4073,7 +4073,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.082s
+Execution Time: 0.073s
 
 
 Truth Table:
@@ -4361,7 +4361,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.241s
+Execution Time: 0.227s
 
 
 Truth Table:
@@ -4649,7 +4649,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.373s
+Execution Time: 0.367s
 
 
 Truth Table:
@@ -4937,7 +4937,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.278s
+Execution Time: 0.290s
 
 
 Truth Table:
@@ -5204,20 +5204,17 @@ inA[7:0] inB[7:0] | outY[7:0]
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        36/37 (97.3%)
+Overall Success:        37/37 (100.0%)
 Parse Failures:         0
 Truth Table Failures:   0
 Files with JSON Tests:  37
-Test Case Failures:     1
+Test Case Failures:     0
 Total Test Cases:       250
-Passed Test Cases:      243/250 (97.2%)
-Total Execution Time:   3.379s
+Passed Test Cases:      250/250 (100.0%)
+Total Execution Time:   3.372s
 Average Time per File:  0.091s
-
-Failed Files (1):
-  [FAIL] testing\019-Vector5.sv (Test failures)
 ============================================================
 
-Total runtime: 3.380s
+Total runtime: 3.373s
 
-Exiting with code 1 (1 files failed)
+All tests passed! Exiting with code 0
