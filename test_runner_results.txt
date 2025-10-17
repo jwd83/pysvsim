@@ -2,6 +2,7 @@ SystemVerilog Test Runner
 ========================================
 Target: testing\
 Max combinations: 256
+Mode: Summary only (no truth tables)
 
 Found 37 SystemVerilog file(s) to test
 
@@ -63,7 +64,6 @@ Test 6 passed
 Test 7 passed
 Test 8 passed
 [PASS] testing\009-DeclaringWires.sv (8/8 tests passed)
-Warning: Too many input combinations (1024). Limiting to first 256 combinations.
 
 Running tests...
 Test 1 passed
@@ -83,7 +83,6 @@ Test 6 passed
 Test 7 passed
 Test 8 passed
 [PASS] testing\011-Vector0.sv (8/8 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 Test 1 passed
@@ -95,7 +94,6 @@ Test 6 passed
 Test 7 passed
 Test 8 passed
 [PASS] testing\012-Vector1.sv (8/8 tests passed)
-Warning: Too many input combinations (4294967296). Limiting to first 256 combinations.
 
 Running tests...
 Test 1 passed
@@ -131,7 +129,6 @@ Test 6 passed
 Test 7 passed
 Test 8 passed
 [PASS] testing\015-Gates4.sv (8/8 tests passed)
-Warning: Too many input combinations (1073741824). Limiting to first 256 combinations.
 
 Running tests...
 Test 1 passed
@@ -148,7 +145,19 @@ Test 8 failed: w = 7, expected 15
 Test 8 failed: x = 193, expected 128
 Test 8 failed: y = 240, expected 124
 [FAIL] testing\016-Vector3.sv (6/8 tests passed)
-[FAIL] testing\017-Vectorr.sv (0/0 tests passed)
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+Test 9 passed
+Test 10 passed
+[PASS] testing\017-Vectorr.sv (10/10 tests passed)
 
 Running tests...
 Test 1 passed
@@ -170,18 +179,15 @@ Test 5 failed: out = 0, expected 33554431
 Test 6 failed: out = 0, expected 16842752
 Test 7 failed: out = 0, expected 17825792
 [FAIL] testing\019-Vector5.sv (0/7 tests passed)
-Warning: Too many input combinations (512). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\adder_4bit.sv (0/10 tests passed)
-Warning: Too many input combinations (131072). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\adder_8bit.sv (0/10 tests passed)
 
 Running tests...
 [FAIL] testing\and_gate.sv (0/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\and_gate_8bit.sv (0/12 tests passed)
@@ -198,14 +204,12 @@ Test 2 passed
 Test 3 passed
 Test 4 passed
 [PASS] testing\nand_gate.sv (4/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\nand_gate_8bit.sv (0/12 tests passed)
 
 Running tests...
 [FAIL] testing\nor_gate.sv (0/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\nor_gate_8bit.sv (0/12 tests passed)
@@ -218,21 +222,18 @@ Running tests...
 
 Running tests...
 [FAIL] testing\or_gate.sv (0/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\or_gate_8bit.sv (0/12 tests passed)
 
 Running tests...
 [FAIL] testing\xnor_gate.sv (0/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\xnor_gate_8bit.sv (0/12 tests passed)
 
 Running tests...
 [FAIL] testing\xor_gate.sv (0/4 tests passed)
-Warning: Too many input combinations (65536). Limiting to first 256 combinations.
 
 Running tests...
 [FAIL] testing\xor_gate_8bit.sv (0/12 tests passed)
@@ -241,22 +242,21 @@ Running tests...
 SUMMARY REPORT
 ============================================================
 Files Tested:           37
-Overall Success:        15/37 (40.5%)
+Overall Success:        16/37 (43.2%)
 Parse Failures:         0
-Truth Table Failures:   17
+Truth Table Failures:   37
 Files with JSON Tests:  37
-Test Case Failures:     22
-Total Test Cases:       240
-Passed Test Cases:      86/240 (35.8%)
-Total Execution Time:   0.108s
-Average Time per File:  0.003s
+Test Case Failures:     21
+Total Test Cases:       250
+Passed Test Cases:      96/250 (38.4%)
+Total Execution Time:   0.023s
+Average Time per File:  0.001s
 
-Failed Files (22):
-  [FAIL] testing\014-VectorGates.sv (Test failures)
-  [FAIL] testing\016-Vector3.sv (Test failures)
-  [FAIL] testing\017-Vectorr.sv (Test failures)
-  [FAIL] testing\018-Vector4SignExtension.sv (Test failures)
-  [FAIL] testing\019-Vector5.sv (Test failures)
+Failed Files (21):
+  [FAIL] testing\014-VectorGates.sv (Truth table error)
+  [FAIL] testing\016-Vector3.sv (Truth table error)
+  [FAIL] testing\018-Vector4SignExtension.sv (Truth table error)
+  [FAIL] testing\019-Vector5.sv (Truth table error)
   [FAIL] testing\adder_4bit.sv (Truth table error)
   [FAIL] testing\adder_8bit.sv (Truth table error)
   [FAIL] testing\and_gate.sv (Truth table error)
@@ -276,6 +276,6 @@ Failed Files (22):
   [FAIL] testing\xor_gate_8bit.sv (Truth table error)
 ============================================================
 
-Total runtime: 0.109s
+Total runtime: 0.024s
 
-Exiting with code 1 (22 files failed)
+Exiting with code 1 (21 files failed)
