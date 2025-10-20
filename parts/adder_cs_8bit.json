@@ -2,91 +2,91 @@
     {
         "inA": 0,
         "inB": 0,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 0,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 1,
         "inB": 0,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 1,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 15,
         "inB": 1,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 16,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 15,
         "inB": 1,
-        "Cin": 1,
+        "inCarry": 1,
         "expect": {
             "outSum": 17,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 255,
         "inB": 1,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 0,
-            "Cout": 1
+            "outCarry": 1
         }
     },
     {
         "inA": 128,
         "inB": 128,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 0,
-            "Cout": 1
+            "outCarry": 1
         }
     },
     {
         "inA": 85,
         "inB": 170,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 255,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 100,
         "inB": 50,
-        "Cin": 1,
+        "inCarry": 1,
         "expect": {
             "outSum": 151,
-            "Cout": 0
+            "outCarry": 0
         }
     },
     {
         "inA": 240,
         "inB": 15,
-        "Cin": 1,
+        "inCarry": 1,
         "expect": {
             "outSum": 0,
-            "Cout": 1
+            "outCarry": 1
         }
     },
     {
         "inA": 63,
         "inB": 64,
-        "Cin": 0,
+        "inCarry": 0,
         "expect": {
             "outSum": 127,
-            "Cout": 0
+            "outCarry": 0
         }
     }
 ]
