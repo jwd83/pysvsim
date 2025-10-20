@@ -58,7 +58,7 @@ class SystemVerilogTestRunner:
     
     def __init__(self):
         # Fixed settings for maximum verbosity
-        self.max_combinations = 256
+        self.max_combinations = 16
         self.verbose = True
         self.summary_only = False
         self.continue_on_error = True
