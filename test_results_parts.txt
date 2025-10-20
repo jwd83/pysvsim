@@ -4,7 +4,7 @@ Target: parts\
 Max combinations: 256
 Mode: Full verbose output with detailed reports
 
-Found 19 SystemVerilog file(s) to test
+Found 24 SystemVerilog file(s) to test
 
 [INFO] Testing parts\adder_16bit.sv
 [INFO] Using test file: parts\adder_16bit.json
@@ -13,6 +13,26 @@ Found 19 SystemVerilog file(s) to test
 [INFO] Outputs: ['outSum', 'outCarry']
 [INFO] NAND Gate Count: 240
 Warning: Too many input combinations (8589934592). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing parts\adder_32bit.sv
+[INFO] Using test file: parts\adder_32bit.json
+[INFO] Parsed module: adder_32bit
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 480
+Warning: Too many input combinations (36893488147419103232). Limiting to first 256 combinations.
 [INFO] Generated truth table with 256 combinations
 
 Running tests...
@@ -48,6 +68,26 @@ Test 9 passed
 Test 10 passed
 [INFO] Test results: 10/10 passed
 
+[INFO] Testing parts\adder_64bit.sv
+[INFO] Using test file: parts\adder_64bit.json
+[INFO] Parsed module: adder_64bit
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 960
+Warning: Too many input combinations (680564733841876926926749214863536422912). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
+
 [INFO] Testing parts\adder_8bit.sv
 [INFO] Using test file: parts\adder_8bit.json
 [INFO] Parsed module: adder_8bit
@@ -69,6 +109,18 @@ Test 8 passed
 Test 9 passed
 Test 10 passed
 [INFO] Test results: 10/10 passed
+
+[INFO] Testing parts\adder_cs_8bit.sv
+[INFO] Using test file: parts\adder_cs_8bit.json
+[INFO] Parsed module: adder_cs_8bit
+[INFO] Inputs: ['inA', 'inB', 'inCarry']
+[INFO] Outputs: ['outSum', 'outCarry']
+[INFO] NAND Gate Count: 220
+Warning: Too many input combinations (131072). Limiting to first 256 combinations.
+[WARN] Truth table generation failed: Signal 'inCarry' not found for instantiation 'u_fa0'
+
+Running tests...
+[ERROR] Test execution failed: Signal 'inCarry' not found for instantiation 'u_lower'
 
 [INFO] Testing parts\and_gate.sv
 [INFO] Using test file: parts\and_gate.json
@@ -142,6 +194,45 @@ Test 2 passed
 Test 3 passed
 Test 4 passed
 [INFO] Test results: 4/4 passed
+
+[INFO] Testing parts\mux_2to1_1bit.sv
+[INFO] Using test file: parts\mux_2to1_1bit.json
+[INFO] Parsed module: mux_2to1_1bit
+[INFO] Inputs: ['in0', 'in1', 'sel']
+[INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 8
+[INFO] Generated truth table with 8 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
+
+[INFO] Testing parts\mux_2to1_4bit.sv
+[INFO] Using test file: parts\mux_2to1_4bit.json
+[INFO] Parsed module: mux_2to1_4bit
+[INFO] Inputs: ['in0', 'in1', 'sel']
+[INFO] Outputs: ['out']
+[INFO] NAND Gate Count: 32
+Warning: Too many input combinations (512). Limiting to first 256 combinations.
+[INFO] Generated truth table with 256 combinations
+
+Running tests...
+Test 1 passed
+Test 2 passed
+Test 3 passed
+Test 4 passed
+Test 5 passed
+Test 6 passed
+Test 7 passed
+Test 8 passed
+[INFO] Test results: 8/8 passed
 
 [INFO] Testing parts\nand_gate.sv
 [INFO] Using test file: parts\nand_gate.json
@@ -381,12 +472,283 @@ Truth Table:   [PASS]
 JSON Tests:    parts\adder_16bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 2.083s
+Execution Time: 2.104s
 NAND Gate Count: 240
 
 
 Truth Table:
 inA[15:0] inB[15:0] inCarry | outSum[15:0] outCarry
+---------------------------------------------------
+     0      0      0 |      0      0
+     0      0      1 |      1      0
+     0      1      0 |      1      0
+     0      1      1 |      2      0
+     0      2      0 |      2      0
+     0      2      1 |      3      0
+     0      3      0 |      3      0
+     0      3      1 |      4      0
+     0      4      0 |      4      0
+     0      4      1 |      5      0
+     0      5      0 |      5      0
+     0      5      1 |      6      0
+     0      6      0 |      6      0
+     0      6      1 |      7      0
+     0      7      0 |      7      0
+     0      7      1 |      8      0
+     0      8      0 |      8      0
+     0      8      1 |      9      0
+     0      9      0 |      9      0
+     0      9      1 |     10      0
+     0     10      0 |     10      0
+     0     10      1 |     11      0
+     0     11      0 |     11      0
+     0     11      1 |     12      0
+     0     12      0 |     12      0
+     0     12      1 |     13      0
+     0     13      0 |     13      0
+     0     13      1 |     14      0
+     0     14      0 |     14      0
+     0     14      1 |     15      0
+     0     15      0 |     15      0
+     0     15      1 |     16      0
+     0     16      0 |     16      0
+     0     16      1 |     17      0
+     0     17      0 |     17      0
+     0     17      1 |     18      0
+     0     18      0 |     18      0
+     0     18      1 |     19      0
+     0     19      0 |     19      0
+     0     19      1 |     20      0
+     0     20      0 |     20      0
+     0     20      1 |     21      0
+     0     21      0 |     21      0
+     0     21      1 |     22      0
+     0     22      0 |     22      0
+     0     22      1 |     23      0
+     0     23      0 |     23      0
+     0     23      1 |     24      0
+     0     24      0 |     24      0
+     0     24      1 |     25      0
+     0     25      0 |     25      0
+     0     25      1 |     26      0
+     0     26      0 |     26      0
+     0     26      1 |     27      0
+     0     27      0 |     27      0
+     0     27      1 |     28      0
+     0     28      0 |     28      0
+     0     28      1 |     29      0
+     0     29      0 |     29      0
+     0     29      1 |     30      0
+     0     30      0 |     30      0
+     0     30      1 |     31      0
+     0     31      0 |     31      0
+     0     31      1 |     32      0
+     0     32      0 |     32      0
+     0     32      1 |     33      0
+     0     33      0 |     33      0
+     0     33      1 |     34      0
+     0     34      0 |     34      0
+     0     34      1 |     35      0
+     0     35      0 |     35      0
+     0     35      1 |     36      0
+     0     36      0 |     36      0
+     0     36      1 |     37      0
+     0     37      0 |     37      0
+     0     37      1 |     38      0
+     0     38      0 |     38      0
+     0     38      1 |     39      0
+     0     39      0 |     39      0
+     0     39      1 |     40      0
+     0     40      0 |     40      0
+     0     40      1 |     41      0
+     0     41      0 |     41      0
+     0     41      1 |     42      0
+     0     42      0 |     42      0
+     0     42      1 |     43      0
+     0     43      0 |     43      0
+     0     43      1 |     44      0
+     0     44      0 |     44      0
+     0     44      1 |     45      0
+     0     45      0 |     45      0
+     0     45      1 |     46      0
+     0     46      0 |     46      0
+     0     46      1 |     47      0
+     0     47      0 |     47      0
+     0     47      1 |     48      0
+     0     48      0 |     48      0
+     0     48      1 |     49      0
+     0     49      0 |     49      0
+     0     49      1 |     50      0
+     0     50      0 |     50      0
+     0     50      1 |     51      0
+     0     51      0 |     51      0
+     0     51      1 |     52      0
+     0     52      0 |     52      0
+     0     52      1 |     53      0
+     0     53      0 |     53      0
+     0     53      1 |     54      0
+     0     54      0 |     54      0
+     0     54      1 |     55      0
+     0     55      0 |     55      0
+     0     55      1 |     56      0
+     0     56      0 |     56      0
+     0     56      1 |     57      0
+     0     57      0 |     57      0
+     0     57      1 |     58      0
+     0     58      0 |     58      0
+     0     58      1 |     59      0
+     0     59      0 |     59      0
+     0     59      1 |     60      0
+     0     60      0 |     60      0
+     0     60      1 |     61      0
+     0     61      0 |     61      0
+     0     61      1 |     62      0
+     0     62      0 |     62      0
+     0     62      1 |     63      0
+     0     63      0 |     63      0
+     0     63      1 |     64      0
+     0     64      0 |     64      0
+     0     64      1 |     65      0
+     0     65      0 |     65      0
+     0     65      1 |     66      0
+     0     66      0 |     66      0
+     0     66      1 |     67      0
+     0     67      0 |     67      0
+     0     67      1 |     68      0
+     0     68      0 |     68      0
+     0     68      1 |     69      0
+     0     69      0 |     69      0
+     0     69      1 |     70      0
+     0     70      0 |     70      0
+     0     70      1 |     71      0
+     0     71      0 |     71      0
+     0     71      1 |     72      0
+     0     72      0 |     72      0
+     0     72      1 |     73      0
+     0     73      0 |     73      0
+     0     73      1 |     74      0
+     0     74      0 |     74      0
+     0     74      1 |     75      0
+     0     75      0 |     75      0
+     0     75      1 |     76      0
+     0     76      0 |     76      0
+     0     76      1 |     77      0
+     0     77      0 |     77      0
+     0     77      1 |     78      0
+     0     78      0 |     78      0
+     0     78      1 |     79      0
+     0     79      0 |     79      0
+     0     79      1 |     80      0
+     0     80      0 |     80      0
+     0     80      1 |     81      0
+     0     81      0 |     81      0
+     0     81      1 |     82      0
+     0     82      0 |     82      0
+     0     82      1 |     83      0
+     0     83      0 |     83      0
+     0     83      1 |     84      0
+     0     84      0 |     84      0
+     0     84      1 |     85      0
+     0     85      0 |     85      0
+     0     85      1 |     86      0
+     0     86      0 |     86      0
+     0     86      1 |     87      0
+     0     87      0 |     87      0
+     0     87      1 |     88      0
+     0     88      0 |     88      0
+     0     88      1 |     89      0
+     0     89      0 |     89      0
+     0     89      1 |     90      0
+     0     90      0 |     90      0
+     0     90      1 |     91      0
+     0     91      0 |     91      0
+     0     91      1 |     92      0
+     0     92      0 |     92      0
+     0     92      1 |     93      0
+     0     93      0 |     93      0
+     0     93      1 |     94      0
+     0     94      0 |     94      0
+     0     94      1 |     95      0
+     0     95      0 |     95      0
+     0     95      1 |     96      0
+     0     96      0 |     96      0
+     0     96      1 |     97      0
+     0     97      0 |     97      0
+     0     97      1 |     98      0
+     0     98      0 |     98      0
+     0     98      1 |     99      0
+     0     99      0 |     99      0
+     0     99      1 |    100      0
+     0    100      0 |    100      0
+     0    100      1 |    101      0
+     0    101      0 |    101      0
+     0    101      1 |    102      0
+     0    102      0 |    102      0
+     0    102      1 |    103      0
+     0    103      0 |    103      0
+     0    103      1 |    104      0
+     0    104      0 |    104      0
+     0    104      1 |    105      0
+     0    105      0 |    105      0
+     0    105      1 |    106      0
+     0    106      0 |    106      0
+     0    106      1 |    107      0
+     0    107      0 |    107      0
+     0    107      1 |    108      0
+     0    108      0 |    108      0
+     0    108      1 |    109      0
+     0    109      0 |    109      0
+     0    109      1 |    110      0
+     0    110      0 |    110      0
+     0    110      1 |    111      0
+     0    111      0 |    111      0
+     0    111      1 |    112      0
+     0    112      0 |    112      0
+     0    112      1 |    113      0
+     0    113      0 |    113      0
+     0    113      1 |    114      0
+     0    114      0 |    114      0
+     0    114      1 |    115      0
+     0    115      0 |    115      0
+     0    115      1 |    116      0
+     0    116      0 |    116      0
+     0    116      1 |    117      0
+     0    117      0 |    117      0
+     0    117      1 |    118      0
+     0    118      0 |    118      0
+     0    118      1 |    119      0
+     0    119      0 |    119      0
+     0    119      1 |    120      0
+     0    120      0 |    120      0
+     0    120      1 |    121      0
+     0    121      0 |    121      0
+     0    121      1 |    122      0
+     0    122      0 |    122      0
+     0    122      1 |    123      0
+     0    123      0 |    123      0
+     0    123      1 |    124      0
+     0    124      0 |    124      0
+     0    124      1 |    125      0
+     0    125      0 |    125      0
+     0    125      1 |    126      0
+     0    126      0 |    126      0
+     0    126      1 |    127      0
+     0    127      0 |    127      0
+     0    127      1 |    128      0
+
+File: parts\adder_32bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    parts\adder_32bit.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 4.285s
+NAND Gate Count: 480
+
+
+Truth Table:
+inA[31:0] inB[31:0] inCarry | outSum[31:0] outCarry
 ---------------------------------------------------
      0      0      0 |      0      0
      0      0      1 |      1      0
@@ -652,7 +1014,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.503s
+Execution Time: 0.530s
 NAND Gate Count: 60
 
 
@@ -916,6 +1278,277 @@ inA[3:0] inB[3:0] inCarry | outSum[3:0] outCarry
      7     15      0 |      6      1
      7     15      1 |      7      1
 
+File: parts\adder_64bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    parts\adder_64bit.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 8.554s
+NAND Gate Count: 960
+
+
+Truth Table:
+inA[63:0] inB[63:0] inCarry | outSum[63:0] outCarry
+---------------------------------------------------
+     0      0      0 |      0      0
+     0      0      1 |      1      0
+     0      1      0 |      1      0
+     0      1      1 |      2      0
+     0      2      0 |      2      0
+     0      2      1 |      3      0
+     0      3      0 |      3      0
+     0      3      1 |      4      0
+     0      4      0 |      4      0
+     0      4      1 |      5      0
+     0      5      0 |      5      0
+     0      5      1 |      6      0
+     0      6      0 |      6      0
+     0      6      1 |      7      0
+     0      7      0 |      7      0
+     0      7      1 |      8      0
+     0      8      0 |      8      0
+     0      8      1 |      9      0
+     0      9      0 |      9      0
+     0      9      1 |     10      0
+     0     10      0 |     10      0
+     0     10      1 |     11      0
+     0     11      0 |     11      0
+     0     11      1 |     12      0
+     0     12      0 |     12      0
+     0     12      1 |     13      0
+     0     13      0 |     13      0
+     0     13      1 |     14      0
+     0     14      0 |     14      0
+     0     14      1 |     15      0
+     0     15      0 |     15      0
+     0     15      1 |     16      0
+     0     16      0 |     16      0
+     0     16      1 |     17      0
+     0     17      0 |     17      0
+     0     17      1 |     18      0
+     0     18      0 |     18      0
+     0     18      1 |     19      0
+     0     19      0 |     19      0
+     0     19      1 |     20      0
+     0     20      0 |     20      0
+     0     20      1 |     21      0
+     0     21      0 |     21      0
+     0     21      1 |     22      0
+     0     22      0 |     22      0
+     0     22      1 |     23      0
+     0     23      0 |     23      0
+     0     23      1 |     24      0
+     0     24      0 |     24      0
+     0     24      1 |     25      0
+     0     25      0 |     25      0
+     0     25      1 |     26      0
+     0     26      0 |     26      0
+     0     26      1 |     27      0
+     0     27      0 |     27      0
+     0     27      1 |     28      0
+     0     28      0 |     28      0
+     0     28      1 |     29      0
+     0     29      0 |     29      0
+     0     29      1 |     30      0
+     0     30      0 |     30      0
+     0     30      1 |     31      0
+     0     31      0 |     31      0
+     0     31      1 |     32      0
+     0     32      0 |     32      0
+     0     32      1 |     33      0
+     0     33      0 |     33      0
+     0     33      1 |     34      0
+     0     34      0 |     34      0
+     0     34      1 |     35      0
+     0     35      0 |     35      0
+     0     35      1 |     36      0
+     0     36      0 |     36      0
+     0     36      1 |     37      0
+     0     37      0 |     37      0
+     0     37      1 |     38      0
+     0     38      0 |     38      0
+     0     38      1 |     39      0
+     0     39      0 |     39      0
+     0     39      1 |     40      0
+     0     40      0 |     40      0
+     0     40      1 |     41      0
+     0     41      0 |     41      0
+     0     41      1 |     42      0
+     0     42      0 |     42      0
+     0     42      1 |     43      0
+     0     43      0 |     43      0
+     0     43      1 |     44      0
+     0     44      0 |     44      0
+     0     44      1 |     45      0
+     0     45      0 |     45      0
+     0     45      1 |     46      0
+     0     46      0 |     46      0
+     0     46      1 |     47      0
+     0     47      0 |     47      0
+     0     47      1 |     48      0
+     0     48      0 |     48      0
+     0     48      1 |     49      0
+     0     49      0 |     49      0
+     0     49      1 |     50      0
+     0     50      0 |     50      0
+     0     50      1 |     51      0
+     0     51      0 |     51      0
+     0     51      1 |     52      0
+     0     52      0 |     52      0
+     0     52      1 |     53      0
+     0     53      0 |     53      0
+     0     53      1 |     54      0
+     0     54      0 |     54      0
+     0     54      1 |     55      0
+     0     55      0 |     55      0
+     0     55      1 |     56      0
+     0     56      0 |     56      0
+     0     56      1 |     57      0
+     0     57      0 |     57      0
+     0     57      1 |     58      0
+     0     58      0 |     58      0
+     0     58      1 |     59      0
+     0     59      0 |     59      0
+     0     59      1 |     60      0
+     0     60      0 |     60      0
+     0     60      1 |     61      0
+     0     61      0 |     61      0
+     0     61      1 |     62      0
+     0     62      0 |     62      0
+     0     62      1 |     63      0
+     0     63      0 |     63      0
+     0     63      1 |     64      0
+     0     64      0 |     64      0
+     0     64      1 |     65      0
+     0     65      0 |     65      0
+     0     65      1 |     66      0
+     0     66      0 |     66      0
+     0     66      1 |     67      0
+     0     67      0 |     67      0
+     0     67      1 |     68      0
+     0     68      0 |     68      0
+     0     68      1 |     69      0
+     0     69      0 |     69      0
+     0     69      1 |     70      0
+     0     70      0 |     70      0
+     0     70      1 |     71      0
+     0     71      0 |     71      0
+     0     71      1 |     72      0
+     0     72      0 |     72      0
+     0     72      1 |     73      0
+     0     73      0 |     73      0
+     0     73      1 |     74      0
+     0     74      0 |     74      0
+     0     74      1 |     75      0
+     0     75      0 |     75      0
+     0     75      1 |     76      0
+     0     76      0 |     76      0
+     0     76      1 |     77      0
+     0     77      0 |     77      0
+     0     77      1 |     78      0
+     0     78      0 |     78      0
+     0     78      1 |     79      0
+     0     79      0 |     79      0
+     0     79      1 |     80      0
+     0     80      0 |     80      0
+     0     80      1 |     81      0
+     0     81      0 |     81      0
+     0     81      1 |     82      0
+     0     82      0 |     82      0
+     0     82      1 |     83      0
+     0     83      0 |     83      0
+     0     83      1 |     84      0
+     0     84      0 |     84      0
+     0     84      1 |     85      0
+     0     85      0 |     85      0
+     0     85      1 |     86      0
+     0     86      0 |     86      0
+     0     86      1 |     87      0
+     0     87      0 |     87      0
+     0     87      1 |     88      0
+     0     88      0 |     88      0
+     0     88      1 |     89      0
+     0     89      0 |     89      0
+     0     89      1 |     90      0
+     0     90      0 |     90      0
+     0     90      1 |     91      0
+     0     91      0 |     91      0
+     0     91      1 |     92      0
+     0     92      0 |     92      0
+     0     92      1 |     93      0
+     0     93      0 |     93      0
+     0     93      1 |     94      0
+     0     94      0 |     94      0
+     0     94      1 |     95      0
+     0     95      0 |     95      0
+     0     95      1 |     96      0
+     0     96      0 |     96      0
+     0     96      1 |     97      0
+     0     97      0 |     97      0
+     0     97      1 |     98      0
+     0     98      0 |     98      0
+     0     98      1 |     99      0
+     0     99      0 |     99      0
+     0     99      1 |    100      0
+     0    100      0 |    100      0
+     0    100      1 |    101      0
+     0    101      0 |    101      0
+     0    101      1 |    102      0
+     0    102      0 |    102      0
+     0    102      1 |    103      0
+     0    103      0 |    103      0
+     0    103      1 |    104      0
+     0    104      0 |    104      0
+     0    104      1 |    105      0
+     0    105      0 |    105      0
+     0    105      1 |    106      0
+     0    106      0 |    106      0
+     0    106      1 |    107      0
+     0    107      0 |    107      0
+     0    107      1 |    108      0
+     0    108      0 |    108      0
+     0    108      1 |    109      0
+     0    109      0 |    109      0
+     0    109      1 |    110      0
+     0    110      0 |    110      0
+     0    110      1 |    111      0
+     0    111      0 |    111      0
+     0    111      1 |    112      0
+     0    112      0 |    112      0
+     0    112      1 |    113      0
+     0    113      0 |    113      0
+     0    113      1 |    114      0
+     0    114      0 |    114      0
+     0    114      1 |    115      0
+     0    115      0 |    115      0
+     0    115      1 |    116      0
+     0    116      0 |    116      0
+     0    116      1 |    117      0
+     0    117      0 |    117      0
+     0    117      1 |    118      0
+     0    118      0 |    118      0
+     0    118      1 |    119      0
+     0    119      0 |    119      0
+     0    119      1 |    120      0
+     0    120      0 |    120      0
+     0    120      1 |    121      0
+     0    121      0 |    121      0
+     0    121      1 |    122      0
+     0    122      0 |    122      0
+     0    122      1 |    123      0
+     0    123      0 |    123      0
+     0    123      1 |    124      0
+     0    124      0 |    124      0
+     0    124      1 |    125      0
+     0    125      0 |    125      0
+     0    125      1 |    126      0
+     0    126      0 |    126      0
+     0    126      1 |    127      0
+     0    127      0 |    127      0
+     0    127      1 |    128      0
+
 File: parts\adder_8bit.sv
 ------------------------------------------------------------
 Parse Success: [PASS]
@@ -923,7 +1556,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.026s
+Execution Time: 1.066s
 NAND Gate Count: 120
 
 
@@ -1187,6 +1820,17 @@ inA[7:0] inB[7:0] inCarry | outSum[7:0] outCarry
      0    127      0 |    127      0
      0    127      1 |    128      0
 
+File: parts\adder_cs_8bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [FAIL]
+JSON Tests:    parts\adder_cs_8bit.json
+Test Success:  [FAIL]
+Tests Passed:  0/10 (0.0%)
+Execution Time: 0.005s
+NAND Gate Count: 220
+Error: Test execution failed: Signal 'inCarry' not found for instantiation 'u_lower'
+
 File: parts\and_gate.sv
 ------------------------------------------------------------
 Parse Success: [PASS]
@@ -1194,7 +1838,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\and_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.001s
+Execution Time: 0.002s
 NAND Gate Count: 2
 
 
@@ -1213,7 +1857,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.137s
+Execution Time: 0.149s
 NAND Gate Count: 16
 
 
@@ -1519,6 +2163,300 @@ Truth Table:
      1      0 |      1      0
      1      1 |      0      1
 
+File: parts\mux_2to1_1bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    parts\mux_2to1_1bit.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.005s
+NAND Gate Count: 8
+
+
+Truth Table:
+   in0    in1    sel |    out
+-----------------------------
+     0      0      0 |      0
+     0      0      1 |      0
+     0      1      0 |      0
+     0      1      1 |      1
+     1      0      0 |      1
+     1      0      1 |      0
+     1      1      0 |      1
+     1      1      1 |      1
+
+File: parts\mux_2to1_4bit.sv
+------------------------------------------------------------
+Parse Success: [PASS]
+Truth Table:   [PASS]
+JSON Tests:    parts\mux_2to1_4bit.json
+Test Success:  [PASS]
+Tests Passed:  8/8 (100.0%)
+Execution Time: 0.280s
+NAND Gate Count: 32
+
+
+Truth Table:
+in0[3:0] in1[3:0]    sel | out[3:0]
+-----------------------------------
+     0      0      0 |      0
+     0      0      1 |      0
+     0      1      0 |      0
+     0      1      1 |      1
+     0      2      0 |      0
+     0      2      1 |      2
+     0      3      0 |      0
+     0      3      1 |      3
+     0      4      0 |      0
+     0      4      1 |      4
+     0      5      0 |      0
+     0      5      1 |      5
+     0      6      0 |      0
+     0      6      1 |      6
+     0      7      0 |      0
+     0      7      1 |      7
+     0      8      0 |      0
+     0      8      1 |      8
+     0      9      0 |      0
+     0      9      1 |      9
+     0     10      0 |      0
+     0     10      1 |     10
+     0     11      0 |      0
+     0     11      1 |     11
+     0     12      0 |      0
+     0     12      1 |     12
+     0     13      0 |      0
+     0     13      1 |     13
+     0     14      0 |      0
+     0     14      1 |     14
+     0     15      0 |      0
+     0     15      1 |     15
+     1      0      0 |      1
+     1      0      1 |      0
+     1      1      0 |      1
+     1      1      1 |      1
+     1      2      0 |      1
+     1      2      1 |      2
+     1      3      0 |      1
+     1      3      1 |      3
+     1      4      0 |      1
+     1      4      1 |      4
+     1      5      0 |      1
+     1      5      1 |      5
+     1      6      0 |      1
+     1      6      1 |      6
+     1      7      0 |      1
+     1      7      1 |      7
+     1      8      0 |      1
+     1      8      1 |      8
+     1      9      0 |      1
+     1      9      1 |      9
+     1     10      0 |      1
+     1     10      1 |     10
+     1     11      0 |      1
+     1     11      1 |     11
+     1     12      0 |      1
+     1     12      1 |     12
+     1     13      0 |      1
+     1     13      1 |     13
+     1     14      0 |      1
+     1     14      1 |     14
+     1     15      0 |      1
+     1     15      1 |     15
+     2      0      0 |      2
+     2      0      1 |      0
+     2      1      0 |      2
+     2      1      1 |      1
+     2      2      0 |      2
+     2      2      1 |      2
+     2      3      0 |      2
+     2      3      1 |      3
+     2      4      0 |      2
+     2      4      1 |      4
+     2      5      0 |      2
+     2      5      1 |      5
+     2      6      0 |      2
+     2      6      1 |      6
+     2      7      0 |      2
+     2      7      1 |      7
+     2      8      0 |      2
+     2      8      1 |      8
+     2      9      0 |      2
+     2      9      1 |      9
+     2     10      0 |      2
+     2     10      1 |     10
+     2     11      0 |      2
+     2     11      1 |     11
+     2     12      0 |      2
+     2     12      1 |     12
+     2     13      0 |      2
+     2     13      1 |     13
+     2     14      0 |      2
+     2     14      1 |     14
+     2     15      0 |      2
+     2     15      1 |     15
+     3      0      0 |      3
+     3      0      1 |      0
+     3      1      0 |      3
+     3      1      1 |      1
+     3      2      0 |      3
+     3      2      1 |      2
+     3      3      0 |      3
+     3      3      1 |      3
+     3      4      0 |      3
+     3      4      1 |      4
+     3      5      0 |      3
+     3      5      1 |      5
+     3      6      0 |      3
+     3      6      1 |      6
+     3      7      0 |      3
+     3      7      1 |      7
+     3      8      0 |      3
+     3      8      1 |      8
+     3      9      0 |      3
+     3      9      1 |      9
+     3     10      0 |      3
+     3     10      1 |     10
+     3     11      0 |      3
+     3     11      1 |     11
+     3     12      0 |      3
+     3     12      1 |     12
+     3     13      0 |      3
+     3     13      1 |     13
+     3     14      0 |      3
+     3     14      1 |     14
+     3     15      0 |      3
+     3     15      1 |     15
+     4      0      0 |      4
+     4      0      1 |      0
+     4      1      0 |      4
+     4      1      1 |      1
+     4      2      0 |      4
+     4      2      1 |      2
+     4      3      0 |      4
+     4      3      1 |      3
+     4      4      0 |      4
+     4      4      1 |      4
+     4      5      0 |      4
+     4      5      1 |      5
+     4      6      0 |      4
+     4      6      1 |      6
+     4      7      0 |      4
+     4      7      1 |      7
+     4      8      0 |      4
+     4      8      1 |      8
+     4      9      0 |      4
+     4      9      1 |      9
+     4     10      0 |      4
+     4     10      1 |     10
+     4     11      0 |      4
+     4     11      1 |     11
+     4     12      0 |      4
+     4     12      1 |     12
+     4     13      0 |      4
+     4     13      1 |     13
+     4     14      0 |      4
+     4     14      1 |     14
+     4     15      0 |      4
+     4     15      1 |     15
+     5      0      0 |      5
+     5      0      1 |      0
+     5      1      0 |      5
+     5      1      1 |      1
+     5      2      0 |      5
+     5      2      1 |      2
+     5      3      0 |      5
+     5      3      1 |      3
+     5      4      0 |      5
+     5      4      1 |      4
+     5      5      0 |      5
+     5      5      1 |      5
+     5      6      0 |      5
+     5      6      1 |      6
+     5      7      0 |      5
+     5      7      1 |      7
+     5      8      0 |      5
+     5      8      1 |      8
+     5      9      0 |      5
+     5      9      1 |      9
+     5     10      0 |      5
+     5     10      1 |     10
+     5     11      0 |      5
+     5     11      1 |     11
+     5     12      0 |      5
+     5     12      1 |     12
+     5     13      0 |      5
+     5     13      1 |     13
+     5     14      0 |      5
+     5     14      1 |     14
+     5     15      0 |      5
+     5     15      1 |     15
+     6      0      0 |      6
+     6      0      1 |      0
+     6      1      0 |      6
+     6      1      1 |      1
+     6      2      0 |      6
+     6      2      1 |      2
+     6      3      0 |      6
+     6      3      1 |      3
+     6      4      0 |      6
+     6      4      1 |      4
+     6      5      0 |      6
+     6      5      1 |      5
+     6      6      0 |      6
+     6      6      1 |      6
+     6      7      0 |      6
+     6      7      1 |      7
+     6      8      0 |      6
+     6      8      1 |      8
+     6      9      0 |      6
+     6      9      1 |      9
+     6     10      0 |      6
+     6     10      1 |     10
+     6     11      0 |      6
+     6     11      1 |     11
+     6     12      0 |      6
+     6     12      1 |     12
+     6     13      0 |      6
+     6     13      1 |     13
+     6     14      0 |      6
+     6     14      1 |     14
+     6     15      0 |      6
+     6     15      1 |     15
+     7      0      0 |      7
+     7      0      1 |      0
+     7      1      0 |      7
+     7      1      1 |      1
+     7      2      0 |      7
+     7      2      1 |      2
+     7      3      0 |      7
+     7      3      1 |      3
+     7      4      0 |      7
+     7      4      1 |      4
+     7      5      0 |      7
+     7      5      1 |      5
+     7      6      0 |      7
+     7      6      1 |      6
+     7      7      0 |      7
+     7      7      1 |      7
+     7      8      0 |      7
+     7      8      1 |      8
+     7      9      0 |      7
+     7      9      1 |      9
+     7     10      0 |      7
+     7     10      1 |     10
+     7     11      0 |      7
+     7     11      1 |     11
+     7     12      0 |      7
+     7     12      1 |     12
+     7     13      0 |      7
+     7     13      1 |     13
+     7     14      0 |      7
+     7     14      1 |     14
+     7     15      0 |      7
+     7     15      1 |     15
+
 File: parts\nand_gate.sv
 ------------------------------------------------------------
 Parse Success: [PASS]
@@ -1545,7 +2483,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\nand_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.069s
+Execution Time: 0.070s
 NAND Gate Count: 8
 
 
@@ -1816,7 +2754,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\nor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.003s
 NAND Gate Count: 4
 
 
@@ -1835,7 +2773,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.274s
+Execution Time: 0.298s
 NAND Gate Count: 32
 
 
@@ -2123,7 +3061,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.071s
+Execution Time: 0.072s
 NAND Gate Count: 8
 
 
@@ -2703,7 +3641,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.329s
+Execution Time: 0.346s
 NAND Gate Count: 40
 
 
@@ -2993,7 +3931,7 @@ Truth Table:   [PASS]
 JSON Tests:    parts\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.263s
+Execution Time: 0.273s
 NAND Gate Count: 32
 
 
@@ -3260,20 +4198,23 @@ inA[7:0] inB[7:0] | outY[7:0]
 ============================================================
 SUMMARY REPORT
 ============================================================
-Files Tested:           19
-Overall Success:        19/19 (100.0%)
+Files Tested:           24
+Overall Success:        23/24 (95.8%)
 Parse Failures:         0
-Truth Table Failures:   0
-Files with JSON Tests:  19
-Test Case Failures:     0
-Total Test Cases:       146
-Passed Test Cases:      146/146 (100.0%)
-Total Execution Time:   4.992s
-Average Time per File:  0.263s
-Total NAND Gates:       620
-Average NAND per File:  32.6
+Truth Table Failures:   1
+Files with JSON Tests:  24
+Test Case Failures:     1
+Total Test Cases:       188
+Passed Test Cases:      178/188 (94.7%)
+Total Execution Time:   18.277s
+Average Time per File:  0.762s
+Total NAND Gates:       2320
+Average NAND per File:  96.7
+
+Failed Files (1):
+  [FAIL] parts\adder_cs_8bit.sv (Truth table error)
 ============================================================
 
-Total runtime: 4.992s
+Total runtime: 18.278s
 
-All tests passed! Exiting with code 0
+Exiting with code 1 (1 files failed)
