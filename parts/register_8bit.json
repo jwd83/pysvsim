@@ -1,0 +1,126 @@
+{
+  "test_type": "sequential",
+  "description": "8-bit register test cases",
+  "test_cycles": [
+    {
+      "cycle": 0,
+      "description": "Initialize register with enable=1, data=0x00",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "description": "Store 0xAA (binary 10101010)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 170
+      },
+      "expected_outputs": {
+        "q": 170
+      }
+    },
+    {
+      "cycle": 2,
+      "description": "Try to store 0x55 but enable is low - should hold 0xAA",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 85
+      },
+      "expected_outputs": {
+        "q": 170
+      }
+    },
+    {
+      "cycle": 3,
+      "description": "Enable high - store 0x55",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 85
+      },
+      "expected_outputs": {
+        "q": 85
+      }
+    },
+    {
+      "cycle": 4,
+      "description": "Store 0xFF (all ones)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 255
+      },
+      "expected_outputs": {
+        "q": 255
+      }
+    },
+    {
+      "cycle": 5,
+      "description": "Store 0x00 (all zeros)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 6,
+      "description": "Store 0x3C (binary 00111100)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 60
+      },
+      "expected_outputs": {
+        "q": 60
+      }
+    },
+    {
+      "cycle": 7,
+      "description": "Hold test - enable low, data changes but output should hold",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 128
+      },
+      "expected_outputs": {
+        "q": 60
+      }
+    },
+    {
+      "cycle": 8,
+      "description": "Another hold test - still disabled",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 200
+      },
+      "expected_outputs": {
+        "q": 60
+      }
+    },
+    {
+      "cycle": 9,
+      "description": "Enable and store new value 0x80",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 128
+      },
+      "expected_outputs": {
+        "q": 128
+      }
+    }
+  ]
+}

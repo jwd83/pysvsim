@@ -1446,7 +1446,19 @@ def main():
         print(f"Outputs: {module_info['outputs']}")
 
         # Create evaluator (sequential or combinational based on module content)
-        if module_info.get("sequential_blocks") or module_info.get("clock_signals"):
+        # Check for direct sequential blocks or clock signals in sub-modules
+        is_sequential = module_info.get("sequential_blocks") or module_info.get("clock_signals")
+        
+        # Also check if any instantiated sub-modules are sequential
+        if not is_sequential:
+            for inst in module_info.get("instantiations", []):
+                module_type = inst["module_type"]
+                # Check for known sequential modules (like register_1bit)
+                if "register" in module_type.lower() or "reg" in module_type.lower():
+                    is_sequential = True
+                    break
+        
+        if is_sequential:
             # Sequential logic detected - use SequentialLogicEvaluator
             evaluator = SequentialLogicEvaluator(
                 module_info["inputs"],

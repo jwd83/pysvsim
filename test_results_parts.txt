@@ -3,7 +3,7 @@ SystemVerilog Test Runner
 Target: parts\
 Max combinations: 16
 
-Found 31 SystemVerilog file(s) to test
+Found 32 SystemVerilog file(s) to test
 
 ================================================================================
 FILE: parts\adder_16bit.sv
@@ -13,7 +13,7 @@ Module: adder_16bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 240
-Execution Time: 0.206s
+Execution Time: 0.209s
 JSON Test File: parts\adder_16bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (8589934592). Limiting to first 16 combinations.
@@ -56,7 +56,7 @@ Module: adder_32bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 480
-Execution Time: 0.407s
+Execution Time: 0.408s
 JSON Test File: parts\adder_32bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (36893488147419103232). Limiting to first 16 combinations.
@@ -99,7 +99,7 @@ Module: adder_4bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 60
-Execution Time: 0.055s
+Execution Time: 0.054s
 JSON Test File: parts\adder_4bit.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (512). Limiting to first 16 combinations.
@@ -144,7 +144,7 @@ Module: adder_64bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 960
-Execution Time: 0.828s
+Execution Time: 0.824s
 JSON Test File: parts\adder_64bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (680564733841876926926749214863536422912). Limiting to first 16 combinations.
@@ -187,7 +187,7 @@ Module: adder_8bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 120
-Execution Time: 0.112s
+Execution Time: 0.113s
 JSON Test File: parts\adder_8bit.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (131072). Limiting to first 16 combinations.
@@ -232,7 +232,7 @@ Module: adder_cs_16bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 732
-Execution Time: 0.710s
+Execution Time: 0.722s
 JSON Test File: parts\adder_cs_16bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (8589934592). Limiting to first 16 combinations.
@@ -279,7 +279,7 @@ Module: adder_cs_32bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 2332
-Execution Time: 2.273s
+Execution Time: 2.264s
 JSON Test File: parts\adder_cs_32bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (36893488147419103232). Limiting to first 16 combinations.
@@ -326,7 +326,7 @@ Module: adder_cs_64bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 7260
-Execution Time: 6.027s
+Execution Time: 6.120s
 JSON Test File: parts\adder_cs_64bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (680564733841876926926749214863536422912). Limiting to first 16 combinations.
@@ -369,7 +369,7 @@ Module: adder_cs_8bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 220
-Execution Time: 0.198s
+Execution Time: 0.202s
 JSON Test File: parts\adder_cs_8bit.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (131072). Limiting to first 16 combinations.
@@ -440,7 +440,7 @@ Module: and_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 16
-Execution Time: 0.016s
+Execution Time: 0.017s
 JSON Test File: parts\and_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -547,7 +547,7 @@ Module: mux_2to1_16bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 128
-Execution Time: 0.125s
+Execution Time: 0.130s
 JSON Test File: parts\mux_2to1_16bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (8589934592). Limiting to first 16 combinations.
@@ -628,7 +628,7 @@ Module: mux_2to1_32bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 256
-Execution Time: 0.243s
+Execution Time: 0.248s
 JSON Test File: parts\mux_2to1_32bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (36893488147419103232). Limiting to first 16 combinations.
@@ -718,7 +718,7 @@ Module: mux_2to1_8bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 64
-Execution Time: 0.063s
+Execution Time: 0.066s
 JSON Test File: parts\mux_2to1_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (131072). Limiting to first 16 combinations.
@@ -864,7 +864,7 @@ Module: nor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.032s
+Execution Time: 0.033s
 JSON Test File: parts\nor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -933,7 +933,7 @@ Module: not_gate_8bit
 Inputs: ['inA']
 Outputs: ['outY']
 NAND Gates: 8
-Execution Time: 0.008s
+Execution Time: 0.007s
 JSON Test File: parts\not_gate_8bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (256). Limiting to first 16 combinations.
@@ -976,7 +976,7 @@ Module: or_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 3
-Execution Time: 0.002s
+Execution Time: 0.001s
 JSON Test File: parts\or_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1049,7 +1049,7 @@ Module: register_1bit
 Inputs: ['clk', 'enable', 'data']
 Outputs: ['q']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.000s
 JSON Test File: parts\register_1bit.json
 Test Results: 6/6 passed (100.0%)
 Warnings: Truth table skipped for sequential logic module
@@ -1065,6 +1065,33 @@ Test Execution:
 Truth Table: Skipped (sequential logic module)
 
 ================================================================================
+FILE: parts\register_8bit.sv
+================================================================================
+Status: [PASS]
+Module: register_8bit
+Inputs: ['clk', 'enable', 'data']
+Outputs: ['q']
+NAND Gates: 0
+Execution Time: 0.000s
+JSON Test File: parts\register_8bit.json
+Test Results: 10/10 passed (100.0%)
+Warnings: Truth table skipped for sequential logic module
+
+Test Execution:
+  Cycle 0 passed - Initialize register with enable=1, data=0x00
+  Cycle 1 passed - Store 0xAA (binary 10101010)
+  Cycle 2 passed - Try to store 0x55 but enable is low - should hold 0xAA
+  Cycle 3 passed - Enable high - store 0x55
+  Cycle 4 passed - Store 0xFF (all ones)
+  Cycle 5 passed - Store 0x00 (all zeros)
+  Cycle 6 passed - Store 0x3C (binary 00111100)
+  Cycle 7 passed - Hold test - enable low, data changes but output should hold
+  Cycle 8 passed - Another hold test - still disabled
+  Cycle 9 passed - Enable and store new value 0x80
+
+Truth Table: Skipped (sequential logic module)
+
+================================================================================
 FILE: parts\xnor_gate.sv
 ================================================================================
 Status: [PASS]
@@ -1072,7 +1099,7 @@ Module: xnor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 5
-Execution Time: 0.002s
+Execution Time: 0.003s
 JSON Test File: parts\xnor_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1171,7 +1198,7 @@ Module: xor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.029s
+Execution Time: 0.030s
 JSON Test File: parts\xor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1214,20 +1241,20 @@ inA[7:0] inB[7:0] | outY[7:0]
 ============================================================
 SUMMARY REPORT
 ============================================================
-Files Tested:           31
-Overall Success:        31/31 (100.0%)
+Files Tested:           32
+Overall Success:        32/32 (100.0%)
 Parse Failures:         0
 Truth Table Failures:   0
-Files with JSON Tests:  31
+Files with JSON Tests:  32
 Test Case Failures:     0
-Total Test Cases:       262
-Passed Test Cases:      262/262 (100.0%)
-Total Execution Time:   11.457s
-Average Time per File:  0.370s
+Total Test Cases:       272
+Passed Test Cases:      272/272 (100.0%)
+Total Execution Time:   11.571s
+Average Time per File:  0.362s
 Total NAND Gates:       13092
-Average NAND per File:  422.3
+Average NAND per File:  409.1
 ============================================================
 
-Total runtime: 11.460s
+Total runtime: 11.575s
 
 All tests passed! Exiting with code 0
