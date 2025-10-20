@@ -22,7 +22,61 @@ from typing import Dict, List, Tuple, Any, Optional
 import traceback
 
 # Import our simulator components
-from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, TestRunner, clear_module_cache
+from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+import json
+import io
+import contextlib
+
+# Silent TestRunner that captures output
+class SilentTestRunner:
+    """TestRunner that captures all output for clean reporting"""
+    
+    def __init__(self, evaluator: LogicEvaluator):
+        self.evaluator = evaluator
+        self.test_outputs = []
+    
+    def load_tests(self, test_file: str):
+        """Load test cases from a JSON file."""
+        try:
+            with open(test_file, "r", encoding="utf-8") as f:
+                tests = json.load(f)
+            return tests
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Test file not found: {test_file}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in test file {test_file}: {e}")
+    
+    def run_tests(self, tests):
+        """Run tests silently and capture results"""
+        passed = 0
+        total = len(tests)
+        self.test_outputs = []
+        
+        for i, test in enumerate(tests, 1):
+            # Extract input values (all keys except 'expect')
+            input_values = {k: v for k, v in test.items() if k != "expect"}
+            expected_outputs = test.get("expect", {})
+            
+            # Run simulation
+            actual_outputs = self.evaluator.evaluate(input_values)
+            
+            # Check results
+            test_passed = True
+            for output_name, expected_value in expected_outputs.items():
+                if output_name not in actual_outputs:
+                    self.test_outputs.append(f"Test {i} failed: Output '{output_name}' not found")
+                    test_passed = False
+                elif actual_outputs[output_name] != expected_value:
+                    self.test_outputs.append(
+                        f"Test {i} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
+                    )
+                    test_passed = False
+            
+            if test_passed:
+                self.test_outputs.append(f"Test {i} passed")
+                passed += 1
+        
+        return passed, total
 
 
 class TestReport:
@@ -41,6 +95,8 @@ class TestReport:
         self.evaluator = None
         self.execution_time = 0.0
         self.nand_gate_count = 0
+        self.warnings = ""
+        self.test_outputs = []
         
     @property
     def has_tests(self) -> bool:
@@ -57,10 +113,8 @@ class SystemVerilogTestRunner:
     """Main test runner for SystemVerilog files and test suites"""
     
     def __init__(self):
-        # Fixed settings for maximum verbosity
+        # Fixed settings
         self.max_combinations = 16
-        self.verbose = True
-        self.summary_only = False
         self.continue_on_error = True
         self.reports: List[TestReport] = []
         
@@ -96,22 +150,10 @@ class SystemVerilogTestRunner:
             # Find JSON test file
             report.json_file = self.find_json_test(sv_file)
             
-            if self.verbose:
-                print(f"\n[INFO] Testing {sv_file}")
-                if report.json_file:
-                    print(f"[INFO] Using test file: {report.json_file}")
-                else:
-                    print("[INFO] No JSON test file found")
-            
             # Parse SystemVerilog file
             parser = SystemVerilogParser()
             module_info = parser.parse_file(sv_file)
             report.parse_success = True
-            
-            if self.verbose:
-                print(f"[INFO] Parsed module: {module_info['name']}")
-                print(f"[INFO] Inputs: {module_info['inputs']}")
-                print(f"[INFO] Outputs: {module_info['outputs']}")
             
             # Create evaluator
             evaluator = LogicEvaluator(
@@ -131,51 +173,42 @@ class SystemVerilogTestRunner:
             # Count NAND gates
             report.nand_gate_count = evaluator.count_nand_gates()
             
-            if self.verbose:
-                print(f"[INFO] NAND Gate Count: {report.nand_gate_count}")
-            
-            # Generate truth table if requested
-            if not self.summary_only:
-                try:
+            # Generate truth table (capture warnings)
+            try:
+                # Capture any warning messages during truth table generation
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
                     truth_table_gen = TruthTableGenerator(evaluator)
                     report.truth_table = truth_table_gen.generate_truth_table(self.max_combinations)
-                    report.truth_table_success = True
-                    
-                    if self.verbose:
-                        print(f"[INFO] Generated truth table with {len(report.truth_table)} combinations")
-                except Exception as e:
-                    if self.verbose:
-                        print(f"[WARN] Truth table generation failed: {e}")
+                captured_output = f.getvalue()
+                if captured_output.strip():
+                    report.warnings = captured_output.strip()
+                report.truth_table_success = True
+            except Exception as e:
+                report.error_message = f"Truth table generation failed: {e}"
             
             # Run JSON tests if available
             if report.json_file:
                 try:
-                    test_runner = TestRunner(evaluator)
+                    test_runner = SilentTestRunner(evaluator)
                     tests = test_runner.load_tests(report.json_file)
                     report.total_tests = len(tests)
                     
                     passed, total = test_runner.run_tests(tests)
                     report.passed_tests = passed
                     report.test_success = (passed == total)
-                    
-                    if self.verbose:
-                        print(f"[INFO] Test results: {passed}/{total} passed")
+                    report.test_outputs = test_runner.test_outputs
                         
                 except Exception as e:
                     report.error_message = f"Test execution failed: {str(e)}"
-                    if self.verbose:
-                        print(f"[ERROR] {report.error_message}")
             
             # Overall success
             report.success = (report.parse_success and 
                             (not report.has_tests or report.test_success) and
-                            (self.summary_only or report.truth_table_success))
+                            report.truth_table_success)
                             
         except Exception as e:
             report.error_message = f"Parsing failed: {str(e)}"
-            if self.verbose:
-                print(f"[ERROR] {report.error_message}")
-                traceback.print_exc()
         
         report.execution_time = time.time() - start_time
         return report
@@ -188,19 +221,14 @@ class SystemVerilogTestRunner:
                 print(f"No SystemVerilog files found in: {path}")
                 return
                 
-            print(f"Found {len(sv_files)} SystemVerilog file(s) to test")
+            print(f"Found {len(sv_files)} SystemVerilog file(s) to test\n")
             
             for i, sv_file in enumerate(sv_files, 1):
                 report = self.test_single_file(sv_file)
                 self.reports.append(report)
                 
-                # Print progress
-                if not self.verbose:
-                    status = "[PASS]" if report.success else "[FAIL]"
-                    test_info = ""
-                    if report.has_tests:
-                        test_info = f" ({report.passed_tests}/{report.total_tests} tests passed)"
-                    print(f"{status} {sv_file}{test_info}")
+                # Print immediate comprehensive report for this file
+                self.print_file_report(report)
                 
                 # Stop on error if requested
                 if not self.continue_on_error and not report.success:
@@ -208,45 +236,72 @@ class SystemVerilogTestRunner:
                     break
                     
         except KeyboardInterrupt:
-            print("\n[INFO] Test run interrupted by user")
+            print(f"\n[INFO] Test run interrupted by user")
         except Exception as e:
             print(f"[ERROR] Test runner failed: {e}")
             traceback.print_exc()
     
-    def print_detailed_report(self) -> None:
-        """Print detailed test report including truth tables"""
-        print("\n" + "="*80)
-        print("DETAILED TEST REPORT")
-        print("="*80)
+    def print_file_report(self, report: TestReport) -> None:
+        """Print comprehensive report for a single file"""
+        print("=" * 80)
+        print(f"FILE: {report.sv_file}")
+        print("=" * 80)
         
-        for report in self.reports:
-            print(f"\nFile: {report.sv_file}")
-            print("-" * 60)
-            print(f"Parse Success: {'[PASS]' if report.parse_success else '[FAIL]'}")
-            print(f"Truth Table:   {'[PASS]' if report.truth_table_success else '[FAIL]'}")
-            
-            if report.has_tests:
-                print(f"JSON Tests:    {report.json_file}")
-                print(f"Test Success:  {'[PASS]' if report.test_success else '[FAIL]'}")
-                print(f"Tests Passed:  {report.passed_tests}/{report.total_tests} ({report.test_pass_rate:.1f}%)")
-            else:
-                print("JSON Tests:    No test file found")
-            
-            print(f"Execution Time: {report.execution_time:.3f}s")
-            print(f"NAND Gate Count: {report.nand_gate_count}")
-            
-            if report.error_message:
-                print(f"Error: {report.error_message}")
-            
-            # Print truth table if available and verbose mode
-            if self.verbose and report.truth_table and report.truth_table_success and report.evaluator:
-                try:
-                    # Create truth table generator and print the formatted table
-                    truth_table_gen = TruthTableGenerator(report.evaluator)
-                    print("\n")  # Add some spacing
-                    truth_table_gen.print_truth_table(report.truth_table)
-                except Exception as e:
-                    print(f"\nTruth Table: {len(report.truth_table)} combinations generated (formatting error: {e})")
+        # Basic info
+        status = "PASS" if report.success else "FAIL"
+        print(f"Status: [{status}]")
+        if report.evaluator and hasattr(report.evaluator, 'module_name'):
+            print(f"Module: {report.evaluator.module_name}")
+        else:
+            # Extract module name from file path as fallback
+            module_name = Path(report.sv_file).stem
+            print(f"Module: {module_name}")
+        print(f"Inputs: {report.evaluator.inputs if report.evaluator else 'N/A'}")
+        print(f"Outputs: {report.evaluator.outputs if report.evaluator else 'N/A'}")
+        print(f"NAND Gates: {report.nand_gate_count}")
+        print(f"Execution Time: {report.execution_time:.3f}s")
+        
+        # Test results
+        if report.has_tests:
+            print(f"JSON Test File: {report.json_file}")
+            print(f"Test Results: {report.passed_tests}/{report.total_tests} passed ({report.test_pass_rate:.1f}%)")
+        else:
+            print("JSON Test File: None")
+            print("Test Results: No tests")
+        
+        # Show warnings from truth table generation
+        if hasattr(report, 'warnings') and report.warnings:
+            print(f"Warnings: {report.warnings}")
+        
+        # Show test execution details
+        if hasattr(report, 'test_outputs') and report.test_outputs:
+            print("\nTest Execution:")
+            for output in report.test_outputs:
+                print(f"  {output}")
+        
+        # Errors
+        if report.error_message:
+            print(f"Error: {report.error_message}")
+        
+        # Truth table
+        if report.truth_table and report.truth_table_success and report.evaluator:
+            print()
+            try:
+                truth_table_gen = TruthTableGenerator(report.evaluator)
+                truth_table_gen.print_truth_table(report.truth_table)
+            except Exception as e:
+                print(f"Truth Table Error: {e}")
+        elif report.truth_table_success:
+            print(f"\nTruth Table: {len(report.truth_table)} combinations generated")
+        else:
+            print("\nTruth Table: Failed to generate")
+        
+        print()
+        
+    def print_detailed_report(self) -> None:
+        """Print detailed test report - not used anymore"""
+        # This method is kept for compatibility but doesn't do anything
+        pass
     
     def print_summary_report(self) -> None:
         """Print summary statistics"""
@@ -318,20 +373,16 @@ def main():
     # Create test runner with maximum verbosity settings
     runner = SystemVerilogTestRunner()
     
-    print("SystemVerilog Test Runner (Maximum Verbosity)")
+    print("SystemVerilog Test Runner")
     print("=" * 50)
     print(f"Target: {path}")
     print(f"Max combinations: {runner.max_combinations}")
-    print("Mode: Full verbose output with detailed reports")
     print()
     
     # Run tests
     start_time = time.time()
     runner.run_tests(path)
     end_time = time.time()
-    
-    # Always print detailed report since we want maximum verbosity
-    runner.print_detailed_report()
     
     runner.print_summary_report()
     
