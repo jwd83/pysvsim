@@ -1,0 +1,162 @@
+{
+  "test_type": "sequential",
+  "description": "64-bit register test cases",
+  "test_cycles": [
+    {
+      "cycle": 0,
+      "description": "Initialize register with enable=1, data=0x0000000000000000",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "description": "Store 0xAAAAAAAAAAAAAAAA (alternating bits)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 12297829382473034410
+      },
+      "expected_outputs": {
+        "q": 12297829382473034410
+      }
+    },
+    {
+      "cycle": 2,
+      "description": "Try to store 0x5555555555555555 but enable is low - should hold 0xAAAAAAAAAAAAAAAA",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 6148914691236517205
+      },
+      "expected_outputs": {
+        "q": 12297829382473034410
+      }
+    },
+    {
+      "cycle": 3,
+      "description": "Enable high - store 0x5555555555555555",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 6148914691236517205
+      },
+      "expected_outputs": {
+        "q": 6148914691236517205
+      }
+    },
+    {
+      "cycle": 4,
+      "description": "Store 0xFFFFFFFFFFFFFFFF (all ones)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 18446744073709551615
+      },
+      "expected_outputs": {
+        "q": 18446744073709551615
+      }
+    },
+    {
+      "cycle": 5,
+      "description": "Store 0x0000000000000000 (all zeros)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 6,
+      "description": "Store 0x123456789ABCDEF0 (test pattern)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 1311768467463790320
+      },
+      "expected_outputs": {
+        "q": 1311768467463790320
+      }
+    },
+    {
+      "cycle": 7,
+      "description": "Store 0xFEDCBA9876543210 (reverse test pattern)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 18364758544493064720
+      },
+      "expected_outputs": {
+        "q": 18364758544493064720
+      }
+    },
+    {
+      "cycle": 8,
+      "description": "Hold test - enable low, data changes but output should hold",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 1234567890123456789
+      },
+      "expected_outputs": {
+        "q": 18364758544493064720
+      }
+    },
+    {
+      "cycle": 9,
+      "description": "Enable and store new value 0x8000000000000000 (MSB set)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 9223372036854775808
+      },
+      "expected_outputs": {
+        "q": 9223372036854775808
+      }
+    },
+    {
+      "cycle": 10,
+      "description": "Store 0x7FFFFFFFFFFFFFFF (MSB clear, all other bits set)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 9223372036854775807
+      },
+      "expected_outputs": {
+        "q": 9223372036854775807
+      }
+    },
+    {
+      "cycle": 11,
+      "description": "Store boundary value 0x0123456789ABCDEF",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 81985529216486895
+      },
+      "expected_outputs": {
+        "q": 81985529216486895
+      }
+    },
+    {
+      "cycle": 12,
+      "description": "Final hold test - enable disabled",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 9876543210987654321
+      },
+      "expected_outputs": {
+        "q": 81985529216486895
+      }
+    }
+  ]
+}

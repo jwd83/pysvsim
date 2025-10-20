@@ -1,0 +1,126 @@
+{
+  "test_type": "sequential",
+  "description": "16-bit register test cases",
+  "test_cycles": [
+    {
+      "cycle": 0,
+      "description": "Initialize register with enable=1, data=0x0000",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "description": "Store 0xAAAA (binary 1010101010101010)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 43690
+      },
+      "expected_outputs": {
+        "q": 43690
+      }
+    },
+    {
+      "cycle": 2,
+      "description": "Try to store 0x5555 but enable is low - should hold 0xAAAA",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 21845
+      },
+      "expected_outputs": {
+        "q": 43690
+      }
+    },
+    {
+      "cycle": 3,
+      "description": "Enable high - store 0x5555",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 21845
+      },
+      "expected_outputs": {
+        "q": 21845
+      }
+    },
+    {
+      "cycle": 4,
+      "description": "Store 0xFFFF (all ones)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 65535
+      },
+      "expected_outputs": {
+        "q": 65535
+      }
+    },
+    {
+      "cycle": 5,
+      "description": "Store 0x0000 (all zeros)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 0
+      },
+      "expected_outputs": {
+        "q": 0
+      }
+    },
+    {
+      "cycle": 6,
+      "description": "Store 0x1234 (test pattern)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 4660
+      },
+      "expected_outputs": {
+        "q": 4660
+      }
+    },
+    {
+      "cycle": 7,
+      "description": "Store 0xABCD (another test pattern)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 43981
+      },
+      "expected_outputs": {
+        "q": 43981
+      }
+    },
+    {
+      "cycle": 8,
+      "description": "Hold test - enable low, data changes but output should hold",
+      "inputs": {
+        "clk": 1,
+        "enable": 0,
+        "data": 12345
+      },
+      "expected_outputs": {
+        "q": 43981
+      }
+    },
+    {
+      "cycle": 9,
+      "description": "Enable and store new value 0x8000 (MSB set)",
+      "inputs": {
+        "clk": 1,
+        "enable": 1,
+        "data": 32768
+      },
+      "expected_outputs": {
+        "q": 32768
+      }
+    }
+  ]
+}
