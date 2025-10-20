@@ -312,8 +312,8 @@ class SystemVerilogParser:
 
             # Parse port connections
             port_connections = {}
-            # Pattern to match .port_name(signal_name) connections including bit selections like A[0] and bus slices like A[3:0]
-            conn_pattern = r"\.([\w]+)\(([\w\[\]:]+)\)"
+            # Pattern to match .port_name(signal_name) connections including bit selections like A[0], bus slices like A[3:0], and literals like 1'b0
+            conn_pattern = r"\.([\w]+)\(([\w\[\]:']+)\)"
             connections_found = re.findall(conn_pattern, connections)
 
             for port_name, signal_name in connections_found:
@@ -754,6 +754,7 @@ class LogicEvaluator:
         """Evaluate a module instantiation."""
         module_type = inst["module_type"]
         connections = inst["connections"]
+        instance_name = inst.get("instance_name", "unknown")
 
         # Load the referenced module if not already loaded
         if module_type not in GLOBAL_MODULE_CACHE:
@@ -762,7 +763,7 @@ class LogicEvaluator:
         #     print(f"Using cached module '{module_type}'")
 
         if module_type not in GLOBAL_MODULE_CACHE:
-            raise ValueError(f"Could not load module '{module_type}'")
+            raise ValueError(f"Could not load module '{module_type}' for instance '{instance_name}'")
 
         module_info = GLOBAL_MODULE_CACHE[module_type]
 
@@ -772,8 +773,16 @@ class LogicEvaluator:
             if port_name in module_info["inputs"]:
                 signal_value = None
 
+                # Handle SystemVerilog literals like 1'b0, 1'b1
+                if re.match(r"\d+'b[01]+", signal_name):
+                    # Parse SystemVerilog binary literal
+                    literal_match = re.match(r"(\d+)'b([01]+)", signal_name)
+                    if literal_match:
+                        width = int(literal_match.group(1))
+                        binary_value = literal_match.group(2)
+                        signal_value = int(binary_value, 2)
                 # Handle direct signal reference
-                if signal_name in signal_values:
+                elif signal_name in signal_values:
                     signal_value = signal_values[signal_name]
                 else:
                     # Check if it's a bus slice like A[3:0]
@@ -803,8 +812,9 @@ class LogicEvaluator:
                 if signal_value is not None:
                     inst_input_values[port_name] = signal_value
                 else:
+                    available_signals = list(signal_values.keys())
                     raise ValueError(
-                        f"Signal '{signal_name}' not found for instantiation '{inst['instance_name']}'"
+                        f"Signal '{signal_name}' not found for instantiation '{instance_name}' (port '{port_name}'). Available signals: {available_signals[:10]}{'...' if len(available_signals) > 10 else ''}"
                     )
 
         # Create evaluator for the instantiated module
