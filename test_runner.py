@@ -23,6 +23,10 @@ import traceback
 
 # Import our simulator components
 from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+try:
+    from pysvsim import SequentialLogicEvaluator
+except ImportError:
+    SequentialLogicEvaluator = None
 import json
 import io
 import contextlib
@@ -31,9 +35,11 @@ import contextlib
 class SilentTestRunner:
     """TestRunner that captures all output for clean reporting"""
     
-    def __init__(self, evaluator: LogicEvaluator):
+    def __init__(self, evaluator):
         self.evaluator = evaluator
         self.test_outputs = []
+        # Check if this is a sequential evaluator
+        self.is_sequential = hasattr(evaluator, 'evaluate_cycle')
     
     def load_tests(self, test_file: str):
         """Load test cases from a JSON file."""
@@ -48,6 +54,14 @@ class SilentTestRunner:
     
     def run_tests(self, tests):
         """Run tests silently and capture results"""
+        # Check if this is sequential test format
+        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+            return self._run_sequential_tests(tests)
+        else:
+            return self._run_combinational_tests(tests)
+    
+    def _run_combinational_tests(self, tests):
+        """Run combinational logic tests (original format)"""
         passed = 0
         total = len(tests)
         self.test_outputs = []
@@ -74,6 +88,48 @@ class SilentTestRunner:
             
             if test_passed:
                 self.test_outputs.append(f"Test {i} passed")
+                passed += 1
+        
+        return passed, total
+    
+    def _run_sequential_tests(self, test_data):
+        """Run sequential logic tests (new format)"""
+        test_cycles = test_data.get('test_cycles', [])
+        passed = 0
+        total = len(test_cycles)
+        self.test_outputs = []
+        
+        # Reset sequential state
+        if hasattr(self.evaluator, 'reset_state'):
+            self.evaluator.reset_state()
+        
+        for i, cycle_test in enumerate(test_cycles):
+            cycle_num = cycle_test.get('cycle', i)
+            input_values = cycle_test.get('inputs', {})
+            expected_outputs = cycle_test.get('expected_outputs', {})
+            description = cycle_test.get('description', f'Cycle {cycle_num}')
+            
+            # Run one clock cycle
+            if self.is_sequential:
+                actual_outputs = self.evaluator.evaluate_cycle(input_values)
+            else:
+                # Fallback for combinational evaluator
+                actual_outputs = self.evaluator.evaluate(input_values)
+            
+            # Check results
+            test_passed = True
+            for output_name, expected_value in expected_outputs.items():
+                if output_name not in actual_outputs:
+                    self.test_outputs.append(f"Cycle {cycle_num} failed: Output '{output_name}' not found - {description}")
+                    test_passed = False
+                elif actual_outputs[output_name] != expected_value:
+                    self.test_outputs.append(
+                        f"Cycle {cycle_num} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value} - {description}"
+                    )
+                    test_passed = False
+            
+            if test_passed:
+                self.test_outputs.append(f"Cycle {cycle_num} passed - {description}")
                 passed += 1
         
         return passed, total
@@ -155,17 +211,33 @@ class SystemVerilogTestRunner:
             module_info = parser.parse_file(sv_file)
             report.parse_success = True
             
-            # Create evaluator
-            evaluator = LogicEvaluator(
-                module_info["inputs"],
-                module_info["outputs"],
-                module_info["assignments"],
-                module_info.get("instantiations", []),
-                module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []),
-                module_info.get("concat_assignments", []),
-                sv_file,
-            )
+            # Create evaluator (sequential or combinational based on module content)
+            if (module_info.get("sequential_blocks") or module_info.get("clock_signals")) and SequentialLogicEvaluator:
+                # Sequential logic detected - use SequentialLogicEvaluator
+                evaluator = SequentialLogicEvaluator(
+                    module_info["inputs"],
+                    module_info["outputs"],
+                    module_info["assignments"],
+                    module_info.get("instantiations", []),
+                    module_info.get("bus_info", {}),
+                    module_info.get("slice_assignments", []),
+                    module_info.get("concat_assignments", []),
+                    module_info.get("sequential_blocks", []),
+                    module_info.get("clock_signals", []),
+                    sv_file,
+                )
+            else:
+                # Combinational logic - use existing LogicEvaluator
+                evaluator = LogicEvaluator(
+                    module_info["inputs"],
+                    module_info["outputs"],
+                    module_info["assignments"],
+                    module_info.get("instantiations", []),
+                    module_info.get("bus_info", {}),
+                    module_info.get("slice_assignments", []),
+                    module_info.get("concat_assignments", []),
+                    sv_file,
+                )
             
             # Store evaluator in report for later use
             report.evaluator = evaluator
@@ -173,29 +245,36 @@ class SystemVerilogTestRunner:
             # Count NAND gates
             report.nand_gate_count = evaluator.count_nand_gates()
             
-            # Generate truth table (capture warnings)
-            try:
-                # Capture any warning messages during truth table generation
-                f = io.StringIO()
-                with contextlib.redirect_stdout(f):
-                    truth_table_gen = TruthTableGenerator(evaluator)
-                    report.truth_table = truth_table_gen.generate_truth_table(self.max_combinations)
-                captured_output = f.getvalue()
-                if captured_output.strip():
-                    report.warnings = captured_output.strip()
+            # Generate truth table only for combinational logic (sequential logic truth tables are nonsensical)
+            is_sequential = hasattr(evaluator, 'evaluate_cycle')
+            if not is_sequential:
+                try:
+                    # Capture any warning messages during truth table generation
+                    f = io.StringIO()
+                    with contextlib.redirect_stdout(f):
+                        truth_table_gen = TruthTableGenerator(evaluator)
+                        report.truth_table = truth_table_gen.generate_truth_table(self.max_combinations)
+                    captured_output = f.getvalue()
+                    if captured_output.strip():
+                        report.warnings = captured_output.strip()
+                    report.truth_table_success = True
+                except Exception as e:
+                    report.error_message = f"Truth table generation failed: {e}"
+            else:
+                # Skip truth table for sequential logic - it's not meaningful
                 report.truth_table_success = True
-            except Exception as e:
-                report.error_message = f"Truth table generation failed: {e}"
+                report.warnings = "Truth table skipped for sequential logic module"
             
             # Run JSON tests if available
             if report.json_file:
                 try:
                     test_runner = SilentTestRunner(evaluator)
                     tests = test_runner.load_tests(report.json_file)
-                    report.total_tests = len(tests)
                     
+                    # Run tests and get actual counts from the test runner
                     passed, total = test_runner.run_tests(tests)
                     report.passed_tests = passed
+                    report.total_tests = total  # Use the actual total from test runner, not len(tests)
                     report.test_success = (passed == total)
                     report.test_outputs = test_runner.test_outputs
                         
@@ -283,8 +362,11 @@ class SystemVerilogTestRunner:
         if report.error_message:
             print(f"Error: {report.error_message}")
         
-        # Truth table
-        if report.truth_table and report.truth_table_success and report.evaluator:
+        # Truth table - only show for combinational logic
+        is_sequential = hasattr(report.evaluator, 'evaluate_cycle') if report.evaluator else False
+        if is_sequential:
+            print("\nTruth Table: Skipped (sequential logic module)")
+        elif report.truth_table and report.truth_table_success and report.evaluator:
             print()
             try:
                 truth_table_gen = TruthTableGenerator(report.evaluator)

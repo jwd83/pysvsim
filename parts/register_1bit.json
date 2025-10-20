@@ -1,0 +1,72 @@
+{
+    "test_type": "sequential",
+    "clock_signal": "clk",
+    "test_cycles": [
+        {
+            "cycle": 0,
+            "inputs": {
+                "enable": 1,
+                "data": 0
+            },
+            "expected_outputs": {
+                "q": 0
+            },
+            "description": "Initialize register with 0"
+        },
+        {
+            "cycle": 1,
+            "inputs": {
+                "enable": 1,
+                "data": 1
+            },
+            "expected_outputs": {
+                "q": 1
+            },
+            "description": "Store 1 in register"
+        },
+        {
+            "cycle": 2,
+            "inputs": {
+                "enable": 0,
+                "data": 0
+            },
+            "expected_outputs": {
+                "q": 1
+            },
+            "description": "Hold value when enable is low"
+        },
+        {
+            "cycle": 3,
+            "inputs": {
+                "enable": 0,
+                "data": 1
+            },
+            "expected_outputs": {
+                "q": 1
+            },
+            "description": "Continue holding value"
+        },
+        {
+            "cycle": 4,
+            "inputs": {
+                "enable": 1,
+                "data": 0
+            },
+            "expected_outputs": {
+                "q": 0
+            },
+            "description": "Update to 0 when enable goes high"
+        },
+        {
+            "cycle": 5,
+            "inputs": {
+                "enable": 1,
+                "data": 1
+            },
+            "expected_outputs": {
+                "q": 1
+            },
+            "description": "Update to 1 immediately"
+        }
+    ]
+}

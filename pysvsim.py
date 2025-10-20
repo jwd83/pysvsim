@@ -46,6 +46,8 @@ class SystemVerilogParser:
             []
         )  # Track concatenation assignments like {w, x, y, z} = expr
         self.instantiations = []
+        self.sequential_blocks = []  # Track always_ff blocks and other sequential logic
+        self.clock_signals = set()  # Track identified clock signals
         self.filepath = ""
 
     def parse_file(self, filepath: str) -> Dict[str, Any]:
@@ -94,6 +96,9 @@ class SystemVerilogParser:
 
         # Parse module instantiations
         self._parse_instantiations(content)
+        
+        # Parse sequential logic blocks
+        self._parse_sequential_blocks(content)
 
         return {
             "name": self.module_name,
@@ -103,6 +108,8 @@ class SystemVerilogParser:
             "slice_assignments": self.slice_assignments.copy(),
             "concat_assignments": self.concat_assignments.copy(),
             "instantiations": self.instantiations.copy(),
+            "sequential_blocks": self.sequential_blocks.copy(),
+            "clock_signals": list(self.clock_signals),
             "bus_info": self.bus_info.copy(),
         }
 
@@ -326,6 +333,97 @@ class SystemVerilogParser:
                     "connections": port_connections,
                 }
             )
+    
+    def _parse_sequential_blocks(self, content: str):
+        """Parse sequential logic blocks like always_ff."""
+        # Find all always_ff blocks
+        always_ff_pattern = r'always_ff\s*@\s*\(([^)]+)\)\s*begin(.*?)end'
+        
+        for match in re.finditer(always_ff_pattern, content, re.DOTALL):
+            sensitivity_list = match.group(1).strip()
+            block_content = match.group(2).strip()
+            
+            # Parse sensitivity list to find clock and edge type
+            clock_info = self._parse_sensitivity_list(sensitivity_list)
+            
+            # Parse assignments within the block
+            assignments = self._parse_sequential_assignments(block_content)
+            
+            sequential_block = {
+                'type': 'always_ff',
+                'clock': clock_info['clock'],
+                'edge': clock_info['edge'],
+                'assignments': assignments
+            }
+            
+            self.sequential_blocks.append(sequential_block)
+            self.clock_signals.add(clock_info['clock'])
+    
+    def _parse_sensitivity_list(self, sensitivity_list: str) -> Dict[str, str]:
+        """Parse sensitivity list like 'posedge clk' or 'negedge reset'."""
+        sensitivity_list = sensitivity_list.strip()
+        
+        if sensitivity_list.startswith('posedge'):
+            clock_name = sensitivity_list.replace('posedge', '').strip()
+            return {'clock': clock_name, 'edge': 'posedge'}
+        elif sensitivity_list.startswith('negedge'):
+            clock_name = sensitivity_list.replace('negedge', '').strip()
+            return {'clock': clock_name, 'edge': 'negedge'}
+        else:
+            # Default to posedge for unspecified edge
+            return {'clock': sensitivity_list, 'edge': 'posedge'}
+    
+    def _parse_sequential_assignments(self, block_content: str) -> List[Dict[str, str]]:
+        """Parse assignments within a sequential block."""
+        assignments = []
+        
+        # Split by lines and process each potential assignment
+        lines = [line.strip() for line in block_content.split(';') if line.strip()]
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('//') or line in ['begin', 'end']:
+                continue
+            
+            # Handle if-else blocks
+            if line.startswith('if'):
+                if_assignment = self._parse_if_statement(line)
+                if if_assignment:
+                    assignments.append(if_assignment)
+            else:
+                # Handle direct assignments like "q <= data;"
+                assign_match = re.match(r'(\w+)\s*<=\s*(.+)', line)
+                if assign_match:
+                    target = assign_match.group(1)
+                    expression = assign_match.group(2).strip()
+                    
+                    assignments.append({
+                        'type': 'assignment',
+                        'target': target,
+                        'expression': expression
+                    })
+        
+        return assignments
+    
+    def _parse_if_statement(self, statement: str) -> Optional[Dict[str, Any]]:
+        """Parse if statements within sequential blocks."""
+        # Handle simple if-else structure: if (condition) target <= expression
+        if_pattern = r'if\s*\(([^)]+)\)\s*begin?\s*(\w+)\s*<=\s*([^;]+)'
+        match = re.match(if_pattern, statement)
+        
+        if match:
+            condition = match.group(1).strip()
+            target = match.group(2).strip()
+            expression = match.group(3).strip()
+            
+            return {
+                'type': 'conditional_assignment',
+                'condition': condition,
+                'target': target,
+                'expression': expression
+            }
+        
+        return None
 
 
 class LogicEvaluator:
@@ -992,6 +1090,101 @@ class LogicEvaluator:
             )
 
 
+class SequentialLogicEvaluator:
+    """Evaluator for sequential (clocked) SystemVerilog modules."""
+    
+    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str],
+                 instantiations: List[Dict], bus_info: Dict[str, Dict], 
+                 slice_assignments: List[Dict], concat_assignments: List[Dict],
+                 sequential_blocks: List[Dict], clock_signals: List[str], filepath: str = ""):
+        
+        # Initialize combinational evaluator for non-clocked logic
+        self.comb_evaluator = LogicEvaluator(
+            inputs, outputs, assignments, instantiations, bus_info,
+            slice_assignments, concat_assignments, filepath
+        )
+        
+        self.inputs = inputs
+        self.outputs = outputs
+        self.sequential_blocks = sequential_blocks
+        self.clock_signals = set(clock_signals)
+        self.state = {}  # Current state of sequential elements
+        self.next_state = {}  # Next state to update on clock edge
+        
+        # Store bus_info for compatibility with TruthTableGenerator
+        self.bus_info = bus_info
+        
+        # Initialize all outputs to 0
+        for output in outputs:
+            self.state[output] = 0
+    
+    def evaluate_cycle(self, input_values: Dict[str, int]) -> Dict[str, int]:
+        """Evaluate one clock cycle with given inputs."""
+        
+        # First, evaluate combinational logic with current state + inputs
+        current_signals = {**self.state, **input_values}
+        
+        # Get combinational outputs (handles instantiations, assigns, etc.)
+        comb_outputs = self.comb_evaluator.evaluate(input_values)
+        current_signals.update(comb_outputs)
+        
+        # Process sequential blocks to determine next state
+        self.next_state = self.state.copy()
+        
+        for block in self.sequential_blocks:
+            if block['type'] == 'always_ff':
+                clock_signal = block['clock']
+                
+                # Check if clock signal changed (simulate clock edge)
+                # For now, we'll assume every evaluation represents a clock edge
+                self._evaluate_sequential_block(block, current_signals)
+        
+        # Update state (clock edge occurs)
+        self.state.update(self.next_state)
+        
+        # Return current output values
+        output_values = {}
+        for output in self.outputs:
+            output_values[output] = self.state.get(output, 0)
+        
+        return output_values
+    
+    def _evaluate_sequential_block(self, block: Dict, signals: Dict[str, int]):
+        """Evaluate a sequential block and update next_state."""
+        for assignment in block['assignments']:
+            if assignment['type'] == 'assignment':
+                target = assignment['target']
+                expression = assignment['expression']
+                value = self.comb_evaluator._evaluate_expression(expression, signals)
+                self.next_state[target] = value
+                
+            elif assignment['type'] == 'conditional_assignment':
+                condition = assignment['condition']
+                target = assignment['target']
+                expression = assignment['expression']
+                
+                # Evaluate condition
+                condition_value = self.comb_evaluator._evaluate_expression(condition, signals)
+                if condition_value:
+                    value = self.comb_evaluator._evaluate_expression(expression, signals)
+                    self.next_state[target] = value
+    
+    def reset_state(self):
+        """Reset all sequential state to initial values."""
+        self.state = {}
+        self.next_state = {}
+        for output in self.outputs:
+            self.state[output] = 0
+    
+    def count_nand_gates(self) -> int:
+        """Count NAND gates by delegating to the combinational evaluator."""
+        return self.comb_evaluator.count_nand_gates()
+    
+    def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
+        """Compatibility wrapper - evaluates one cycle for truth table generation."""
+        return self.evaluate_cycle(input_values)
+
+
 class TruthTableGenerator:
     """Generates and displays truth tables for combinational logic."""
 
@@ -1120,17 +1313,26 @@ class TestRunner:
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in test file {test_file}: {e}")
 
-    def run_tests(self, tests: List[Dict[str, Any]]) -> Tuple[int, int]:
+    def run_tests(self, tests) -> Tuple[int, int]:
         """
         Run all test cases and return pass/fail counts.
+        Supports both combinational and sequential test formats.
 
         Args:
-            tests: List of test case dictionaries
+            tests: List of test case dictionaries or sequential test format dict
 
         Returns:
             Tuple of (passed_count, total_count)
         """
-        print("\nRunning tests...")
+        # Check if this is sequential test format
+        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+            return self._run_sequential_tests(tests)
+        else:
+            return self._run_combinational_tests(tests)
+    
+    def _run_combinational_tests(self, tests: List[Dict[str, Any]]) -> Tuple[int, int]:
+        """Run combinational logic tests (original format)"""
+        print("\nRunning combinational tests...")
         passed = 0
         total = len(tests)
 
@@ -1158,6 +1360,48 @@ class TestRunner:
                 print(f"Test {i} passed")
                 passed += 1
 
+        return passed, total
+    
+    def _run_sequential_tests(self, test_data: Dict[str, Any]) -> Tuple[int, int]:
+        """Run sequential logic tests (new format)"""
+        print("\nRunning sequential tests...")
+        test_cycles = test_data.get('test_cycles', [])
+        passed = 0
+        total = len(test_cycles)
+        
+        # Reset sequential state if available
+        if hasattr(self.evaluator, 'reset_state'):
+            self.evaluator.reset_state()
+        
+        for i, cycle_test in enumerate(test_cycles):
+            cycle_num = cycle_test.get('cycle', i)
+            input_values = cycle_test.get('inputs', {})
+            expected_outputs = cycle_test.get('expected_outputs', {})
+            description = cycle_test.get('description', f'Cycle {cycle_num}')
+            
+            # Run one clock cycle
+            if hasattr(self.evaluator, 'evaluate_cycle'):
+                actual_outputs = self.evaluator.evaluate_cycle(input_values)
+            else:
+                # Fallback for combinational evaluator
+                actual_outputs = self.evaluator.evaluate(input_values)
+            
+            # Check results
+            test_passed = True
+            for output_name, expected_value in expected_outputs.items():
+                if output_name not in actual_outputs:
+                    print(f"Cycle {cycle_num} failed: Output '{output_name}' not found - {description}")
+                    test_passed = False
+                elif actual_outputs[output_name] != expected_value:
+                    print(
+                        f"Cycle {cycle_num} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value} - {description}"
+                    )
+                    test_passed = False
+            
+            if test_passed:
+                print(f"Cycle {cycle_num} passed - {description}")
+                passed += 1
+        
         return passed, total
 
 
@@ -1201,26 +1445,48 @@ def main():
         print(f"Inputs: {module_info['inputs']}")
         print(f"Outputs: {module_info['outputs']}")
 
-        # Create evaluator
-        evaluator = LogicEvaluator(
-            module_info["inputs"],
-            module_info["outputs"],
-            module_info["assignments"],
-            module_info.get("instantiations", []),
-            module_info.get("bus_info", {}),
-            module_info.get("slice_assignments", []),
-            module_info.get("concat_assignments", []),
-            args.file,
-        )
+        # Create evaluator (sequential or combinational based on module content)
+        if module_info.get("sequential_blocks") or module_info.get("clock_signals"):
+            # Sequential logic detected - use SequentialLogicEvaluator
+            evaluator = SequentialLogicEvaluator(
+                module_info["inputs"],
+                module_info["outputs"],
+                module_info["assignments"],
+                module_info.get("instantiations", []),
+                module_info.get("bus_info", {}),
+                module_info.get("slice_assignments", []),
+                module_info.get("concat_assignments", []),
+                module_info.get("sequential_blocks", []),
+                module_info.get("clock_signals", []),
+                args.file,
+            )
+            print(f"Sequential blocks detected: {len(module_info.get('sequential_blocks', []))}")
+            print(f"Clock signals: {list(module_info.get('clock_signals', []))}")
+        else:
+            # Combinational logic - use LogicEvaluator
+            evaluator = LogicEvaluator(
+                module_info["inputs"],
+                module_info["outputs"],
+                module_info["assignments"],
+                module_info.get("instantiations", []),
+                module_info.get("bus_info", {}),
+                module_info.get("slice_assignments", []),
+                module_info.get("concat_assignments", []),
+                args.file,
+            )
 
         # Count NAND gates
         nand_count = evaluator.count_nand_gates()
         print(f"\nNAND Gate Count: {nand_count}")
 
-        # Generate and display truth table
-        truth_table_gen = TruthTableGenerator(evaluator)
-        truth_table = truth_table_gen.generate_truth_table(args.max_combinations)
-        truth_table_gen.print_truth_table(truth_table)
+        # Generate and display truth table (only for combinational logic)
+        is_sequential = hasattr(evaluator, 'evaluate_cycle')
+        if not is_sequential:
+            truth_table_gen = TruthTableGenerator(evaluator)
+            truth_table = truth_table_gen.generate_truth_table(args.max_combinations)
+            truth_table_gen.print_truth_table(truth_table)
+        else:
+            print("\nTruth Table: Skipped (sequential logic module)")
 
         # Run tests if provided
         if args.test:
