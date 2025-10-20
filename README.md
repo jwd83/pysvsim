@@ -8,9 +8,10 @@ A pure Python SystemVerilog simulator designed for game development. Players can
 - **Bus Support**: Full support for multi-bit buses with clean notation (e.g., `input [3:0] data`)
 - **Hierarchical Design**: Module instantiation with bit selection (e.g., `.A(data[0])`)
 - **Combinational Logic Support**: Handles basic logic operations (`&`, `|`, `^`, `~`)
+- **NAND Gate Analysis**: Counts NAND gates used in hierarchical designs for complexity analysis
 - **Truth Table Generation**: Automatically generates truth tables for up to 256 input combinations
 - **JSON Testing**: Validate designs with custom test cases using integer bus values
-- **Comprehensive Test Suite**: Built-in test runner with detailed reports
+- **Comprehensive Test Suite**: Built-in test runner with detailed reports and regression testing
 - **Game-Ready**: Designed to be easily embedded in larger Python games
 
 ## Usage
@@ -33,26 +34,27 @@ python pysvsim.py --file nand_gate.sv --test tests_nand_gate.json
 python pysvsim.py --file adder_4bit_bus.sv --test tests_adder_4bit_bus.json --max-combinations 64
 ```
 
-### Run Comprehensive Test Suite
+### Test Runner - Individual Files
 
 ```bash
-python test.py
+# Test a single SystemVerilog file
+python test_runner.py testing/005-Notgate.sv
+
+# Test with verbose output and NAND gate counts
+python test_runner.py testing/008-Xorgate.sv --verbose
 ```
 
-### Batch Testing with `testfolder.py`
+### Test Runner - Directory Testing
 
 ```bash
-# Test all .sv files in a directory recursively
-python testfolder.py ./tmp
+# Test entire directory
+python test_runner.py testing/
 
-# Show detailed results with full truth tables and error information
-python testfolder.py ./tmp --verbose
+# Test directory with detailed reports
+python test_runner.py testing/ --detailed-report
 
-# Quick summary statistics only
-python testfolder.py ./tmp --summary-only
-
-# Limit test combinations and stop on first error for debugging
-python testfolder.py ./tmp --max-combinations 16 --stop-on-error --verbose
+# Skip truth tables, only run JSON tests
+python test_runner.py testing/ --summary-only
 ```
 
 ## Command Line Arguments
@@ -63,19 +65,50 @@ python testfolder.py ./tmp --max-combinations 16 --stop-on-error --verbose
 - `--test <json_file>`: JSON test file (optional)
 - `--max-combinations N`: Maximum number of input combinations to test (default: 256)
 
-### `testfolder.py` Arguments
+### `test_runner.py` Arguments
 
-- `directory`: Directory to search for .sv files recursively (required)
-- `--max-combinations N`: Maximum number of input combinations per file (default: 64)
-- `--verbose`: Show detailed output including full truth tables and error information
-- `--summary-only`: Only show summary statistics, not individual test results
-- `--continue-on-error`: Continue testing other files even if some fail (default: True)
-- `--stop-on-error`: Stop testing when the first error occurs
+- `path`: SystemVerilog file or directory to test (required)
+- `--max-combinations N`: Maximum truth table combinations (default: 256)
+- `--verbose, -v`: Enable detailed progress information with NAND gate counts
+- `--summary-only`: Skip truth table generation, only run JSON tests
+- `--continue-on-error`: Continue when files fail (default: True)
+- `--stop-on-first-error`: Stop on first error
+- `--detailed-report`: Show comprehensive report with truth tables
+
+## Test File Structure
+
+The test runner expects JSON test files with the same base name as the SystemVerilog file:
+
+```
+testing/
+├── 005-Notgate.sv      # SystemVerilog module
+├── 005-Notgate.json    # JSON test cases
+├── 012-Vector1.sv      # Another module
+└── 012-Vector1.json    # Its test cases
+```
+
+## JSON Test Format
+
+```json
+[
+    {
+        "input1": value1,
+        "input2": value2,
+        "expect": {
+            "output1": expected1,
+            "output2": expected2
+        }
+    }
+]
+```
+
+Each test case contains:
+- **Input values**: All inputs must be specified (integers for buses, 0/1 for single bits)
+- **Expected outputs**: `expect` object with expected output values
 
 ## SystemVerilog Support
 
 ### Currently Supported
-
 - **Module declarations** with input/output ports (single-bit and multi-bit buses)
 - **Bus declarations**: `input [3:0] A`, `output [7:0] result`, `wire [3:0] temp`
 - **Bit selection**: Individual bit access like `A[2]`, `data[0]` in expressions
@@ -118,142 +151,14 @@ module adder_4bit_bus (
 endmodule
 ```
 
-### Mixed Bus/Scalar Example
-
-```verilog
-module parity_checker (
-    input [2:0] data,    // 3-bit bus input
-    input enable,        // Single-bit enable
-    output [2:0] output_data, // Bus passthrough
-    output parity        // Calculated parity bit
-);
-    assign output_data = data;
-    assign parity = enable ? (data[2] ^ data[1] ^ data[0]) : 1'b0;
-endmodule
-```
-
-## Test File Format
-
-Test cases are specified in JSON format with support for both single-bit and bus values.
-
-### Single-bit Test Example
-
-```json
-[
-  {"inA": 0, "inB": 0, "expect": {"outY": 1}},
-  {"inA": 0, "inB": 1, "expect": {"outY": 1}},
-  {"inA": 1, "inB": 0, "expect": {"outY": 1}},
-  {"inA": 1, "inB": 1, "expect": {"outY": 0}}
-]
-```
-
-### Bus-based Test Example
-
-```json
-[
-  {"A": 0, "B": 0, "Cin": 0, "expect": {"Sum": 0, "Cout": 0}},
-  {"A": 5, "B": 10, "Cin": 0, "expect": {"Sum": 15, "Cout": 0}},
-  {"A": 15, "B": 1, "Cin": 0, "expect": {"Sum": 0, "Cout": 1}},
-  {"A": 7, "B": 9, "Cin": 0, "expect": {"Sum": 0, "Cout": 1}}
-]
-```
-
-Each test case contains:
-- **Input values**: All inputs must be specified (integers for buses, 0/1 for single bits)
-- **Expected outputs**: `expect` object with expected output values
-
-## Testing Scripts
-
-The simulator includes comprehensive testing tools for both individual files and batch processing:
-
-### `test.py` - Comprehensive Test Suite
-
-Runs all predefined tests and generates detailed reports:
-
-```bash
-python test.py
-```
-
-**Features:**
-- Tests all included SystemVerilog modules with their corresponding JSON test files
-- Generates truth tables for each module
-- Creates a detailed `report.md` file with test results
-- Shows success/failure statistics
-- Includes full verbosity with no truth table truncation
-
-### `testfolder.py` - Recursive Directory Testing
-
-Recursively tests all `.sv` files in a directory structure:
-
-```bash
-python testfolder.py <directory> [options]
-```
-
-**Key Features:**
-- **Recursive Discovery**: Automatically finds all `.sv` files in subdirectories
-- **Batch Processing**: Tests hundreds of files efficiently with timeouts
-- **Detailed Truth Tables**: Shows complete truth tables for successful tests (with `--verbose`)
-- **Comprehensive Error Reporting**: Shows full parsing output and error context for failures
-- **Success Rate Analysis**: Provides statistics on supported vs unsupported SystemVerilog features
-- **Flexible Output**: Summary-only mode or detailed verbose output
-
-**Example Output - Successful Test:**
-```
-[PASS] (0.05s) - Inputs: 3, Outputs: 4
-
-Truth Table:
-     a      b      c |      w      x      y      z
---------------------------------------------------
-     0      0      0 |      0      0      0      0
-     0      0      1 |      0      0      0      1
-     0      1      0 |      0      1      1      0
-     [... complete truth table ...]
-```
-
-**Example Output - Failed Test:**
-```
-[FAIL] (0.05s)
-Error: Error: 'reg out_alwaysblock'
-Full output:
-  Parsing SystemVerilog file: procedures/029-AlwaysBlocks.sv
-  Module: top_module
-  Inputs: ['a', 'b']
-  Outputs: ['out_assign', 'reg out_alwaysblock']
-  Error: 'reg out_alwaysblock'  # Shows exactly where parsing failed
-```
-
-**Use Cases:**
-- **HDL Course Validation**: Test homework solutions from courses like HDLBits
-- **Simulator Development**: Validate parser improvements and feature additions
-- **Educational Assessment**: Quickly assess which SystemVerilog constructs are supported
-- **Debugging**: Identify specific parsing failures and unsupported syntax
-
-**Typical Success Rates:**
-- **Basic Combinational Logic**: 90-100% (simple gates, multiplexers, decoders)
-- **Intermediate Combinational**: 70-85% (complex expressions, buses, arithmetic)
-- **Sequential Logic**: 0-10% (uses `reg`, `always` - not supported yet)
-- **Module Hierarchies**: Variable (depends on external module availability)
-
-**Example Usage:**
-```bash
-# Test HDLBits homework solutions with verbose output
-python testfolder.py ./hdlbits_solutions --verbose --max-combinations 32
-
-# Quick assessment of a large codebase
-python testfolder.py ./verilog_designs --summary-only
-
-# Debug specific parsing issues
-python testfolder.py ./problematic_files --verbose --stop-on-error
-```
-
 ## Architecture
 
 The simulator consists of four main components:
 
 1. **SystemVerilogParser**: Parses `.sv` files and extracts module information including bus declarations
-2. **LogicEvaluator**: Evaluates logic expressions with full bus support and bit selection
+2. **LogicEvaluator**: Evaluates logic expressions with full bus support, bit selection, and NAND gate counting
 3. **TruthTableGenerator**: Generates truth tables with clean bus notation (e.g., `A[3:0] = 5`)
-4. **TestRunner**: Comprehensive test suite with detailed Markdown reports
+4. **TestRunner**: Comprehensive regression test suite with detailed reports
 
 ## Examples
 
@@ -261,24 +166,19 @@ See the included example files:
 
 ### SystemVerilog Modules
 - `nand_gate.sv`: Simple NAND gate implementation
-- `inverter.sv`: Inverter built from NAND gate instantiation
-- `and_gate.sv`: AND gate built from NAND gate and inverter modules
-- `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND
+- `inverter.sv`: Inverter built from NAND gate instantiation (1 NAND)
+- `and_gate.sv`: AND gate built from NAND gate and inverter modules (2 NANDs)
+- `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND (3 NANDs)
 - `xor_gate.sv`: XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
 - `nor_gate.sv`: NOR gate built using OR gate + inverter (NOT OR)
 - `half_adder.sv`: Half adder built from XOR and AND gate modules
-- `full_adder.sv`: Full adder built from two half adders with carry chain
-- `alu_1bit.sv`: Hierarchical 1-bit ALU with 4 operations (AND, OR, XOR, ADD)
-- `adder_4bit_bus.sv`: **4-bit adder using proper bus notation** - demonstrates modern SystemVerilog design
-- `mux_4to1.sv`: **4:1 multiplexer with bus inputs** - hierarchical design using decoders and select logic
+- `full_adder.sv`: Full adder built from two half adders with carry chain (15 NANDs)
+- `adder_4bit_bus.sv`: **4-bit adder using proper bus notation** (60 NANDs)
+- `adder_16bit.sv`: **16-bit adder using hierarchical 4-bit adders** (240 NANDs)
 
-### JSON Test Files
-- `tests_*.json`: Comprehensive test cases for all modules with full input coverage
-
-### Testing Scripts
-- `test.py`: **Automated test runner** - runs all predefined tests and generates detailed reports
-- `testfolder.py`: **Batch testing tool** - recursively tests all .sv files in a directory with detailed output
-- `report.md`: Generated test report with truth tables and pass/fail status
+### Testing Directory Structure
+- `testing/`: Contains SystemVerilog files with matching JSON test cases
+- `parts/`: Additional example modules with hierarchical designs
 
 ## Limitations
 
