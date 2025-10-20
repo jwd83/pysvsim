@@ -706,7 +706,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\001-GettingStarted.json
 Test Success:  [PASS]
 Tests Passed:  1/1 (100.0%)
-Execution Time: 0.020s
+Execution Time: 0.001s
 NAND Gate Count: 0
 
 
@@ -722,7 +722,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\002-OutputZero.json
 Test Success:  [PASS]
 Tests Passed:  1/1 (100.0%)
-Execution Time: 0.011s
+Execution Time: 0.000s
 NAND Gate Count: 0
 
 
@@ -738,7 +738,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\003-Wire.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
-Execution Time: 0.015s
+Execution Time: 0.000s
 NAND Gate Count: 0
 
 
@@ -755,7 +755,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\004-Wire4.json
 Test Success:  [PASS]
 Tests Passed:  6/6 (100.0%)
-Execution Time: 0.022s
+Execution Time: 0.000s
 NAND Gate Count: 0
 
 
@@ -778,7 +778,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\005-Notgate.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.000s
 NAND Gate Count: 0
 
 
@@ -795,7 +795,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\006-Andgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.012s
+Execution Time: 0.001s
 NAND Gate Count: 0
 
 
@@ -814,7 +814,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\007-Norgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.009s
+Execution Time: 0.001s
 NAND Gate Count: 0
 
 
@@ -833,7 +833,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\008-Xnorgate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.021s
+Execution Time: 0.001s
 NAND Gate Count: 0
 
 
@@ -852,7 +852,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\009-DeclaringWires.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.014s
+Execution Time: 0.004s
 NAND Gate Count: 0
 
 
@@ -883,7 +883,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\010-7458.json
 Test Success:  [PASS]
 Tests Passed:  5/5 (100.0%)
-Execution Time: 0.046s
+Execution Time: 0.034s
 NAND Gate Count: 0
 
 
@@ -1154,7 +1154,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\011-Vector0.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.011s
+Execution Time: 0.000s
 NAND Gate Count: 0
 
 
@@ -1177,7 +1177,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\012-Vector1.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.020s
+Execution Time: 0.008s
 NAND Gate Count: 0
 
 
@@ -1448,7 +1448,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\013-Vector2.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.037s
+Execution Time: 0.027s
 NAND Gate Count: 0
 
 
@@ -1719,7 +1719,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\014-VectorGates.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.028s
+Execution Time: 0.008s
 NAND Gate Count: 0
 
 
@@ -1798,7 +1798,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\015-Gates4.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.024s
+Execution Time: 0.003s
 NAND Gate Count: 0
 
 
@@ -1829,7 +1829,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\016-Vector3.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.023s
+Execution Time: 0.006s
 NAND Gate Count: 0
 
 
@@ -2100,7 +2100,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\017-Vectorr.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.017s
+Execution Time: 0.009s
 NAND Gate Count: 0
 
 
@@ -2371,7 +2371,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\018-Vector4SignExtension.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.019s
+Execution Time: 0.010s
 NAND Gate Count: 0
 
 
@@ -2642,7 +2642,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\019-Vector5.json
 Test Success:  [PASS]
 Tests Passed:  7/7 (100.0%)
-Execution Time: 0.020s
+Execution Time: 0.005s
 NAND Gate Count: 0
 
 
@@ -2689,7 +2689,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_16bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 2.174s
+Execution Time: 2.253s
 NAND Gate Count: 240
 
 
@@ -2960,7 +2960,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_4bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 0.539s
+Execution Time: 0.558s
 NAND Gate Count: 60
 
 
@@ -3231,7 +3231,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\adder_8bit.json
 Test Success:  [PASS]
 Tests Passed:  10/10 (100.0%)
-Execution Time: 1.070s
+Execution Time: 1.101s
 NAND Gate Count: 120
 
 
@@ -3502,7 +3502,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.001s
 NAND Gate Count: 2
 
 
@@ -3521,7 +3521,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\and_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.156s
+Execution Time: 0.154s
 NAND Gate Count: 16
 
 
@@ -3792,7 +3792,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\full_adder.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.010s
+Execution Time: 0.009s
 NAND Gate Count: 15
 
 
@@ -3853,7 +3853,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nand_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.070s
+Execution Time: 0.072s
 NAND Gate Count: 8
 
 
@@ -4124,7 +4124,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.003s
+Execution Time: 0.002s
 NAND Gate Count: 4
 
 
@@ -4143,7 +4143,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\nor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.293s
+Execution Time: 0.305s
 NAND Gate Count: 32
 
 
@@ -4414,7 +4414,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate.json
 Test Success:  [PASS]
 Tests Passed:  2/2 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.001s
 NAND Gate Count: 1
 
 
@@ -4431,7 +4431,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\not_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  8/8 (100.0%)
-Execution Time: 0.077s
+Execution Time: 0.076s
 NAND Gate Count: 8
 
 
@@ -4702,7 +4702,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.002s
+Execution Time: 0.001s
 NAND Gate Count: 3
 
 
@@ -4721,7 +4721,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\or_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.227s
+Execution Time: 0.220s
 NAND Gate Count: 24
 
 
@@ -4992,7 +4992,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.003s
+Execution Time: 0.002s
 NAND Gate Count: 5
 
 
@@ -5011,7 +5011,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xnor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.352s
+Execution Time: 0.359s
 NAND Gate Count: 40
 
 
@@ -5282,7 +5282,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate.json
 Test Success:  [PASS]
 Tests Passed:  4/4 (100.0%)
-Execution Time: 0.003s
+Execution Time: 0.002s
 NAND Gate Count: 4
 
 
@@ -5301,7 +5301,7 @@ Truth Table:   [PASS]
 JSON Tests:    testing\xor_gate_8bit.json
 Test Success:  [PASS]
 Tests Passed:  12/12 (100.0%)
-Execution Time: 0.274s
+Execution Time: 0.280s
 NAND Gate Count: 32
 
 
@@ -5576,12 +5576,12 @@ Files with JSON Tests:  38
 Test Case Failures:     0
 Total Test Cases:       258
 Passed Test Cases:      258/258 (100.0%)
-Total Execution Time:   5.646s
-Average Time per File:  0.149s
+Total Execution Time:   5.521s
+Average Time per File:  0.145s
 Total NAND Gates:       620
 Average NAND per File:  16.3
 ============================================================
 
-Total runtime: 5.646s
+Total runtime: 5.522s
 
 All tests passed! Exiting with code 0
