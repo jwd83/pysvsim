@@ -336,28 +336,60 @@ class SystemVerilogParser:
     
     def _parse_sequential_blocks(self, content: str):
         """Parse sequential logic blocks like always_ff."""
-        # Find all always_ff blocks
-        always_ff_pattern = r'always_ff\s*@\s*\(([^)]+)\)\s*begin(.*?)end'
+        # Find all always_ff blocks with proper begin/end matching
+        always_ff_starts = list(re.finditer(r'always_ff\s*@\s*\(([^)]+)\)\s*begin', content))
         
-        for match in re.finditer(always_ff_pattern, content, re.DOTALL):
-            sensitivity_list = match.group(1).strip()
-            block_content = match.group(2).strip()
+        for start_match in always_ff_starts:
+            sensitivity_list = start_match.group(1).strip()
             
-            # Parse sensitivity list to find clock and edge type
-            clock_info = self._parse_sensitivity_list(sensitivity_list)
+            # Find matching end by counting nested begin/end pairs
+            start_pos = start_match.end() - 5  # Position of 'begin'
+            begin_count = 1
+            pos = start_match.end()
+            block_end_pos = None
             
-            # Parse assignments within the block
-            assignments = self._parse_sequential_assignments(block_content)
+            while pos < len(content) and begin_count > 0:
+                # Look for next 'begin' or 'end'
+                begin_match = re.search(r'\bbegin\b', content[pos:])
+                end_match = re.search(r'\bend\b', content[pos:])
+                
+                next_begin_pos = (pos + begin_match.start()) if begin_match else float('inf')
+                next_end_pos = (pos + end_match.start()) if end_match else float('inf')
+                
+                if next_begin_pos < next_end_pos:
+                    # Found another 'begin'
+                    begin_count += 1
+                    pos = next_begin_pos + 5
+                elif next_end_pos != float('inf'):
+                    # Found an 'end'
+                    begin_count -= 1
+                    if begin_count == 0:
+                        block_end_pos = next_end_pos
+                        break
+                    pos = next_end_pos + 3
+                else:
+                    # No more begin/end found
+                    break
             
-            sequential_block = {
-                'type': 'always_ff',
-                'clock': clock_info['clock'],
-                'edge': clock_info['edge'],
-                'assignments': assignments
-            }
-            
-            self.sequential_blocks.append(sequential_block)
-            self.clock_signals.add(clock_info['clock'])
+            if block_end_pos is not None:
+                # Extract the block content between the outer begin/end
+                block_content = content[start_match.end():block_end_pos].strip()
+                
+                # Parse sensitivity list to find clock and edge type
+                clock_info = self._parse_sensitivity_list(sensitivity_list)
+                
+                # Parse assignments within the block
+                assignments = self._parse_sequential_assignments(block_content)
+                
+                sequential_block = {
+                    'type': 'always_ff',
+                    'clock': clock_info['clock'],
+                    'edge': clock_info['edge'],
+                    'assignments': assignments
+                }
+                
+                self.sequential_blocks.append(sequential_block)
+                self.clock_signals.add(clock_info['clock'])
     
     def _parse_sensitivity_list(self, sensitivity_list: str) -> Dict[str, str]:
         """Parse sensitivity list like 'posedge clk' or 'negedge reset'."""
@@ -377,31 +409,60 @@ class SystemVerilogParser:
         """Parse assignments within a sequential block."""
         assignments = []
         
-        # Split by lines and process each potential assignment
-        lines = [line.strip() for line in block_content.split(';') if line.strip()]
+        # Clean the content by removing begin/end statements and normalizing whitespace
+        clean_content = block_content
+        clean_content = re.sub(r'\s*begin\s*', ' ', clean_content)
+        clean_content = re.sub(r'\s*end\s*', ' ', clean_content)
+        clean_content = ' '.join(clean_content.split())  # Normalize whitespace
         
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith('//') or line in ['begin', 'end']:
-                continue
+        # Use a more sophisticated approach to parse if-else chains
+        # Look for if statements with nested structure
+        if_match = re.search(r'if\s*\(([^)]+)\)(.+?)(?=else|$)', clean_content)
+        if if_match:
+            # Parse if condition and body
+            if_condition = if_match.group(1).strip()
+            if_body = if_match.group(2).strip()
             
-            # Handle if-else blocks
-            if line.startswith('if'):
-                if_assignment = self._parse_if_statement(line)
-                if if_assignment:
-                    assignments.append(if_assignment)
-            else:
-                # Handle direct assignments like "q <= data;"
-                assign_match = re.match(r'(\w+)\s*<=\s*(.+)', line)
-                if assign_match:
-                    target = assign_match.group(1)
-                    expression = assign_match.group(2).strip()
-                    
-                    assignments.append({
-                        'type': 'assignment',
-                        'target': target,
-                        'expression': expression
-                    })
+            # Look for assignment in if body
+            if_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', if_body)
+            if if_assign_match:
+                assignments.append({
+                    'type': 'conditional_assignment',
+                    'condition': if_condition,
+                    'target': if_assign_match.group(1),
+                    'expression': if_assign_match.group(2).strip()
+                })
+        
+        # Look for else if statements
+        else_if_matches = re.finditer(r'else\s+if\s*\(([^)]+)\)(.+?)(?=else|$)', clean_content)
+        for else_if_match in else_if_matches:
+            elif_condition = else_if_match.group(1).strip()
+            elif_body = else_if_match.group(2).strip()
+            
+            # Look for assignment in else if body
+            elif_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', elif_body)
+            if elif_assign_match:
+                assignments.append({
+                    'type': 'conditional_assignment',
+                    'condition': elif_condition,
+                    'target': elif_assign_match.group(1),
+                    'expression': elif_assign_match.group(2).strip()
+                })
+        
+        # Look for plain else statements (no additional condition)
+        else_match = re.search(r'else(?!\s+if)\s*(.+?)$', clean_content)
+        if else_match:
+            else_body = else_match.group(1).strip()
+            
+            # Look for assignment in else body
+            else_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', else_body)
+            if else_assign_match:
+                assignments.append({
+                    'type': 'conditional_assignment',
+                    'condition': '!(previous_conditions)',  # Placeholder - will be handled by evaluator
+                    'target': else_assign_match.group(1),
+                    'expression': else_assign_match.group(2).strip()
+                })
         
         return assignments
     
@@ -424,6 +485,59 @@ class SystemVerilogParser:
             }
         
         return None
+    
+    def _parse_complex_if_statement(self, statement: str) -> List[Dict[str, Any]]:
+        """Parse complex if/else if statements like those in counter."""
+        assignments = []
+        
+        # Handle patterns like "if (count == 0) count <= 1"
+        if_pattern = r'if\s*\(([^)]+)\)\s*(\w+)\s*<=\s*([^;\s]+)'
+        elif_pattern = r'else\s+if\s*\(([^)]+)\)\s*(\w+)\s*<=\s*([^;\s]+)'
+        else_pattern = r'else\s+(\w+)\s*<=\s*([^;\s]+)'
+        
+        # Try to match if statement
+        if_match = re.search(if_pattern, statement)
+        if if_match:
+            condition = if_match.group(1).strip()
+            target = if_match.group(2).strip()
+            expression = if_match.group(3).strip()
+            
+            assignments.append({
+                'type': 'conditional_assignment',
+                'condition': condition,
+                'target': target,
+                'expression': expression
+            })
+        
+        # Try to find all else if statements
+        elif_matches = re.finditer(elif_pattern, statement)
+        for elif_match in elif_matches:
+            condition = elif_match.group(1).strip()
+            target = elif_match.group(2).strip()
+            expression = elif_match.group(3).strip()
+            
+            assignments.append({
+                'type': 'conditional_assignment',
+                'condition': condition,
+                'target': target,
+                'expression': expression
+            })
+        
+        # Try to find else statement
+        else_match = re.search(else_pattern, statement)
+        if else_match:
+            target = else_match.group(1).strip()
+            expression = else_match.group(2).strip()
+            
+            # Else is treated as "if (1)" - always true condition
+            assignments.append({
+                'type': 'conditional_assignment',
+                'condition': '1',  # Always true
+                'target': target,
+                'expression': expression
+            })
+        
+        return assignments
 
 
 class LogicEvaluator:
@@ -1151,23 +1265,31 @@ class SequentialLogicEvaluator:
     
     def _evaluate_sequential_block(self, block: Dict, signals: Dict[str, int]):
         """Evaluate a sequential block and update next_state."""
+        # Create enhanced signal context that includes current state for self-referencing expressions
+        enhanced_signals = signals.copy()
+        enhanced_signals.update(self.state)  # Include current state values
+        
         for assignment in block['assignments']:
             if assignment['type'] == 'assignment':
                 target = assignment['target']
                 expression = assignment['expression']
-                value = self.comb_evaluator._evaluate_expression(expression, signals)
+                value = self.comb_evaluator._evaluate_expression(expression, enhanced_signals, target)
                 self.next_state[target] = value
+                # Update enhanced_signals so subsequent assignments see the new value
+                enhanced_signals[target] = value
                 
             elif assignment['type'] == 'conditional_assignment':
                 condition = assignment['condition']
                 target = assignment['target']
                 expression = assignment['expression']
                 
-                # Evaluate condition
-                condition_value = self.comb_evaluator._evaluate_expression(condition, signals)
+                # Evaluate condition with enhanced signal context
+                condition_value = self.comb_evaluator._evaluate_expression(condition, enhanced_signals)
                 if condition_value:
-                    value = self.comb_evaluator._evaluate_expression(expression, signals)
+                    value = self.comb_evaluator._evaluate_expression(expression, enhanced_signals, target)
                     self.next_state[target] = value
+                    # Update enhanced_signals so subsequent assignments see the new value
+                    enhanced_signals[target] = value
     
     def reset_state(self):
         """Reset all sequential state to initial values."""
@@ -1324,8 +1446,11 @@ class TestRunner:
         Returns:
             Tuple of (passed_count, total_count)
         """
-        # Check if this is sequential test format
-        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+        # Check if this is the new sequential test format
+        if isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
+            return self._run_new_sequential_tests(tests)
+        # Check if this is the old sequential test format
+        elif isinstance(tests, dict) and tests.get('test_type') == 'sequential':
             return self._run_sequential_tests(tests)
         else:
             return self._run_combinational_tests(tests)
@@ -1401,6 +1526,79 @@ class TestRunner:
             if test_passed:
                 print(f"Cycle {cycle_num} passed - {description}")
                 passed += 1
+        
+        return passed, total
+    
+    def _run_new_sequential_tests(self, test_data: Dict[str, Any]) -> Tuple[int, int]:
+        """Run new sequential logic tests format"""
+        print("\nRunning sequential tests...")
+        test_cases = test_data.get('test_cases', [])
+        passed = 0
+        total = 0
+        
+        # Reset sequential state if available
+        if hasattr(self.evaluator, 'reset_state'):
+            self.evaluator.reset_state()
+        
+        for test_case in test_cases:
+            name = test_case.get('name', 'Unnamed test')
+            
+            if 'sequence' in test_case:
+                # Handle sequence tests
+                sequence_passed = True
+                for step in test_case['sequence']:
+                    input_values = step.get('inputs', {})
+                    expected_outputs = step.get('expected', {})
+                    
+                    # Run one clock cycle
+                    if hasattr(self.evaluator, 'evaluate_cycle'):
+                        actual_outputs = self.evaluator.evaluate_cycle(input_values)
+                    else:
+                        actual_outputs = self.evaluator.evaluate(input_values)
+                    
+                    # Check results for this step
+                    for output_name, expected_value in expected_outputs.items():
+                        if output_name not in actual_outputs:
+                            print(f"{name} failed: Output '{output_name}' not found")
+                            sequence_passed = False
+                        elif actual_outputs[output_name] != expected_value:
+                            print(
+                                f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
+                            )
+                            sequence_passed = False
+                
+                if sequence_passed:
+                    print(f"{name} passed")
+                    passed += 1
+                total += 1
+            
+            else:
+                # Handle single test cases
+                input_values = test_case.get('inputs', {})
+                expected_outputs = test_case.get('expected', {})
+                
+                # Run one clock cycle
+                if hasattr(self.evaluator, 'evaluate_cycle'):
+                    actual_outputs = self.evaluator.evaluate_cycle(input_values)
+                else:
+                    actual_outputs = self.evaluator.evaluate(input_values)
+                
+                # Check results
+                test_passed = True
+                for output_name, expected_value in expected_outputs.items():
+                    if output_name not in actual_outputs:
+                        print(f"{name} failed: Output '{output_name}' not found")
+                        test_passed = False
+                    elif actual_outputs[output_name] != expected_value:
+                        print(
+                            f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
+                        )
+                        test_passed = False
+                
+                if test_passed:
+                    print(f"{name} passed")
+                    passed += 1
+                total += 1
         
         return passed, total
 

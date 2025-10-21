@@ -1,0 +1,29 @@
+{
+  "sequential": true,
+  "clock": "clk",
+  "test_cases": [
+    {
+      "name": "Reset functionality",
+      "description": "Counter resets to 0 when reset is asserted",
+      "inputs": {"clk": 1, "reset": 1, "enable": 0},
+      "expected": {"count": 0}
+    },
+    {
+      "name": "Basic increment", 
+      "description": "Counter increments when enabled",
+      "inputs": {"clk": 1, "reset": 0, "enable": 1},
+      "expected": {"count": 1}
+    },
+    {
+      "name": "Complete counter sequence",
+      "description": "Test reset, increment, hold, and multiple increments",
+      "sequence": [
+        {"inputs": {"clk": 1, "reset": 1, "enable": 0}, "expected": {"count": 0}},
+        {"inputs": {"clk": 1, "reset": 0, "enable": 1}, "expected": {"count": 1}},
+        {"inputs": {"clk": 1, "reset": 0, "enable": 0}, "expected": {"count": 1}},
+        {"inputs": {"clk": 1, "reset": 0, "enable": 1}, "expected": {"count": 2}},
+        {"inputs": {"clk": 1, "reset": 0, "enable": 1}, "expected": {"count": 3}}
+      ]
+    }
+  ]
+}

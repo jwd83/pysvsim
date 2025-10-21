@@ -54,8 +54,11 @@ class SilentTestRunner:
     
     def run_tests(self, tests):
         """Run tests silently and capture results"""
-        # Check if this is sequential test format
-        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+        # Check if this is the new sequential test format
+        if isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
+            return self._run_new_sequential_tests(tests)
+        # Check if this is the old sequential test format
+        elif isinstance(tests, dict) and tests.get('test_type') == 'sequential':
             return self._run_sequential_tests(tests)
         else:
             return self._run_combinational_tests(tests)
@@ -133,6 +136,79 @@ class SilentTestRunner:
                 passed += 1
         
         return passed, total
+    
+    def _run_new_sequential_tests(self, test_data):
+        """Run new sequential logic tests format"""
+        test_cases = test_data.get('test_cases', [])
+        passed = 0
+        total = 0
+        self.test_outputs = []
+        
+        # Reset sequential state if available
+        if hasattr(self.evaluator, 'reset_state'):
+            self.evaluator.reset_state()
+        
+        for test_case in test_cases:
+            name = test_case.get('name', 'Unnamed test')
+            
+            if 'sequence' in test_case:
+                # Handle sequence tests
+                sequence_passed = True
+                for step in test_case['sequence']:
+                    input_values = step.get('inputs', {})
+                    expected_outputs = step.get('expected', {})
+                    
+                    # Run one clock cycle
+                    if self.is_sequential:
+                        actual_outputs = self.evaluator.evaluate_cycle(input_values)
+                    else:
+                        actual_outputs = self.evaluator.evaluate(input_values)
+                    
+                    # Check results for this step
+                    for output_name, expected_value in expected_outputs.items():
+                        if output_name not in actual_outputs:
+                            self.test_outputs.append(f"{name} failed: Output '{output_name}' not found")
+                            sequence_passed = False
+                        elif actual_outputs[output_name] != expected_value:
+                            self.test_outputs.append(
+                                f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
+                            )
+                            sequence_passed = False
+                
+                if sequence_passed:
+                    self.test_outputs.append(f"{name} passed")
+                    passed += 1
+                total += 1
+            
+            else:
+                # Handle single test cases
+                input_values = test_case.get('inputs', {})
+                expected_outputs = test_case.get('expected', {})
+                
+                # Run one clock cycle
+                if self.is_sequential:
+                    actual_outputs = self.evaluator.evaluate_cycle(input_values)
+                else:
+                    actual_outputs = self.evaluator.evaluate(input_values)
+                
+                # Check results
+                test_passed = True
+                for output_name, expected_value in expected_outputs.items():
+                    if output_name not in actual_outputs:
+                        self.test_outputs.append(f"{name} failed: Output '{output_name}' not found")
+                        test_passed = False
+                    elif actual_outputs[output_name] != expected_value:
+                        self.test_outputs.append(
+                            f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
+                        )
+                        test_passed = False
+                
+                if test_passed:
+                    self.test_outputs.append(f"{name} passed")
+                    passed += 1
+                total += 1
+        
+        return passed, total
 
 
 class TestReport:
@@ -188,10 +264,17 @@ class SystemVerilogTestRunner:
     def find_json_test(self, sv_file: str) -> Optional[str]:
         """Find the corresponding JSON test file for a SystemVerilog file"""
         sv_path = Path(sv_file)
-        json_path = sv_path.with_suffix('.json')
         
-        if json_path.exists():
-            return str(json_path)
+        # Try different naming patterns
+        possible_names = [
+            sv_path.with_suffix('.json'),  # Original: counter8.json
+            sv_path.parent / f"{sv_path.stem}_test.json",  # New: counter8_test.json
+            sv_path.parent / f"{sv_path.stem}_tests.json",  # Alternative: counter8_tests.json
+        ]
+        
+        for json_path in possible_names:
+            if json_path.exists():
+                return str(json_path)
         return None
     
     def test_single_file(self, sv_file: str) -> TestReport:
