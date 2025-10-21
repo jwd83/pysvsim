@@ -1507,39 +1507,72 @@ class TruthTableImageGenerator:
 
 
 class WaveformImageGenerator:
-    """Generates waveform images for sequential logic."""
+    """Generates professional waveform images for sequential logic."""
     
     def __init__(self, evaluator):
         self.evaluator = evaluator
     
     def generate_image(self, test_results: List[Dict], output_path: str):
-        """Generate a PNG waveform image from test results."""
+        """Generate a professional PNG waveform image from test results."""
         if not test_results:
             return
         
         # Set up matplotlib for headless operation
         plt.switch_backend('Agg')
         
-        # Extract signals from test results
-        all_signals = set()
+        # Extract and organize signals
+        clock_signals = set()
+        input_signals = set()
+        output_signals = set()
+        
         for result in test_results:
             if 'inputs' in result:
-                all_signals.update(result['inputs'].keys())
+                for signal in result['inputs'].keys():
+                    if 'clk' in signal.lower() or 'clock' in signal.lower():
+                        clock_signals.add(signal)
+                    else:
+                        input_signals.add(signal)
             if 'outputs' in result:
-                all_signals.update(result['outputs'].keys())
+                output_signals.update(result['outputs'].keys())
         
-        signals = sorted(list(all_signals))
+        # Order signals: clock first, then inputs, then outputs
+        signals = (sorted(clock_signals) + 
+                  sorted(input_signals) + 
+                  sorted(output_signals))
+        
         num_signals = len(signals)
         num_cycles = len(test_results)
         
-        # Create figure
-        fig, ax = plt.subplots(figsize=(max(12, num_cycles * 0.8), max(8, num_signals * 0.8)))
+        # Create figure with professional proportions
+        fig_width = max(14, num_cycles * 1.5 + 2)
+        fig_height = max(8, num_signals * 0.8 + 3)
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
         
-        # Generate waveforms
-        y_positions = {}
+        # Professional color scheme
+        clock_color = '#E74C3C'    # Red for clock - most important
+        input_color = '#3498DB'    # Blue for inputs
+        output_color = '#27AE60'   # Green for outputs
+        grid_color = '#BDC3C7'     # Light gray for grid
+        
+        # Draw background grid for better readability
+        for cycle in range(num_cycles + 1):
+            ax.axvline(x=cycle, color=grid_color, alpha=0.4, linewidth=0.8, zorder=0)
+        
+        for i in range(num_signals):
+            y = num_signals - i - 1
+            ax.axhline(y=y + 0.9, color=grid_color, alpha=0.2, linewidth=0.5, zorder=0)
+        
+        # Generate professional waveforms
         for i, signal in enumerate(signals):
-            y_pos = num_signals - i - 1
-            y_positions[signal] = y_pos
+            y_base = num_signals - i - 1
+            
+            # Determine signal color
+            if signal in clock_signals:
+                color = clock_color
+            elif signal in input_signals:
+                color = input_color
+            else:
+                color = output_color
             
             # Extract values for this signal
             values = []
@@ -1549,47 +1582,150 @@ class WaveformImageGenerator:
                 elif signal in result.get('outputs', {}):
                     values.append(result['outputs'][signal])
                 else:
-                    values.append(0)  # Default to 0 if signal not present
+                    values.append(0)
             
-            # Draw waveform
-            for cycle in range(num_cycles):
-                value = values[cycle]
-                # Draw high/low level
-                if value > 0:
-                    ax.plot([cycle, cycle + 1], [y_pos + 0.8, y_pos + 0.8], 'b-', linewidth=2)
-                else:
-                    ax.plot([cycle, cycle + 1], [y_pos + 0.2, y_pos + 0.2], 'b-', linewidth=2)
-                
-                # Draw transition lines
-                if cycle < num_cycles - 1:
-                    next_value = values[cycle + 1]
-                    if value != next_value:
-                        if next_value > 0:
-                            ax.plot([cycle + 1, cycle + 1], [y_pos + 0.2, y_pos + 0.8], 'b-', linewidth=2)
-                        else:
-                            ax.plot([cycle + 1, cycle + 1], [y_pos + 0.8, y_pos + 0.2], 'b-', linewidth=2)
+            # Check if this is a multi-bit signal
+            max_value = max(values) if values else 0
+            is_multibit = max_value > 1
+            
+            # Special handling for clock signals
+            if signal in clock_signals:
+                self._draw_clock_waveform(ax, values, y_base, color, num_cycles)
+            elif is_multibit:
+                self._draw_multibit_waveform(ax, values, y_base, color, signal, num_cycles)
+            else:
+                self._draw_digital_waveform(ax, values, y_base, color, num_cycles)
         
-        # Set up the plot
-        ax.set_xlim(0, num_cycles)
-        ax.set_ylim(-0.5, num_signals - 0.5)
+        # Professional layout and styling
+        ax.set_xlim(-0.1, num_cycles + 0.1)
+        ax.set_ylim(-0.2, num_signals + 0.2)
         
-        # Add signal labels
-        ax.set_yticks([y_positions[signal] + 0.5 for signal in signals])
-        ax.set_yticklabels(signals)
+        # Signal labels with clear typography and color coding
+        ax.set_yticks([num_signals - i - 1 + 0.45 for i in range(num_signals)])
+        signal_labels = []
+        for signal in signals:
+            if signal in clock_signals:
+                signal_labels.append(f'{signal} (clk)')
+            elif signal in input_signals:
+                signal_labels.append(f'{signal} (in)')
+            else:
+                signal_labels.append(f'{signal} (out)')
         
-        # Add cycle numbers
-        ax.set_xticks(np.arange(0.5, num_cycles + 0.5))
-        ax.set_xticklabels([f'C{i}' for i in range(num_cycles)])
+        ax.set_yticklabels(signal_labels, fontsize=11, fontweight='bold')
         
-        # Grid and styling
-        ax.grid(True, axis='x', alpha=0.3)
-        ax.set_xlabel('Clock Cycles', fontsize=12)
-        ax.set_ylabel('Signals', fontsize=12)
+        # Professional time axis
+        ax.set_xticks([i + 0.5 for i in range(num_cycles)])
+        ax.set_xticklabels([f'{i}' for i in range(num_cycles)], fontsize=11)
         
-        plt.title(f'Waveform Diagram - {Path(output_path).stem}', fontsize=14, weight='bold')
+        # Clean professional styling
+        ax.set_xlabel('Clock Cycle', fontsize=13, fontweight='bold', color='#2C3E50')
+        ax.set_ylabel('Signals', fontsize=13, fontweight='bold', color='#2C3E50')
+        
+        # Remove all spines for ultra-clean look
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        
+        # Professional title
+        plt.title(f'Digital Waveform - {Path(output_path).stem}', 
+                 fontsize=16, fontweight='bold', color='#2C3E50', pad=25)
+        
+        # Add subtle background
+        ax.set_facecolor('#FAFAFA')
+        
         plt.tight_layout()
-        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.savefig(output_path, dpi=200, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none')
         plt.close()
+    
+    def _draw_clock_waveform(self, ax, values, y_base, color, num_cycles):
+        """Draw a special clock waveform with clean square waves."""
+        y_low = y_base + 0.15
+        y_high = y_base + 0.75
+        
+        # Clock signals should show clean transitions
+        for cycle in range(num_cycles):
+            x_start = cycle
+            x_end = cycle + 1
+            x_mid = cycle + 0.5
+            
+            # Draw rising edge at start of cycle
+            ax.plot([x_start, x_start], [y_low, y_high], color=color, linewidth=3, solid_capstyle='butt')
+            # Draw high period (first half)
+            ax.plot([x_start, x_mid], [y_high, y_high], color=color, linewidth=3, solid_capstyle='butt')
+            # Draw falling edge at middle
+            ax.plot([x_mid, x_mid], [y_high, y_low], color=color, linewidth=3, solid_capstyle='butt')
+            # Draw low period (second half)
+            ax.plot([x_mid, x_end], [y_low, y_low], color=color, linewidth=3, solid_capstyle='butt')
+    
+    def _draw_digital_waveform(self, ax, values, y_base, color, num_cycles):
+        """Draw a clean digital (0/1) waveform."""
+        y_low = y_base + 0.15
+        y_high = y_base + 0.75
+        line_width = 2.8
+        
+        # Start with initial level
+        prev_level = y_high if values[0] > 0 else y_low
+        
+        for cycle in range(num_cycles):
+            value = values[cycle]
+            x_start = cycle
+            x_end = cycle + 1
+            current_level = y_high if value > 0 else y_low
+            
+            # Draw transition at start of cycle if needed
+            if cycle == 0 or (values[cycle-1] > 0) != (value > 0):
+                if cycle > 0:
+                    ax.plot([x_start, x_start], [prev_level, current_level], 
+                           color=color, linewidth=line_width, solid_capstyle='butt')
+            
+            # Draw horizontal line for this cycle
+            ax.plot([x_start, x_end], [current_level, current_level], 
+                   color=color, linewidth=line_width, solid_capstyle='butt')
+            
+            prev_level = current_level
+    
+    def _draw_multibit_waveform(self, ax, values, y_base, color, signal_name, num_cycles):
+        """Draw a professional multi-bit waveform with clear value annotations."""
+        y_top = y_base + 0.75
+        y_bottom = y_base + 0.15
+        y_center = y_base + 0.45
+        
+        for cycle in range(num_cycles):
+            value = values[cycle]
+            x_start = cycle
+            x_end = cycle + 1
+            x_center = cycle + 0.5
+            
+            # Draw bus representation with angled transitions
+            if cycle == 0 or values[cycle-1] != value:
+                # Value change - draw transition
+                if cycle > 0:
+                    # Draw angled transition from previous value
+                    transition_width = 0.1
+                    ax.plot([x_start - transition_width, x_start], 
+                           [y_top, y_top], color=color, linewidth=2.5)
+                    ax.plot([x_start - transition_width, x_start], 
+                           [y_bottom, y_bottom], color=color, linewidth=2.5)
+                    # Angled connectors
+                    ax.plot([x_start - transition_width, x_start], 
+                           [y_top, y_bottom], color=color, linewidth=2.5)
+                    ax.plot([x_start - transition_width, x_start], 
+                           [y_bottom, y_top], color=color, linewidth=2.5)
+            
+            # Draw horizontal bus lines
+            ax.plot([x_start, x_end], [y_top, y_top], color=color, linewidth=2.5)
+            ax.plot([x_start, x_end], [y_bottom, y_bottom], color=color, linewidth=2.5)
+            
+            # Add clear value annotation
+            if value < 16:  # Single hex digit or small decimal
+                bbox_props = dict(boxstyle='round,pad=0.3', facecolor=color, alpha=0.9, edgecolor='white')
+                fontsize = 10
+            else:  # Larger values
+                bbox_props = dict(boxstyle='round,pad=0.25', facecolor=color, alpha=0.9, edgecolor='white')
+                fontsize = 9
+            
+            ax.text(x_center, y_center, str(value), ha='center', va='center',
+                   fontsize=fontsize, fontweight='bold', color='white', bbox=bbox_props)
 
 
 class TestRunner:
