@@ -17,6 +17,10 @@ import re
 import sys
 from typing import Dict, List, Tuple, Any, Optional
 from itertools import product
+from pathlib import Path
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
 
 
 # Global module cache to prevent repeated parsing of the same modules
@@ -1418,11 +1422,182 @@ class TruthTableGenerator:
             print(f"{input_values} | {output_values}")
 
 
+class TruthTableImageGenerator:
+    """Generates truth table images for combinational logic."""
+    
+    def __init__(self, evaluator):
+        self.evaluator = evaluator
+    
+    def generate_image(self, truth_table: List[Dict[str, int]], output_path: str):
+        """Generate a PNG image of the truth table."""
+        if not truth_table:
+            return
+        
+        # Set up matplotlib for headless operation
+        plt.switch_backend('Agg')
+        
+        inputs = self.evaluator.inputs
+        outputs = self.evaluator.outputs
+        bus_info = getattr(self.evaluator, 'bus_info', {})
+        
+        # Create headers with bus information
+        input_headers = []
+        output_headers = []
+        
+        for inp in inputs:
+            if inp in bus_info and bus_info[inp]["width"] > 1:
+                width = bus_info[inp]["width"]
+                msb, lsb = bus_info[inp]["msb"], bus_info[inp]["lsb"]
+                input_headers.append(f"{inp}[{msb}:{lsb}]")
+            else:
+                input_headers.append(inp)
+        
+        for out in outputs:
+            if out in bus_info and bus_info[out]["width"] > 1:
+                width = bus_info[out]["width"]
+                msb, lsb = bus_info[out]["msb"], bus_info[out]["lsb"]
+                output_headers.append(f"{out}[{msb}:{lsb}]")
+            else:
+                output_headers.append(out)
+        
+        all_headers = input_headers + output_headers
+        
+        # Prepare data for table
+        table_data = []
+        for row in truth_table:
+            row_data = []
+            for inp in inputs:
+                row_data.append(str(row[inp]))
+            for out in outputs:
+                row_data.append(str(row[out]))
+            table_data.append(row_data)
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(max(12, len(all_headers) * 1.5), max(8, len(table_data) * 0.4 + 2)))
+        ax.axis('tight')
+        ax.axis('off')
+        
+        # Create table
+        table = ax.table(cellText=table_data,
+                        colLabels=all_headers,
+                        cellLoc='center',
+                        loc='center')
+        
+        # Style the table
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1.2, 1.5)
+        
+        # Color the header
+        for i in range(len(all_headers)):
+            if i < len(input_headers):
+                # Input columns in light blue
+                table[(0, i)].set_facecolor('#E3F2FD')
+            else:
+                # Output columns in light green
+                table[(0, i)].set_facecolor('#E8F5E8')
+            table[(0, i)].set_text_props(weight='bold')
+        
+        # Color coding provides visual separation between inputs and outputs
+        
+        plt.title(f'Truth Table - {Path(output_path).stem}', fontsize=14, weight='bold', pad=20)
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+
+
+class WaveformImageGenerator:
+    """Generates waveform images for sequential logic."""
+    
+    def __init__(self, evaluator):
+        self.evaluator = evaluator
+    
+    def generate_image(self, test_results: List[Dict], output_path: str):
+        """Generate a PNG waveform image from test results."""
+        if not test_results:
+            return
+        
+        # Set up matplotlib for headless operation
+        plt.switch_backend('Agg')
+        
+        # Extract signals from test results
+        all_signals = set()
+        for result in test_results:
+            if 'inputs' in result:
+                all_signals.update(result['inputs'].keys())
+            if 'outputs' in result:
+                all_signals.update(result['outputs'].keys())
+        
+        signals = sorted(list(all_signals))
+        num_signals = len(signals)
+        num_cycles = len(test_results)
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(max(12, num_cycles * 0.8), max(8, num_signals * 0.8)))
+        
+        # Generate waveforms
+        y_positions = {}
+        for i, signal in enumerate(signals):
+            y_pos = num_signals - i - 1
+            y_positions[signal] = y_pos
+            
+            # Extract values for this signal
+            values = []
+            for result in test_results:
+                if signal in result.get('inputs', {}):
+                    values.append(result['inputs'][signal])
+                elif signal in result.get('outputs', {}):
+                    values.append(result['outputs'][signal])
+                else:
+                    values.append(0)  # Default to 0 if signal not present
+            
+            # Draw waveform
+            for cycle in range(num_cycles):
+                value = values[cycle]
+                # Draw high/low level
+                if value > 0:
+                    ax.plot([cycle, cycle + 1], [y_pos + 0.8, y_pos + 0.8], 'b-', linewidth=2)
+                else:
+                    ax.plot([cycle, cycle + 1], [y_pos + 0.2, y_pos + 0.2], 'b-', linewidth=2)
+                
+                # Draw transition lines
+                if cycle < num_cycles - 1:
+                    next_value = values[cycle + 1]
+                    if value != next_value:
+                        if next_value > 0:
+                            ax.plot([cycle + 1, cycle + 1], [y_pos + 0.2, y_pos + 0.8], 'b-', linewidth=2)
+                        else:
+                            ax.plot([cycle + 1, cycle + 1], [y_pos + 0.8, y_pos + 0.2], 'b-', linewidth=2)
+        
+        # Set up the plot
+        ax.set_xlim(0, num_cycles)
+        ax.set_ylim(-0.5, num_signals - 0.5)
+        
+        # Add signal labels
+        ax.set_yticks([y_positions[signal] + 0.5 for signal in signals])
+        ax.set_yticklabels(signals)
+        
+        # Add cycle numbers
+        ax.set_xticks(np.arange(0.5, num_cycles + 0.5))
+        ax.set_xticklabels([f'C{i}' for i in range(num_cycles)])
+        
+        # Grid and styling
+        ax.grid(True, axis='x', alpha=0.3)
+        ax.set_xlabel('Clock Cycles', fontsize=12)
+        ax.set_ylabel('Signals', fontsize=12)
+        
+        plt.title(f'Waveform Diagram - {Path(output_path).stem}', fontsize=14, weight='bold')
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+
+
 class TestRunner:
     """Runs test cases from JSON files against the simulator."""
 
     def __init__(self, evaluator: LogicEvaluator):
         self.evaluator = evaluator
+        self.test_cycles = []  # Store test cycles for waveform generation
 
     def load_tests(self, test_file: str) -> List[Dict[str, Any]]:
         """Load test cases from a JSON file."""
@@ -1498,6 +1673,9 @@ class TestRunner:
         if hasattr(self.evaluator, 'reset_state'):
             self.evaluator.reset_state()
         
+        # Clear previous test cycles
+        self.test_cycles = []
+        
         for i, cycle_test in enumerate(test_cycles):
             cycle_num = cycle_test.get('cycle', i)
             input_values = cycle_test.get('inputs', {})
@@ -1510,6 +1688,14 @@ class TestRunner:
             else:
                 # Fallback for combinational evaluator
                 actual_outputs = self.evaluator.evaluate(input_values)
+            
+            # Store cycle data for waveform generation
+            self.test_cycles.append({
+                'cycle': cycle_num,
+                'inputs': input_values.copy(),
+                'outputs': actual_outputs.copy(),
+                'description': description
+            })
             
             # Check results
             test_passed = True
@@ -1540,6 +1726,10 @@ class TestRunner:
         if hasattr(self.evaluator, 'reset_state'):
             self.evaluator.reset_state()
         
+        # Clear previous test cycles
+        self.test_cycles = []
+        cycle_counter = 0
+        
         for test_case in test_cases:
             name = test_case.get('name', 'Unnamed test')
             
@@ -1555,6 +1745,15 @@ class TestRunner:
                         actual_outputs = self.evaluator.evaluate_cycle(input_values)
                     else:
                         actual_outputs = self.evaluator.evaluate(input_values)
+                    
+                    # Store cycle data for waveform generation
+                    self.test_cycles.append({
+                        'cycle': cycle_counter,
+                        'inputs': input_values.copy(),
+                        'outputs': actual_outputs.copy(),
+                        'description': f'{name} - Step {cycle_counter}'
+                    })
+                    cycle_counter += 1
                     
                     # Check results for this step
                     for output_name, expected_value in expected_outputs.items():
@@ -1582,6 +1781,15 @@ class TestRunner:
                     actual_outputs = self.evaluator.evaluate_cycle(input_values)
                 else:
                     actual_outputs = self.evaluator.evaluate(input_values)
+                
+                # Store cycle data for waveform generation
+                self.test_cycles.append({
+                    'cycle': cycle_counter,
+                    'inputs': input_values.copy(),
+                    'outputs': actual_outputs.copy(),
+                    'description': name
+                })
+                cycle_counter += 1
                 
                 # Check results
                 test_passed = True
@@ -1695,6 +1903,12 @@ def main():
             truth_table_gen = TruthTableGenerator(evaluator)
             truth_table = truth_table_gen.generate_truth_table(args.max_combinations)
             truth_table_gen.print_truth_table(truth_table)
+            
+            # Generate truth table image
+            image_path = str(Path(args.file).with_suffix('.png'))
+            image_gen = TruthTableImageGenerator(evaluator)
+            image_gen.generate_image(truth_table, image_path)
+            print(f"\nTruth Table Image: {image_path}")
         else:
             print("\nTruth Table: Skipped (sequential logic module)")
 
@@ -1705,6 +1919,14 @@ def main():
             passed, total = test_runner.run_tests(tests)
 
             print(f"\nTest Results: {passed}/{total} passed")
+            
+            # Generate waveform image for sequential logic
+            if is_sequential and test_runner.test_cycles:
+                image_path = str(Path(args.file).with_suffix('.png'))
+                waveform_gen = WaveformImageGenerator(evaluator)
+                waveform_gen.generate_image(test_runner.test_cycles, image_path)
+                print(f"Waveform Image: {image_path}")
+            
             if passed == total:
                 print("All tests passed!")
             else:
