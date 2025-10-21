@@ -20,6 +20,268 @@ import time
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
 import traceback
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing
+
+
+def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
+    """Standalone function to test a single file - used for parallel processing"""
+    import json
+    import os
+    import sys
+    import time
+    from pathlib import Path
+    import io
+    import contextlib
+    
+    try:
+        # Import here to avoid issues with multiprocessing
+        from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+        try:
+            from pysvsim import SequentialLogicEvaluator
+        except ImportError:
+            SequentialLogicEvaluator = None
+        
+        # Inline simplified version of test logic to avoid circular imports
+        start_time = time.time()
+        
+        # Clear module cache
+        clear_module_cache()
+        
+        # Find JSON test file
+        sv_path = Path(sv_file)
+        possible_names = [
+            sv_path.with_suffix('.json'),
+            sv_path.parent / f"{sv_path.stem}_test.json",
+            sv_path.parent / f"{sv_path.stem}_tests.json",
+        ]
+        json_file = None
+        for json_path in possible_names:
+            if json_path.exists():
+                json_file = str(json_path)
+                break
+        
+        # Parse SystemVerilog file
+        parser = SystemVerilogParser()
+        module_info = parser.parse_file(sv_file)
+        
+        # Create evaluator
+        is_sequential = module_info.get("sequential_blocks") or module_info.get("clock_signals")
+        if not is_sequential:
+            for inst in module_info.get("instantiations", []):
+                module_type = inst["module_type"]
+                if "register" in module_type.lower() or "reg" in module_type.lower():
+                    is_sequential = True
+                    break
+        
+        if is_sequential and SequentialLogicEvaluator:
+            evaluator = SequentialLogicEvaluator(
+                module_info["inputs"], module_info["outputs"], module_info["assignments"],
+                module_info.get("instantiations", []), module_info.get("bus_info", {}),
+                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []),
+                module_info.get("sequential_blocks", []), module_info.get("clock_signals", []), sv_file
+            )
+        else:
+            evaluator = LogicEvaluator(
+                module_info["inputs"], module_info["outputs"], module_info["assignments"],
+                module_info.get("instantiations", []), module_info.get("bus_info", {}),
+                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []), sv_file
+            )
+        
+        # Count NAND gates
+        nand_count = evaluator.count_nand_gates()
+        
+        # Generate truth table for combinational logic
+        truth_table = []
+        truth_table_success = True
+        warnings = ""
+        is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
+        
+        if not is_sequential_eval:
+            try:
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
+                    truth_table_gen = TruthTableGenerator(evaluator)
+                    truth_table = truth_table_gen.generate_truth_table(max_combinations)
+                captured_output = f.getvalue()
+                if captured_output.strip():
+                    warnings = captured_output.strip()
+            except Exception as e:
+                truth_table_success = False
+                warnings = f"Truth table generation failed: {e}"
+        else:
+            warnings = "Truth table skipped for sequential logic module"
+        
+        # Run tests if available
+        passed_tests = 0
+        total_tests = 0
+        test_success = True
+        test_outputs = []
+        
+        if json_file:
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    tests = json.load(f)
+                
+                # Run tests using simplified logic
+                if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+                    # Old sequential format
+                    test_cycles = tests.get('test_cycles', [])
+                    if hasattr(evaluator, 'reset_state'):
+                        evaluator.reset_state()
+                    
+                    for i, cycle_test in enumerate(test_cycles):
+                        cycle_num = cycle_test.get('cycle', i)
+                        input_values = cycle_test.get('inputs', {})
+                        expected_outputs = cycle_test.get('expected_outputs', {})
+                        description = cycle_test.get('description', f'Cycle {cycle_num}')
+                        
+                        # Run one clock cycle
+                        if hasattr(evaluator, 'evaluate_cycle'):
+                            actual_outputs = evaluator.evaluate_cycle(input_values)
+                        else:
+                            actual_outputs = evaluator.evaluate(input_values)
+                        
+                        # Check results
+                        test_passed = True
+                        for output_name, expected_value in expected_outputs.items():
+                            if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
+                                test_passed = False
+                                break
+                        
+                        if test_passed:
+                            test_outputs.append(f"Cycle {cycle_num} passed - {description}")
+                            passed_tests += 1
+                        else:
+                            test_outputs.append(f"Cycle {cycle_num} failed - {description}")
+                        total_tests += 1
+                
+                elif isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
+                    # New sequential format
+                    test_cases = tests.get('test_cases', [])
+                    if hasattr(evaluator, 'reset_state'):
+                        evaluator.reset_state()
+                    
+                    for test_case in test_cases:
+                        name = test_case.get('name', 'Unnamed test')
+                        if 'sequence' in test_case:
+                            sequence_passed = True
+                            for step in test_case['sequence']:
+                                input_values = step.get('inputs', {})
+                                expected_outputs = step.get('expected', {})
+                                
+                                if hasattr(evaluator, 'evaluate_cycle'):
+                                    actual_outputs = evaluator.evaluate_cycle(input_values)
+                                else:
+                                    actual_outputs = evaluator.evaluate(input_values)
+                                
+                                for output_name, expected_value in expected_outputs.items():
+                                    if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
+                                        sequence_passed = False
+                                        break
+                                if not sequence_passed:
+                                    break
+                            
+                            if sequence_passed:
+                                test_outputs.append(f"{name} passed")
+                                passed_tests += 1
+                            else:
+                                test_outputs.append(f"{name} failed")
+                            total_tests += 1
+                        else:
+                            # Single test case
+                            input_values = test_case.get('inputs', {})
+                            expected_outputs = test_case.get('expected', {})
+                            
+                            if hasattr(evaluator, 'evaluate_cycle'):
+                                actual_outputs = evaluator.evaluate_cycle(input_values)
+                            else:
+                                actual_outputs = evaluator.evaluate(input_values)
+                            
+                            test_passed = True
+                            for output_name, expected_value in expected_outputs.items():
+                                if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
+                                    test_passed = False
+                                    break
+                            
+                            if test_passed:
+                                test_outputs.append(f"{name} passed")
+                                passed_tests += 1
+                            else:
+                                test_outputs.append(f"{name} failed")
+                            total_tests += 1
+                
+                else:
+                    # Old combinational format
+                    for i, test in enumerate(tests, 1):
+                        input_values = {k: v for k, v in test.items() if k != "expect"}
+                        expected_outputs = test.get("expect", {})
+                        
+                        actual_outputs = evaluator.evaluate(input_values)
+                        
+                        test_passed = True
+                        for output_name, expected_value in expected_outputs.items():
+                            if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
+                                test_passed = False
+                                break
+                        
+                        if test_passed:
+                            test_outputs.append(f"Test {i} passed")
+                            passed_tests += 1
+                        else:
+                            test_outputs.append(f"Test {i} failed")
+                        total_tests += 1
+                
+                test_success = (passed_tests == total_tests)
+                
+            except Exception as e:
+                test_success = False
+                test_outputs = [f"Test execution failed: {str(e)}"]
+        
+        execution_time = time.time() - start_time
+        
+        # Return dictionary instead of TestReport object to avoid serialization issues
+        return {
+            'sv_file': sv_file,
+            'json_file': json_file,
+            'success': truth_table_success and (not json_file or test_success),
+            'parse_success': True,
+            'truth_table_success': truth_table_success,
+            'test_success': test_success,
+            'passed_tests': passed_tests,
+            'total_tests': total_tests,
+            'error_message': '',
+            'truth_table': truth_table,
+            'execution_time': execution_time,
+            'nand_gate_count': nand_count,
+            'warnings': warnings,
+            'test_outputs': test_outputs,
+            'inputs': module_info["inputs"],
+            'outputs': module_info["outputs"],
+            'bus_info': module_info.get("bus_info", {})
+        }
+        
+    except Exception as e:
+        return {
+            'sv_file': sv_file,
+            'json_file': None,
+            'success': False,
+            'parse_success': False,
+            'truth_table_success': False,
+            'test_success': False,
+            'passed_tests': 0,
+            'total_tests': 0,
+            'error_message': f"Parallel processing failed: {str(e)}",
+            'truth_table': [],
+            'execution_time': 0.0,
+            'nand_gate_count': 0,
+            'warnings': '',
+            'test_outputs': [],
+            'inputs': [],
+            'outputs': [],
+            'bus_info': {}
+        }
+
 
 # Import our simulator components
 from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
@@ -244,11 +506,13 @@ class TestReport:
 class SystemVerilogTestRunner:
     """Main test runner for SystemVerilog files and test suites"""
     
-    def __init__(self):
+    def __init__(self, parallel=True, max_workers=None):
         # Fixed settings
         self.max_combinations = 16
         self.continue_on_error = True
         self.reports: List[TestReport] = []
+        self.parallel = parallel
+        self.max_workers = max_workers or max(1, multiprocessing.cpu_count() - 1)
         
     def find_sv_files(self, path: str) -> List[str]:
         """Find all SystemVerilog files in the given path"""
@@ -397,23 +661,91 @@ class SystemVerilogTestRunner:
                 
             print(f"Found {len(sv_files)} SystemVerilog file(s) to test\n")
             
-            for i, sv_file in enumerate(sv_files, 1):
-                report = self.test_single_file(sv_file)
-                self.reports.append(report)
-                
-                # Print immediate comprehensive report for this file
-                self.print_file_report(report)
-                
-                # Stop on error if requested
-                if not self.continue_on_error and not report.success:
-                    print(f"Stopping due to error in: {sv_file}")
-                    break
+            if self.parallel and len(sv_files) > 1:
+                self._run_tests_parallel(sv_files)
+            else:
+                self._run_tests_sequential(sv_files)
                     
         except KeyboardInterrupt:
             print(f"\n[INFO] Test run interrupted by user")
         except Exception as e:
             print(f"[ERROR] Test runner failed: {e}")
             traceback.print_exc()
+    
+    def _run_tests_sequential(self, sv_files: List[str]) -> None:
+        """Run tests sequentially (original behavior)"""
+        for i, sv_file in enumerate(sv_files, 1):
+            report = self.test_single_file(sv_file)
+            self.reports.append(report)
+            
+            # Print immediate comprehensive report for this file
+            self.print_file_report(report)
+            
+            # Stop on error if requested
+            if not self.continue_on_error and not report.success:
+                print(f"Stopping due to error in: {sv_file}")
+                break
+    
+    def _run_tests_parallel(self, sv_files: List[str]) -> None:
+        """Run tests in parallel using ProcessPoolExecutor"""
+        print(f"Running tests in parallel with {self.max_workers} workers...\n")
+        
+        # Submit all tasks to the process pool
+        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all jobs and maintain order mapping
+            future_to_index = {}
+            for i, sv_file in enumerate(sv_files):
+                future = executor.submit(test_single_file_standalone, sv_file, self.max_combinations)
+                future_to_index[future] = i
+            
+            # Collect results as they complete, but store by original index
+            reports_by_index = {}
+            for future in as_completed(future_to_index):
+                index = future_to_index[future]
+                sv_file = sv_files[index]
+                try:
+                    result_dict = future.result()
+                    # Convert dictionary back to TestReport object
+                    report = TestReport(result_dict['sv_file'])
+                    report.json_file = result_dict['json_file']
+                    report.success = result_dict['success']
+                    report.parse_success = result_dict['parse_success']
+                    report.truth_table_success = result_dict['truth_table_success']
+                    report.test_success = result_dict['test_success']
+                    report.passed_tests = result_dict['passed_tests']
+                    report.total_tests = result_dict['total_tests']
+                    report.error_message = result_dict['error_message']
+                    report.truth_table = result_dict['truth_table']
+                    report.execution_time = result_dict['execution_time']
+                    report.nand_gate_count = result_dict['nand_gate_count']
+                    report.warnings = result_dict['warnings']
+                    report.test_outputs = result_dict['test_outputs']
+                    
+                    # Create a dummy evaluator with the basic info for reporting
+                    class DummyEvaluator:
+                        def __init__(self, inputs, outputs, bus_info):
+                            self.inputs = inputs
+                            self.outputs = outputs
+                            self.bus_info = bus_info or {}
+                    
+                    report.evaluator = DummyEvaluator(result_dict['inputs'], result_dict['outputs'], result_dict.get('bus_info', {}))
+                    reports_by_index[index] = report
+                    
+                except Exception as e:
+                    # Create error report for failed job
+                    error_report = TestReport(sv_file)
+                    error_report.error_message = f"Parallel execution failed: {str(e)}"
+                    reports_by_index[index] = error_report
+            
+            # Print reports in original file order
+            ordered_reports = []
+            for i in range(len(sv_files)):
+                report = reports_by_index[i]
+                ordered_reports.append(report)
+                self.print_file_report(report)
+            
+            # Store all reports in correct order
+            self.reports.extend(ordered_reports)
     
     def print_file_report(self, report: TestReport) -> None:
         """Print comprehensive report for a single file"""
@@ -532,33 +864,46 @@ class SystemVerilogTestRunner:
 
 def main():
     """Main entry point for the test runner"""
-    # Simple command line argument handling - just expect the path
-    if len(sys.argv) != 2:
-        print("Usage: python test_runner.py <file_or_folder>")
-        print("\nExamples:")
-        print("    python test_runner.py testing/005-Notgate.sv")
-        print("    python test_runner.py testing/")
-        sys.exit(1)
+    import argparse
     
-    path = sys.argv[1]
+    parser = argparse.ArgumentParser(
+        description="SystemVerilog Test Runner with parallel processing support",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    parser.add_argument("path", help="SystemVerilog file or directory to test")
+    parser.add_argument("--sequential", "-s", action="store_true", 
+                       help="Run tests sequentially instead of in parallel")
+    parser.add_argument("--workers", "-w", type=int, 
+                       help="Number of parallel workers (default: CPU count - 1)")
+    parser.add_argument("--max-combinations", "-c", type=int, default=16,
+                       help="Maximum truth table combinations to test (default: 16)")
+    
+    args = parser.parse_args()
     
     # Verify path exists
-    if not os.path.exists(path):
-        print(f"Error: Path '{path}' does not exist")
+    if not os.path.exists(args.path):
+        print(f"Error: Path '{args.path}' does not exist")
         sys.exit(1)
     
-    # Create test runner with maximum verbosity settings
-    runner = SystemVerilogTestRunner()
+    # Create test runner
+    parallel = not args.sequential
+    runner = SystemVerilogTestRunner(parallel=parallel, max_workers=args.workers)
+    runner.max_combinations = args.max_combinations
     
     print("SystemVerilog Test Runner")
     print("=" * 50)
-    print(f"Target: {path}")
+    print(f"Target: {args.path}")
     print(f"Max combinations: {runner.max_combinations}")
+    if parallel:
+        print(f"Parallel processing: {runner.max_workers} workers")
+    else:
+        print("Running sequentially")
     print()
     
     # Run tests
     start_time = time.time()
-    runner.run_tests(path)
+    runner.run_tests(args.path)
     end_time = time.time()
     
     runner.print_summary_report()

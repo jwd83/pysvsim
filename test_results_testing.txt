@@ -2,8 +2,11 @@ SystemVerilog Test Runner
 ==================================================
 Target: testing\
 Max combinations: 16
+Parallel processing: 11 workers
 
 Found 38 SystemVerilog file(s) to test
+
+Running tests in parallel with 11 workers...
 
 ================================================================================
 FILE: testing\001-GettingStarted.sv
@@ -13,7 +16,7 @@ Module: 001-GettingStarted
 Inputs: []
 Outputs: ['one']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.003s
 JSON Test File: testing\001-GettingStarted.json
 Test Results: 1/1 passed (100.0%)
 
@@ -33,7 +36,7 @@ Module: 002-OutputZero
 Inputs: []
 Outputs: ['zero']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 JSON Test File: testing\002-OutputZero.json
 Test Results: 1/1 passed (100.0%)
 
@@ -53,7 +56,7 @@ Module: 003-Wire
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 JSON Test File: testing\003-Wire.json
 Test Results: 2/2 passed (100.0%)
 
@@ -75,7 +78,7 @@ Module: 004-Wire4
 Inputs: ['a', 'b', 'c']
 Outputs: ['w', 'x', 'y', 'z']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 JSON Test File: testing\004-Wire4.json
 Test Results: 6/6 passed (100.0%)
 
@@ -107,7 +110,7 @@ Module: 005-Notgate
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 JSON Test File: testing\005-Notgate.json
 Test Results: 2/2 passed (100.0%)
 
@@ -207,7 +210,7 @@ Module: 009-DeclaringWires
 Inputs: ['a', 'b', 'c', 'd']
 Outputs: ['out', 'out_n']
 NAND Gates: 0
-Execution Time: 0.004s
+Execution Time: 0.009s
 JSON Test File: testing\009-DeclaringWires.json
 Test Results: 8/8 passed (100.0%)
 
@@ -249,7 +252,7 @@ Module: 010-7458
 Inputs: ['p1a', 'p1b', 'p1c', 'p1d', 'p1e', 'p1f', 'p2a', 'p2b', 'p2c', 'p2d']
 Outputs: ['p1y', 'p2y']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.007s
 JSON Test File: testing\010-7458.json
 Test Results: 5/5 passed (100.0%)
 Warnings: Warning: Too many input combinations (1024). Limiting to first 16 combinations.
@@ -289,7 +292,7 @@ Module: 011-Vector0
 Inputs: ['vec']
 Outputs: ['outv', 'o2', 'o1', 'o0']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.002s
 JSON Test File: testing\011-Vector0.json
 Test Results: 8/8 passed (100.0%)
 
@@ -323,7 +326,7 @@ Module: 012-Vector1
 Inputs: ['in']
 Outputs: ['out_hi', 'out_lo']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.003s
 JSON Test File: testing\012-Vector1.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -366,7 +369,7 @@ Module: 013-Vector2
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.007s
 JSON Test File: testing\013-Vector2.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (4294967296). Limiting to first 16 combinations.
@@ -411,7 +414,7 @@ Module: 014-VectorGates
 Inputs: ['a', 'b']
 Outputs: ['out_or_bitwise', 'out_or_logical', 'out_not']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.007s
 JSON Test File: testing\014-VectorGates.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (64). Limiting to first 16 combinations.
@@ -454,7 +457,7 @@ Module: 015-Gates4
 Inputs: ['in']
 Outputs: ['out_and', 'out_or', 'out_xor']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.007s
 JSON Test File: testing\015-Gates4.json
 Test Results: 8/8 passed (100.0%)
 
@@ -496,7 +499,7 @@ Module: 016-Vector3
 Inputs: ['a', 'b', 'c', 'd', 'e', 'f']
 Outputs: ['w', 'x', 'y', 'z']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.002s
 JSON Test File: testing\016-Vector3.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (1073741824). Limiting to first 16 combinations.
@@ -539,7 +542,7 @@ Module: 017-Vectorr
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.003s
 JSON Test File: testing\017-Vectorr.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (256). Limiting to first 16 combinations.
@@ -627,7 +630,7 @@ Module: 019-Vector5
 Inputs: ['a', 'b', 'c', 'd', 'e']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.005s
 JSON Test File: testing\019-Vector5.json
 Test Results: 7/7 passed (100.0%)
 Warnings: Warning: Too many input combinations (32). Limiting to first 16 combinations.
@@ -669,7 +672,7 @@ Module: adder_16bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 240
-Execution Time: 0.198s
+Execution Time: 0.238s
 JSON Test File: testing\adder_16bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (8589934592). Limiting to first 16 combinations.
@@ -712,7 +715,7 @@ Module: adder_4bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 60
-Execution Time: 0.054s
+Execution Time: 0.090s
 JSON Test File: testing\adder_4bit.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (512). Limiting to first 16 combinations.
@@ -757,7 +760,7 @@ Module: adder_8bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 120
-Execution Time: 0.107s
+Execution Time: 0.145s
 JSON Test File: testing\adder_8bit.json
 Test Results: 10/10 passed (100.0%)
 Warnings: Warning: Too many input combinations (131072). Limiting to first 16 combinations.
@@ -802,7 +805,7 @@ Module: and_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 2
-Execution Time: 0.001s
+Execution Time: 0.004s
 JSON Test File: testing\and_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -828,7 +831,7 @@ Module: and_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 16
-Execution Time: 0.016s
+Execution Time: 0.034s
 JSON Test File: testing\and_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -875,7 +878,7 @@ Module: full_adder
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 15
-Execution Time: 0.009s
+Execution Time: 0.021s
 JSON Test File: testing\full_adder.json
 Test Results: 8/8 passed (100.0%)
 
@@ -909,7 +912,7 @@ Module: half_adder
 Inputs: ['inA', 'inB']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 6
-Execution Time: 0.003s
+Execution Time: 0.007s
 JSON Test File: testing\half_adder.json
 Test Results: 4/4 passed (100.0%)
 
@@ -935,7 +938,7 @@ Module: nand_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.003s
 JSON Test File: testing\nand_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -961,7 +964,7 @@ Module: nand_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 8
-Execution Time: 0.008s
+Execution Time: 0.016s
 JSON Test File: testing\nand_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1008,7 +1011,7 @@ Module: nor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.002s
+Execution Time: 0.006s
 JSON Test File: testing\nor_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1034,7 +1037,7 @@ Module: nor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.032s
+Execution Time: 0.043s
 JSON Test File: testing\nor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1103,7 +1106,7 @@ Module: not_gate_8bit
 Inputs: ['inA']
 Outputs: ['outY']
 NAND Gates: 8
-Execution Time: 0.007s
+Execution Time: 0.015s
 JSON Test File: testing\not_gate_8bit.json
 Test Results: 8/8 passed (100.0%)
 Warnings: Warning: Too many input combinations (256). Limiting to first 16 combinations.
@@ -1146,7 +1149,7 @@ Module: or_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 3
-Execution Time: 0.001s
+Execution Time: 0.004s
 JSON Test File: testing\or_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1172,7 +1175,7 @@ Module: or_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 24
-Execution Time: 0.023s
+Execution Time: 0.039s
 JSON Test File: testing\or_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1219,7 +1222,7 @@ Module: xnor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 5
-Execution Time: 0.002s
+Execution Time: 0.004s
 JSON Test File: testing\xnor_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1245,7 +1248,7 @@ Module: xnor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 40
-Execution Time: 0.039s
+Execution Time: 0.051s
 JSON Test File: testing\xnor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1292,7 +1295,7 @@ Module: xor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.002s
+Execution Time: 0.003s
 JSON Test File: testing\xor_gate.json
 Test Results: 4/4 passed (100.0%)
 
@@ -1318,7 +1321,7 @@ Module: xor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.030s
+Execution Time: 0.036s
 JSON Test File: testing\xor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
 Warnings: Warning: Too many input combinations (65536). Limiting to first 16 combinations.
@@ -1369,12 +1372,12 @@ Files with JSON Tests:  38
 Test Case Failures:     0
 Total Test Cases:       258
 Passed Test Cases:      258/258 (100.0%)
-Total Execution Time:   0.565s
-Average Time per File:  0.015s
+Total Execution Time:   0.822s
+Average Time per File:  0.022s
 Total NAND Gates:       620
 Average NAND per File:  16.3
 ============================================================
 
-Total runtime: 0.568s
+Total runtime: 0.409s
 
 All tests passed! Exiting with code 0
