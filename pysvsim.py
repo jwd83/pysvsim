@@ -146,9 +146,9 @@ class SystemVerilogParser:
         current_section = ""
         current_type = None
 
-        # Tokenize the port list, including 'wire' and 'logic' keywords which can appear after input/output
+        # Tokenize the port list, including modifiers that can appear after input/output
         tokens = re.findall(
-            r"\b(?:input|output|wire|logic)\b|\[[^\]]+\]|\w+|,", port_list
+            r"\b(?:input|output|wire|logic|reg|signed|unsigned)\b|\[[^\]]+\]|\w+|,", port_list
         )
 
         i = 0
@@ -163,8 +163,8 @@ class SystemVerilogParser:
                 # Start new section
                 current_type = token
                 current_section = ""
-            elif token in ["wire", "logic"]:
-                # Skip 'wire' and 'logic' keywords - they're optional and don't affect functionality
+            elif token in ["wire", "logic", "reg", "signed", "unsigned"]:
+                # Skip modifier keywords - they're optional and don't affect simulation functionality
                 pass
             elif token.startswith("[") and token.endswith("]"):
                 # Bus specification

@@ -24,6 +24,39 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
 
 
+def _check_missing_expect_fields(tests) -> str:
+    """Check if any test cases are missing expect/expected fields.
+    
+    Returns a warning message if any tests are missing expect fields, empty string otherwise.
+    """
+    missing_count = 0
+    
+    if isinstance(tests, dict):
+        if tests.get('test_type') == 'sequential':
+            # Old sequential format
+            for cycle in tests.get('test_cycles', []):
+                if not cycle.get('expected_outputs'):
+                    missing_count += 1
+        elif tests.get('sequential') or tests.get('test_cases'):
+            # New sequential format
+            for test_case in tests.get('test_cases', []):
+                if 'sequence' in test_case:
+                    for step in test_case['sequence']:
+                        if not step.get('expected'):
+                            missing_count += 1
+                elif not test_case.get('expected'):
+                    missing_count += 1
+    elif isinstance(tests, list):
+        # Old combinational format
+        for test in tests:
+            if not test.get('expect'):
+                missing_count += 1
+    
+    if missing_count > 0:
+        return f"Warning: {missing_count} test(s) missing expect field"
+    return ""
+
+
 def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
     """Standalone function to test a single file - used for parallel processing"""
     import json
@@ -122,6 +155,14 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
             try:
                 with open(json_file, "r", encoding="utf-8") as f:
                     tests = json.load(f)
+                
+                # Check for missing expect fields and warn
+                missing_expect_warning = _check_missing_expect_fields(tests)
+                if missing_expect_warning:
+                    if warnings:
+                        warnings += "; " + missing_expect_warning
+                    else:
+                        warnings = missing_expect_warning
                 
                 # Run tests using simplified logic
                 if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
