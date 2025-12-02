@@ -1,79 +1,56 @@
-# SystemVerilog Simulator
+# PySVSim - SystemVerilog Simulator
 
-A pure Python SystemVerilog simulator designed for game development. Players can write small hardware modules in SystemVerilog, and the simulator generates truth tables and validates designs against test cases.
+A pure Python SystemVerilog simulator designed for educational game development. Write hardware modules in SystemVerilog, generate truth tables, visualize waveforms, and validate designs against test cases.
 
 ## Features
 
-- **Pure Python**: No external dependencies except standard libraries
+### Core Simulation
+- **Pure Python**: Uses matplotlib for visualization, no other external dependencies
 - **Bus Support**: Full support for multi-bit buses with clean notation (e.g., `input [3:0] data`)
 - **Hierarchical Design**: Module instantiation with bit selection (e.g., `.A(data[0])`)
-- **Combinational Logic Support**: Handles basic logic operations (`&`, `|`, `^`, `~`)
-- **NAND Gate Analysis**: Counts NAND gates used in hierarchical designs for complexity analysis
-- **Truth Table Generation**: Automatically generates truth tables for up to 256 input combinations
-- **JSON Testing**: Validate designs with custom test cases using integer bus values
-- **Comprehensive Test Suite**: Built-in test runner with detailed reports and regression testing
+- **Combinational Logic**: Handles bitwise operations (`&`, `|`, `^`, `~`)
+- **Sequential Logic**: Supports `always_ff` blocks, registers, counters with clock/enable/reset
+- **NAND Gate Analysis**: Counts NAND gates in hierarchical designs for complexity analysis
+
+### Testing & Visualization
+- **Truth Table Generation**: Automatic truth tables for combinational logic (configurable limit)
+- **Waveform Generation**: Professional timing diagrams for sequential logic testing
+- **Image Output**: PNG images of truth tables and waveforms for game integration
+- **JSON Testing**: Validate designs with custom test cases (combinational and sequential)
+- **Parallel Test Runner**: Multi-core regression testing with detailed reports
 - **Game-Ready**: Designed to be easily embedded in larger Python games
 
 ## Usage
 
-### Basic Truth Table Generation
+### Basic Simulation
 
 ```bash
-python pysvsim.py --file nand_gate.sv
+# Generate truth table for a module
+python pysvsim.py --file parts/and_gate.sv
+
+# Simulate with test cases
+python pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
 ```
 
-### With Custom Test Cases
+### Test Runner
 
 ```bash
-python pysvsim.py --file nand_gate.sv --test tests_nand_gate.json
+# Test a single file (outputs truth table/waveform + test results)
+python test_runner.py parts/and_gate.sv
+
+# Test entire directory with parallel processing
+python test_runner.py parts/
+
+# Save results to file
+python test_runner.py parts/ > test_results.txt
 ```
 
-### Bus-based Design with Limited Combinations
+### Batch Testing
 
 ```bash
-python pysvsim.py --file adder_4bit_bus.sv --test tests_adder_4bit_bus.json --max-combinations 64
+# Run all tests and save reports
+test.bat
 ```
-
-### Test Runner - Individual Files
-
-```bash
-# Test a single SystemVerilog file
-python test_runner.py testing/005-Notgate.sv
-
-# Test with verbose output and NAND gate counts
-python test_runner.py testing/008-Xorgate.sv --verbose
-```
-
-### Test Runner - Directory Testing
-
-```bash
-# Test entire directory
-python test_runner.py testing/
-
-# Test directory with detailed reports
-python test_runner.py testing/ --detailed-report
-
-# Skip truth tables, only run JSON tests
-python test_runner.py testing/ --summary-only
-```
-
-## Command Line Arguments
-
-### `pysvsim.py` Arguments
-
-- `--file <verilog_file>`: SystemVerilog file to simulate (required)
-- `--test <json_file>`: JSON test file (optional)
-- `--max-combinations N`: Maximum number of input combinations to test (default: 256)
-
-### `test_runner.py` Arguments
-
-- `path`: SystemVerilog file or directory to test (required)
-- `--max-combinations N`: Maximum truth table combinations (default: 256)
-- `--verbose, -v`: Enable detailed progress information with NAND gate counts
-- `--summary-only`: Skip truth table generation, only run JSON tests
-- `--continue-on-error`: Continue when files fail (default: True)
-- `--stop-on-first-error`: Stop on first error
-- `--detailed-report`: Show comprehensive report with truth tables
 
 ## Test File Structure
 
@@ -89,38 +66,51 @@ testing/
 
 ## JSON Test Format
 
+### Combinational Logic Tests
 ```json
 [
-    {
-        "input1": value1,
-        "input2": value2,
-        "expect": {
-            "output1": expected1,
-            "output2": expected2
-        }
-    }
+    {"inA": 0, "inB": 0, "expect": {"outY": 1}},
+    {"inA": 0, "inB": 1, "expect": {"outY": 1}},
+    {"inA": 1, "inB": 0, "expect": {"outY": 1}},
+    {"inA": 1, "inB": 1, "expect": {"outY": 0}}
 ]
 ```
 
-Each test case contains:
-- **Input values**: All inputs must be specified (integers for buses, 0/1 for single bits)
-- **Expected outputs**: `expect` object with expected output values
+### Sequential Logic Tests
+```json
+{
+    "sequential": true,
+    "test_cases": [
+        {
+            "name": "Reset behavior",
+            "sequence": [
+                {"inputs": {"clk": 1, "reset": 1, "enable": 0}, "expected": {"count": 0}},
+                {"inputs": {"clk": 1, "reset": 0, "enable": 1}, "expected": {"count": 1}}
+            ]
+        }
+    ]
+}
+```
 
 ## SystemVerilog Support
 
-### Currently Supported
+### Combinational Logic
 - **Module declarations** with input/output ports (single-bit and multi-bit buses)
 - **Bus declarations**: `input [3:0] A`, `output [7:0] result`, `wire [3:0] temp`
-- **Bit selection**: Individual bit access like `A[2]`, `data[0]` in expressions
-- **Bus assignments**: Direct bus-to-bus assignments like `assign Y = A`
+- **Bit selection**: `A[2]`, `data[0]`, `bus[7:4]`
+- **Concatenation**: `{a, b, c}`, `{4{bit}}` (replication)
 - **Module instantiation** with hierarchical connections and bit selection
-- **Bitwise operators**: `&` (AND), `|` (OR), `^` (XOR), `~` (NOT)
-- **Expression grouping** with parentheses
-- **Mixed bus/scalar designs**: Combine buses and single-bit signals seamlessly
+- **Bitwise operators**: `&`, `|`, `^`, `~`
+- **Literals**: `1'b0`, `8'hFF`, `4'd10`
 
-### Example SystemVerilog Module (Single-bit)
+### Sequential Logic
+- **always_ff blocks**: `always_ff @(posedge clk)`
+- **Conditional assignments**: `if/else if/else` chains
+- **Arithmetic in sequential**: `count <= count + 1`
+- **Clock, enable, reset** signals
 
-```verilog
+### Example Combinational Module
+```verilog path=null start=null
 module nand_gate (
     input inA,
     input inB,
@@ -130,71 +120,83 @@ module nand_gate (
 endmodule
 ```
 
-### Bus-based Module Example
-
-```verilog
-module adder_4bit_bus (
-    input [3:0] A,      // 4-bit input bus A
-    input [3:0] B,      // 4-bit input bus B
-    input Cin,          // Single-bit carry input
-    output [3:0] Sum,   // 4-bit sum output bus
-    output Cout         // Single-bit carry output
+### Example Sequential Module
+```verilog path=null start=null
+module counter8 (
+    input clk,
+    input reset,
+    input enable,
+    output reg [7:0] count
 );
-    // Internal carry wires
-    wire C1, C2, C3;
-    
-    // Instantiate full adders with bit selection
-    full_adder fa0 (.A(A[0]), .B(B[0]), .Cin(Cin), .Sum(Sum[0]), .Cout(C1));
-    full_adder fa1 (.A(A[1]), .B(B[1]), .Cin(C1),  .Sum(Sum[1]), .Cout(C2));
-    full_adder fa2 (.A(A[2]), .B(B[2]), .Cin(C2),  .Sum(Sum[2]), .Cout(C3));
-    full_adder fa3 (.A(A[3]), .B(B[3]), .Cin(C3),  .Sum(Sum[3]), .Cout(Cout));
+    always_ff @(posedge clk) begin
+        if (reset)
+            count <= 8'b0;
+        else if (enable)
+            count <= count + 1;
+    end
 endmodule
 ```
 
 ## Architecture
 
-The simulator consists of four main components:
+The simulator consists of five main components:
 
-1. **SystemVerilogParser**: Parses `.sv` files and extracts module information including bus declarations
-2. **LogicEvaluator**: Evaluates logic expressions with full bus support, bit selection, and NAND gate counting
-3. **TruthTableGenerator**: Generates truth tables with clean bus notation (e.g., `A[3:0] = 5`)
-4. **TestRunner**: Comprehensive regression test suite with detailed reports
+1. **SystemVerilogParser**: Parses `.sv` files, extracts module info, buses, and sequential blocks
+2. **LogicEvaluator**: Evaluates combinational logic with bus support and NAND gate counting
+3. **SequentialLogicEvaluator**: Evaluates sequential logic with state management
+4. **TruthTableGenerator**: Generates truth tables for combinational modules
+5. **TestRunner**: Parallel test execution with truth table/waveform output
 
-## Examples
+## Module Library
 
-See the included example files:
+The `parts/` directory contains a comprehensive library of verified modules:
 
-### SystemVerilog Modules
-- `nand_gate.sv`: Simple NAND gate implementation
-- `inverter.sv`: Inverter built from NAND gate instantiation (1 NAND)
-- `and_gate.sv`: AND gate built from NAND gate and inverter modules (2 NANDs)
-- `or_gate.sv`: OR gate built using De Morgan's law with inverters + NAND (3 NANDs)
-- `xor_gate.sv`: XOR gate built using (A & ~B) | (~A & B) with AND/OR/inverter modules
-- `nor_gate.sv`: NOR gate built using OR gate + inverter (NOT OR)
-- `half_adder.sv`: Half adder built from XOR and AND gate modules
-- `full_adder.sv`: Full adder built from two half adders with carry chain (15 NANDs)
-- `adder_4bit_bus.sv`: **4-bit adder using proper bus notation** (60 NANDs)
-- `adder_16bit.sv`: **16-bit adder using hierarchical 4-bit adders** (240 NANDs)
+### Logic Gates (1-bit and 8-bit variants)
+- NAND, AND, OR, NOR, XOR, XNOR, NOT gates
+- All built hierarchically from NAND gates
 
-### Testing Directory Structure
-- `testing/`: Contains SystemVerilog files with matching JSON test cases
-- `parts/`: Additional example modules with hierarchical designs
+### Arithmetic
+- Half adder, Full adder (15 NANDs)
+- Ripple-carry adders: 4/8/16/32/64-bit
+- Carry-select adders: 8/16/32/64-bit (faster hardware, slower simulation)
 
-## Limitations
+### Data Path
+- 2:1 Multiplexers: 1/4/8/16/32-bit
+- Registers: 1/8/16/32/64-bit with clock/enable
+- 8-bit counter with reset/enable
 
-This simulator focuses on combinational logic suitable for educational games. Current limitations include:
+### NAND Gate Counts
+- Full adder: 15 NANDs
+- 4-bit adder: 60 NANDs
+- 8-bit adder: 120 NANDs
+- 32-bit ripple-carry: 480 NANDs
+- 32-bit carry-select: 2,332 NANDs
 
-- **No sequential logic** (flip-flops, latches, clocked circuits)
-- **Basic bitwise operations only** (no arithmetic operators like +, -, *, /)
-- **Same-directory module loading** (no complex module hierarchy paths)
-- **Combinational logic only** (no behavioral modeling or timing)
+## Directory Structure
 
-## Future Enhancements
+```
+pysvsim/
+├── pysvsim.py          # Main simulator
+├── test_runner.py      # Parallel test runner
+├── test.bat            # Batch test script
+├── parts/              # Verified module library
+│   ├── *.sv            # SystemVerilog modules
+│   └── *.json          # Test cases
+├── testing/            # Additional test modules
+├── roms/               # ROM data files
+└── goals/              # Project milestones
+```
 
-Potential areas for expansion:
-- **Sequential logic elements** (D flip-flops, counters, state machines)
-- **Arithmetic operators** (+, -, *, /) for more complex designs
-- **Advanced bus operations** (concatenation, slicing, shifting)
-- **Behavioral modeling** support (`always` blocks, `if`/`case` statements)
-- **Timing simulation** and clock domain analysis
-- **Memory elements** (ROMs, RAMs, register files)
+## Current Limitations
+
+- **Arithmetic operators**: Only in sequential blocks (combinational uses adder modules)
+- **Same-directory modules**: Modules must be in same directory as parent
+- **No timing**: Pure functional simulation without propagation delays
+- **Memory arrays**: Not yet supported (planned for CPU milestone)
+
+## Roadmap
+
+See `goals/` for detailed milestone documents:
+
+- **8-bit CPU**: Simple CPU with ROM/RAM support (`8bitcpu-milestone.md`)
+- **RV32I CPU**: Full RISC-V implementation with serial I/O (`rv32i-milestone.md`)
