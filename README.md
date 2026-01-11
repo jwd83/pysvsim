@@ -161,15 +161,6 @@ The next milestone is a simple 8-bit CPU. See `goals/8bitcpu-milestone.md` for d
 2. **Memory Arrays** - Support `reg [7:0] memory [255:0]`
 3. **Extended Testing** - Longer sequences for CPU execution traces
 
-### Instruction Set (Proposed)
-```
-[7:6] Opcode  [5:3] Register  [2:0] Operand
-  00  LOAD      Load immediate or from memory
-  01  ADD       Add to register
-  10  STORE     Store to memory
-  11  JUMP      Conditional/unconditional jump
-```
-
 ## Future Roadmap
 
 - **8-bit CPU** - Simple CPU with ROM/RAM (`goals/8bitcpu-milestone.md`)
