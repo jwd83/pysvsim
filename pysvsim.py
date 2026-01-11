@@ -1611,23 +1611,23 @@ class WaveformImageGenerator:
             else:
                 signal_labels.append(f'{signal} (out)')
         
-        ax.set_yticklabels(signal_labels, fontsize=11, fontweight='bold')
-        
+        ax.set_yticklabels(signal_labels, fontsize=14, fontweight='bold')
+
         # Professional time axis
         ax.set_xticks([i + 0.5 for i in range(num_cycles)])
-        ax.set_xticklabels([f'{i}' for i in range(num_cycles)], fontsize=11)
-        
+        ax.set_xticklabels([f'{i}' for i in range(num_cycles)], fontsize=13)
+
         # Clean professional styling
-        ax.set_xlabel('Clock Cycle', fontsize=13, fontweight='bold', color='#2C3E50')
-        ax.set_ylabel('Signals', fontsize=13, fontweight='bold', color='#2C3E50')
+        ax.set_xlabel('Clock Cycle', fontsize=16, fontweight='bold', color='#2C3E50')
+        ax.set_ylabel('Signals', fontsize=16, fontweight='bold', color='#2C3E50')
         
         # Remove all spines for ultra-clean look
         for spine in ax.spines.values():
             spine.set_visible(False)
         
         # Professional title
-        plt.title(f'Digital Waveform - {Path(output_path).stem}', 
-                 fontsize=16, fontweight='bold', color='#2C3E50', pad=25)
+        plt.title(f'Digital Waveform - {Path(output_path).stem}',
+                 fontsize=20, fontweight='bold', color='#2C3E50', pad=25)
         
         # Add subtle background
         ax.set_facecolor('#FAFAFA')
@@ -1719,11 +1719,11 @@ class WaveformImageGenerator:
             # Add clear value annotation
             if value < 16:  # Single hex digit or small decimal
                 bbox_props = dict(boxstyle='round,pad=0.3', facecolor=color, alpha=0.9, edgecolor='white')
-                fontsize = 10
+                fontsize = 13
             else:  # Larger values
                 bbox_props = dict(boxstyle='round,pad=0.25', facecolor=color, alpha=0.9, edgecolor='white')
-                fontsize = 9
-            
+                fontsize = 12
+
             ax.text(x_center, y_center, str(value), ha='center', va='center',
                    fontsize=fontsize, fontweight='bold', color='white', bbox=bbox_props)
 
