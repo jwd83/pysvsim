@@ -70,6 +70,7 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
     try:
         # Import here to avoid issues with multiprocessing
         from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+        from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
         try:
             from pysvsim import SequentialLogicEvaluator
         except ImportError:
@@ -274,13 +275,60 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
                         total_tests += 1
                 
                 test_success = (passed_tests == total_tests)
-                
+
             except Exception as e:
                 test_success = False
                 test_outputs = [f"Test execution failed: {str(e)}"]
-        
+
         execution_time = time.time() - start_time
-        
+
+        # Generate PNG image of results
+        png_file = None
+        try:
+            png_path = str(Path(sv_file).with_suffix('.png'))
+            is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
+
+            if is_sequential_eval and json_file:
+                # Collect waveform data for sequential logic
+                waveform_data = []
+                if hasattr(evaluator, 'reset_state'):
+                    evaluator.reset_state()
+
+                with open(json_file, "r", encoding="utf-8") as f:
+                    tests_for_waveform = json.load(f)
+
+                if isinstance(tests_for_waveform, dict) and tests_for_waveform.get('test_type') == 'sequential':
+                    for cycle_test in tests_for_waveform.get('test_cycles', []):
+                        input_values = cycle_test.get('inputs', {})
+                        outputs = evaluator.evaluate_cycle(input_values)
+                        waveform_data.append({'inputs': input_values, 'outputs': outputs})
+                elif isinstance(tests_for_waveform, dict) and (tests_for_waveform.get('sequential') or tests_for_waveform.get('test_cases')):
+                    for test_case in tests_for_waveform.get('test_cases', []):
+                        if 'sequence' in test_case:
+                            for step in test_case['sequence']:
+                                input_values = step.get('inputs', {})
+                                outputs = evaluator.evaluate_cycle(input_values)
+                                waveform_data.append({'inputs': input_values, 'outputs': outputs})
+                        else:
+                            input_values = test_case.get('inputs', {})
+                            outputs = evaluator.evaluate_cycle(input_values)
+                            waveform_data.append({'inputs': input_values, 'outputs': outputs})
+
+                if waveform_data:
+                    waveform_gen = WaveformImageGenerator(evaluator)
+                    waveform_gen.generate_image(waveform_data, png_path)
+                    png_file = png_path
+            elif truth_table:
+                # Generate truth table image for combinational logic
+                image_gen = TruthTableImageGenerator(evaluator)
+                image_gen.generate_image(truth_table, png_path)
+                png_file = png_path
+        except Exception as e:
+            if warnings:
+                warnings += f"; Image generation failed: {e}"
+            else:
+                warnings = f"Image generation failed: {e}"
+
         # Return dictionary instead of TestReport object to avoid serialization issues
         return {
             'sv_file': sv_file,
@@ -299,9 +347,10 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
             'test_outputs': test_outputs,
             'inputs': module_info["inputs"],
             'outputs': module_info["outputs"],
-            'bus_info': module_info.get("bus_info", {})
+            'bus_info': module_info.get("bus_info", {}),
+            'png_file': png_file
         }
-        
+
     except Exception as e:
         return {
             'sv_file': sv_file,
@@ -320,12 +369,14 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
             'test_outputs': [],
             'inputs': [],
             'outputs': [],
-            'bus_info': {}
+            'bus_info': {},
+            'png_file': None
         }
 
 
 # Import our simulator components
 from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
 try:
     from pysvsim import SequentialLogicEvaluator
 except ImportError:
@@ -581,7 +632,55 @@ class SystemVerilogTestRunner:
             if json_path.exists():
                 return str(json_path)
         return None
-    
+
+    def _collect_waveform_data(self, evaluator, json_file: str) -> List[Dict]:
+        """Collect waveform data by running through test sequences."""
+        if not json_file:
+            return []
+
+        try:
+            with open(json_file, "r", encoding="utf-8") as f:
+                tests = json.load(f)
+        except:
+            return []
+
+        waveform_data = []
+
+        # Reset evaluator state
+        if hasattr(evaluator, 'reset_state'):
+            evaluator.reset_state()
+
+        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
+            # Old sequential format
+            for cycle_test in tests.get('test_cycles', []):
+                input_values = cycle_test.get('inputs', {})
+                if hasattr(evaluator, 'evaluate_cycle'):
+                    outputs = evaluator.evaluate_cycle(input_values)
+                else:
+                    outputs = evaluator.evaluate(input_values)
+                waveform_data.append({'inputs': input_values, 'outputs': outputs})
+
+        elif isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
+            # New sequential format
+            for test_case in tests.get('test_cases', []):
+                if 'sequence' in test_case:
+                    for step in test_case['sequence']:
+                        input_values = step.get('inputs', {})
+                        if hasattr(evaluator, 'evaluate_cycle'):
+                            outputs = evaluator.evaluate_cycle(input_values)
+                        else:
+                            outputs = evaluator.evaluate(input_values)
+                        waveform_data.append({'inputs': input_values, 'outputs': outputs})
+                else:
+                    input_values = test_case.get('inputs', {})
+                    if hasattr(evaluator, 'evaluate_cycle'):
+                        outputs = evaluator.evaluate_cycle(input_values)
+                    else:
+                        outputs = evaluator.evaluate(input_values)
+                    waveform_data.append({'inputs': input_values, 'outputs': outputs})
+
+        return waveform_data
+
     def test_single_file(self, sv_file: str) -> TestReport:
         """Test a single SystemVerilog file"""
         report = TestReport(sv_file)
@@ -682,13 +781,37 @@ class SystemVerilogTestRunner:
                     report.error_message = f"Test execution failed: {str(e)}"
             
             # Overall success
-            report.success = (report.parse_success and 
+            report.success = (report.parse_success and
                             (not report.has_tests or report.test_success) and
                             report.truth_table_success)
-                            
+
+            # Generate PNG image of results
+            try:
+                png_path = str(Path(sv_file).with_suffix('.png'))
+                is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
+
+                if is_sequential_eval:
+                    # Generate waveform for sequential logic
+                    waveform_data = self._collect_waveform_data(evaluator, report.json_file)
+                    if waveform_data:
+                        waveform_gen = WaveformImageGenerator(evaluator)
+                        waveform_gen.generate_image(waveform_data, png_path)
+                        report.png_file = png_path
+                elif report.truth_table:
+                    # Generate truth table image for combinational logic
+                    image_gen = TruthTableImageGenerator(evaluator)
+                    image_gen.generate_image(report.truth_table, png_path)
+                    report.png_file = png_path
+            except Exception as e:
+                # Don't fail the test if image generation fails
+                if hasattr(report, 'warnings') and report.warnings:
+                    report.warnings += f"; Image generation failed: {e}"
+                else:
+                    report.warnings = f"Image generation failed: {e}"
+
         except Exception as e:
             report.error_message = f"Parsing failed: {str(e)}"
-        
+
         report.execution_time = time.time() - start_time
         return report
     
@@ -761,7 +884,8 @@ class SystemVerilogTestRunner:
                     report.nand_gate_count = result_dict['nand_gate_count']
                     report.warnings = result_dict['warnings']
                     report.test_outputs = result_dict['test_outputs']
-                    
+                    report.png_file = result_dict.get('png_file')
+
                     # Create a dummy evaluator with the basic info for reporting
                     class DummyEvaluator:
                         def __init__(self, inputs, outputs, bus_info):
@@ -807,7 +931,9 @@ class SystemVerilogTestRunner:
         print(f"Outputs: {report.evaluator.outputs if report.evaluator else 'N/A'}")
         print(f"NAND Gates: {report.nand_gate_count}")
         print(f"Execution Time: {report.execution_time:.3f}s")
-        
+        if hasattr(report, 'png_file') and report.png_file:
+            print(f"PNG Output: {report.png_file}")
+
         # Test results
         if report.has_tests:
             print(f"JSON Test File: {report.json_file}")

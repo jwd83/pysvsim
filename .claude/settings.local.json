@@ -4,7 +4,9 @@
       "Bash(git -C /c/Users/jared/pysvsim add README.md)",
       "Bash(git -C /c/Users/jared/pysvsim commit -m \"$\\(cat <<''EOF''\nUpdate README with current project status and next steps\n\nAdd project status metrics \\(36 modules, 310 tests, 13K NAND gates\\),\nreorganize module library into tables, streamline documentation,\nand outline 8-bit CPU milestone requirements.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(python test_runner.py:*)",
-      "Bash(python pysvsim.py:*)"
+      "Bash(python pysvsim.py:*)",
+      "Bash(python3 test_runner.py:*)",
+      "Bash(uv run python:*)"
     ]
   }
 }
