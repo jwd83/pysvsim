@@ -8,20 +8,22 @@ PySVSim is a pure Python SystemVerilog simulator for an educational digital logi
 
 ## Commands
 
+Use `uv` to manage dependencies and run Python:
+
 ```bash
 # Test a single module
-python test_runner.py parts/and_gate.sv
+uv run test_runner.py parts/and_gate.sv
 
 # Test entire directory (parallel execution)
-python test_runner.py parts/
-python test_runner.py testing/
-
-# Batch test (Windows)
-test.bat
+uv run test_runner.py parts/
+uv run test_runner.py testing/
 
 # Generate truth table / run simulation
-python pysvsim.py --file parts/full_adder.sv
-python pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
+uv run pysvsim.py --file parts/full_adder.sv
+uv run pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
+
+# Add a dependency
+uv add <package>
 ```
 
 ## Architecture
