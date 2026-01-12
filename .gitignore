@@ -9,3 +9,7 @@ wheels/
 # Virtual environments
 .venv
 tmp/
+
+# crap
+
+.DS_Store
