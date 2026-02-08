@@ -16,7 +16,7 @@ Build a complete RV32I (RISC-V 32-bit Integer) CPU that can execute real program
 ### 📊 **Current Capabilities**
 - **Gate Count**: 13,092+ NAND gates across all components
 - **Simulation Speed**: Fast evaluation with 16-combination truth table limit
-- **Component Verification**: 30+ verified SystemVerilog modules with 256+ test cases
+- **Component Verification**: 36 verified library modules (`parts/`) + 38 validation modules (`testing`) with 574/574 passing test cases
 - **Hierarchical Design**: Proven scalable architecture (gates → adders → complex units)
 
 ## RV32I CPU Requirements

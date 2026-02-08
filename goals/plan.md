@@ -3,7 +3,7 @@
 ## Vision
 Build a SystemVerilog simulator for an educational digital logic game where players design hardware from NAND gates up to working CPUs.
 
-## Current State (December 2025)
+## Current State (February 8, 2026)
 
 ### Completed
 - Pure Python SystemVerilog parser and evaluator
@@ -15,9 +15,10 @@ Build a SystemVerilog simulator for an educational digital logic game where play
 - Module library: gates, adders (ripple-carry and carry-select), muxes, registers, counter
 
 ### Module Library Stats
-- 36+ verified SystemVerilog modules
-- 250+ test cases
-- NAND counts from 1 (primitive) to 9,000+ (64-bit carry-select adder)
+- 36 verified SystemVerilog modules in `parts/`
+- 38 additional validation modules in `testing/`
+- 574/574 passing JSON test cases across both regression suites
+- 13,092 total NAND gates across the `parts/` library
 
 ## Immediate Goals
 

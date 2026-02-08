@@ -20,7 +20,7 @@ Design and test a simple 8-bit CPU capable of executing basic instructions from 
 - ✅ 8-bit counter
 
 ### ROM Support
-- ✅ ROM loading system defined (roms folder with .txt format)
+- ⚠️ ROM data folder exists (`roms/*.txt`), but simulator ROM loading is still pending
 
 ---
 

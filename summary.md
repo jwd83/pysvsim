@@ -1,93 +1,51 @@
 # PySVSim Project Summary
 
-## What Is This?
+## What This Is
 
-PySVSim is a pure Python SystemVerilog simulator designed for an educational digital logic game. Players write hardware modules in SystemVerilog, starting from basic NAND gates and building up to complete CPUs.
+PySVSim is a pure Python SystemVerilog simulator for an educational digital logic game. It parses modules, evaluates logic, generates truth tables/waveforms, and runs JSON-based tests.
+
+## Verified Current State (February 8, 2026)
+
+- `parts/` regression: 36/36 files passing, 316/316 test cases
+- `testing/` regression: 38/38 files passing, 258/258 test cases
+- Combined: 74 files passing, 574/574 test cases
+- Total NAND gates across `parts/`: 13,092
 
 ## Current Capabilities
 
 ### Simulation Engine
-- **Combinational logic**: Bitwise operators, buses, concatenation, replication
-- **Sequential logic**: `always_ff` blocks with clock, enable, reset
-- **Hierarchical design**: Module instantiation with automatic dependency loading
-- **NAND gate analysis**: Counts gates recursively through the design hierarchy
+- Combinational logic with buses, bit selection, concatenation, replication, and bitwise operators
+- Sequential logic via `always_ff @(posedge clk)` with stateful cycle evaluation
+- Hierarchical module instantiation with module caching
+- Recursive NAND gate counting across instantiated submodules
 
-### Testing & Visualization
-- **Truth tables**: Automatic generation for combinational modules
-- **Waveforms**: Professional timing diagrams for sequential modules
-- **PNG output**: Game-ready images for truth tables and waveforms
-- **Parallel testing**: Multi-core test execution for faster regression
+### Testing and Visualization
+- Truth table generation for combinational modules
+- Waveform PNG generation for sequential test sequences
+- JSON test support for both combinational and sequential formats
+- Parallel test execution via `ProcessPoolExecutor`
 
-### Module Library (36+ modules)
-- **Logic gates**: NAND, AND, OR, NOR, XOR, XNOR, NOT (1-bit and 8-bit)
-- **Adders**: Half, Full, Ripple-carry (4-64 bit), Carry-select (8-64 bit)
-- **Multiplexers**: 2:1 (1/4/8/16/32-bit)
-- **Registers**: 1/8/16/32/64-bit with clock/enable
-- **Counter**: 8-bit with reset/enable
+### Module Library (`parts/`)
+- Logic gates: NAND, AND, OR, NOR, XOR, XNOR, NOT (1-bit and 8-bit)
+- Adders: half/full, ripple-carry (4/8/16/32/64-bit), carry-select (8/16/32/64-bit)
+- Multiplexers: 2:1 (1/4/8/16/32-bit)
+- Registers: 1/8/16/32/64-bit
+- Counter: 8-bit with reset/enable
 
-## Key Files
+## Known Limits
 
-| File | Purpose |
-|------|---------|
-| `pysvsim.py` | Main simulator (parser, evaluators, generators) |
-| `test_runner.py` | Parallel test execution framework |
-| `parts/` | Verified module library with tests |
-| `testing/` | HDLBits coursework modules |
-| `goals/` | Project milestones and planning |
+- Arithmetic operators are supported in sequential blocks; combinational arithmetic should use module composition (e.g. adder modules)
+- Modules are resolved from the same directory as the parent module
+- No timing delay simulation
+- No memory-array simulation support yet (for example `reg [7:0] mem [255:0]`)
 
-## Performance Characteristics
-
-- **Truth tables**: 16 combinations default (configurable)
-- **Parallel testing**: ~39% speedup on multi-core systems
-- **Simulation speed**: Ripple-carry adders 5.6× faster than carry-select
-- **Module caching**: Parsed modules cached globally for reuse
-
-## Next Development Steps
-
-### Immediate: 8-bit CPU
-1. **ROM module**: Load programs from `roms/*.txt` files
-2. **Program counter**: 8-bit with increment and jump
-3. **Instruction decoder**: Simple 4-8 instruction ISA
-4. **Register file**: 8 registers × 8 bits
-5. **ALU integration**: Connect existing adder modules
-6. **RAM module**: 256 × 8-bit data memory
-
-### Simulator Enhancements Needed
-- Memory array support (`reg [7:0] mem [255:0]`)
-- ROM file loading integration
-- Extended sequential test support for CPU traces
-
-### Future Milestones
-- Overture/LEG ISAs (from Turing Complete game)
-- RV32I RISC-V CPU with serial I/O
-- FPGA port to Tang Nano 20K
-- Game console implementation
-
-## Running the Project
+## Common Commands
 
 ```bash
-# Test single module
-python test_runner.py parts/and_gate.sv
+# Run simulator on one module
+uv run pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
 
-# Test all modules
-python test_runner.py parts/
-
-# Run batch tests
-test.bat
+# Run regressions
+uv run test_runner.py parts/
+uv run test_runner.py testing/
 ```
-
-## Documentation
-
-- **README.md**: User guide and feature overview
-- **AGENTS.md**: Instructions for AI assistants
-- **goals/plan.md**: Development roadmap
-- **goals/8bitcpu-milestone.md**: 8-bit CPU detailed plan
-- **goals/rv32i-milestone.md**: RISC-V implementation plan
-
-## Technical Notes
-
-- Python 3.13+ required
-- matplotlib for PNG generation
-- Regex-based parsing (no external parser dependencies)
-- All modules built hierarchically from NAND gates
-- Test coverage: 250+ test cases across all modules

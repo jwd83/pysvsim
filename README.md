@@ -4,18 +4,20 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Project Status
 
-**Current State: Core simulator complete, working toward 8-bit CPU milestone**
+**Current State: Core simulator stable, working toward 8-bit CPU milestone**
 
 | Metric | Value |
 |--------|-------|
-| Module Library | 36 verified modules |
-| Test Cases | 310 passing (100%) |
-| Total NAND Gates | 13,092 across all modules |
+| Last Verified | February 8, 2026 |
+| `parts/` Regression | 36/36 files passing, 316/316 test cases |
+| `testing/` Regression | 38/38 files passing, 258/258 test cases |
+| Combined Regression | 74 files passing, 574/574 test cases |
+| Total NAND Gates (`parts/`) | 13,092 |
 
 ## Features
 
 ### Core Simulation
-- **Pure Python**: Uses matplotlib for visualization, no other external dependencies
+- **Pure Python**: Single direct dependency (`matplotlib`) for visualization
 - **Bus Support**: Multi-bit buses with clean notation (`input [7:0] data`)
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
 - **Combinational Logic**: Bitwise operators (`&`, `|`, `^`, `~`)
@@ -33,16 +35,17 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ```bash
 # Generate truth table for a module
-python pysvsim.py --file parts/and_gate.sv
+uv run pysvsim.py --file parts/and_gate.sv
 
 # Run with test cases
-python pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
+uv run pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
 
 # Test a single file
-python test_runner.py parts/and_gate.sv
+uv run test_runner.py parts/and_gate.sv
 
 # Test entire directory (parallel)
-python test_runner.py parts/
+uv run test_runner.py parts/
+uv run test_runner.py testing/
 
 # Batch test (Windows)
 test.bat
@@ -66,15 +69,17 @@ All modules are built hierarchically from NAND gates.
 ### Arithmetic
 | Module | NAND Gates |
 |--------|------------|
-| Half Adder | 9 |
+| Half Adder | 6 |
 | Full Adder | 15 |
 | 4-bit Adder | 60 |
 | 8-bit Adder | 120 |
 | 16-bit Adder | 240 |
 | 32-bit Adder | 480 |
 | 64-bit Adder | 960 |
-| 8-bit Carry-Select | 583 |
+| 8-bit Carry-Select | 220 |
+| 16-bit Carry-Select | 732 |
 | 32-bit Carry-Select | 2,332 |
+| 64-bit Carry-Select | 7,260 |
 
 ### Data Path
 | Module | Variants |
@@ -137,8 +142,8 @@ JSON test files share the same base name as the SystemVerilog file.
 pysvsim/
 ├── pysvsim.py          # Main simulator
 ├── test_runner.py      # Parallel test runner
-├── parts/              # 36 verified modules
-├── testing/            # HDLBits test modules
+├── parts/              # 36 verified library modules
+├── testing/            # 38 HDLBits/validation modules
 ├── roms/               # ROM data files (for CPU)
 └── goals/              # Milestone documents
 ```
