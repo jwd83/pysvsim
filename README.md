@@ -10,8 +10,8 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 |--------|-------|
 | Last Verified | February 8, 2026 |
 | `parts/` Regression | 36/36 files passing, 316/316 test cases |
-| `testing/` Regression | 38/38 files passing, 258/258 test cases |
-| Combined Regression | 74 files passing, 574/574 test cases |
+| `testing/` Regression | 40/40 files passing, 261/261 test cases |
+| Combined Regression | 76 files passing, 577/577 test cases |
 | Total NAND Gates (`parts/`) | 13,092 |
 
 ## Features
@@ -22,6 +22,8 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
 - **Combinational Logic**: Bitwise operators (`&`, `|`, `^`, `~`)
 - **Sequential Logic**: `always_ff` blocks, registers, counters with clock/enable/reset
+- **Sequential AST Execution**: `if/else`, `case/default`, blocking/nonblocking assignment semantics
+- **Memory Arrays**: `reg/logic [W] mem [D]` read/write support for ROM/RAM-style modules
 - **NAND Gate Analysis**: Counts NAND gates in hierarchical designs for complexity scoring
 
 ### Testing & Visualization
@@ -104,6 +106,22 @@ JSON test files share the same base name as the SystemVerilog file.
 ```json
 {
     "sequential": true,
+    "memory_files": {
+        "rom": [
+            {
+                "module": "memory_cpu_stub",
+                "memory": "rom",
+                "file": "memory_cpu_stub_rom.txt"
+            }
+        ],
+        "ram": [
+            {
+                "module": "memory_cpu_stub",
+                "memory": "ram",
+                "file": "memory_cpu_stub_ram.txt"
+            }
+        ]
+    },
     "test_cases": [
         {
             "name": "Reset behavior",
@@ -127,14 +145,16 @@ JSON test files share the same base name as the SystemVerilog file.
 - Literals: `1'b0`, `8'hFF`, `4'd10`
 - Keywords: `logic`, `reg`, `signed`, `unsigned`
 - `always_ff @(posedge clk)` blocks
-- `if/else` chains in sequential blocks
+- `if/else` and `case/default` in sequential blocks
+- Blocking (`=`) and nonblocking (`<=`) assignment execution in sequential AST
 - Arithmetic in sequential blocks: `count + 1`
+- Memory arrays: `reg [7:0] memory [255:0]`
 
 ### Limitations
 - Arithmetic only in sequential blocks (combinational uses adder modules)
 - Modules must be in same directory as parent
 - No timing/propagation delays
-- No memory arrays (planned)
+- No event-driven timing wheel (cycle-based sequential stepping only)
 
 ## Directory Structure
 
@@ -143,7 +163,7 @@ pysvsim/
 ├── pysvsim.py          # Main simulator
 ├── test_runner.py      # Parallel test runner
 ├── parts/              # 36 verified library modules
-├── testing/            # 38 HDLBits/validation modules
+├── testing/            # 40 HDLBits/validation modules
 ├── roms/               # ROM data files (for CPU)
 └── goals/              # Milestone documents
 ```
@@ -162,9 +182,9 @@ The next milestone is a simple 8-bit CPU. See `goals/8bitcpu-milestone.md` for d
 7. **RAM Module** - Data memory (256 bytes)
 
 ### Simulator Enhancements Needed
-1. **ROM Loading** - Load `.txt` files from `roms/` folder
-2. **Memory Arrays** - Support `reg [7:0] memory [255:0]`
-3. **Extended Testing** - Longer sequences for CPU execution traces
+1. **Extended CPU Programs** - Broader instruction coverage and longer traces
+2. **I/O Peripherals** - Memory-mapped serial/timer-style modules
+3. **Extended Testing** - Program-level regression sets
 
 ## Future Roadmap
 

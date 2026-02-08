@@ -69,7 +69,13 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
     
     try:
         # Import here to avoid issues with multiprocessing
-        from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+        from pysvsim import (
+            SystemVerilogParser,
+            LogicEvaluator,
+            TruthTableGenerator,
+            clear_module_cache,
+            normalize_memory_bindings,
+        )
         from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
         try:
             from pysvsim import SequentialLogicEvaluator
@@ -113,13 +119,15 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
                 module_info["inputs"], module_info["outputs"], module_info["assignments"],
                 module_info.get("instantiations", []), module_info.get("bus_info", {}),
                 module_info.get("slice_assignments", []), module_info.get("concat_assignments", []),
-                module_info.get("sequential_blocks", []), module_info.get("clock_signals", []), sv_file
+                module_info.get("sequential_blocks", []), module_info.get("clock_signals", []), sv_file,
+                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", []
             )
         else:
             evaluator = LogicEvaluator(
                 module_info["inputs"], module_info["outputs"], module_info["assignments"],
                 module_info.get("instantiations", []), module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []), sv_file
+                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []), sv_file,
+                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", []
             )
         
         # Count NAND gates
@@ -156,6 +164,14 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
             try:
                 with open(json_file, "r", encoding="utf-8") as f:
                     tests = json.load(f)
+
+                memory_bindings = normalize_memory_bindings(
+                    tests,
+                    str(Path(json_file).parent),
+                    module_info.get("name", ""),
+                )
+                if hasattr(evaluator, "configure_memory_bindings"):
+                    evaluator.configure_memory_bindings(memory_bindings)
                 
                 # Check for missing expect fields and warn
                 missing_expect_warning = _check_missing_expect_fields(tests)
@@ -375,7 +391,13 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
 
 
 # Import our simulator components
-from pysvsim import SystemVerilogParser, LogicEvaluator, TruthTableGenerator, clear_module_cache
+from pysvsim import (
+    SystemVerilogParser,
+    LogicEvaluator,
+    TruthTableGenerator,
+    clear_module_cache,
+    normalize_memory_bindings,
+)
 from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
 try:
     from pysvsim import SequentialLogicEvaluator
@@ -394,12 +416,14 @@ class SilentTestRunner:
         self.test_outputs = []
         # Check if this is a sequential evaluator
         self.is_sequential = hasattr(evaluator, 'evaluate_cycle')
+        self.loaded_test_file = ""
     
     def load_tests(self, test_file: str):
         """Load test cases from a JSON file."""
         try:
             with open(test_file, "r", encoding="utf-8") as f:
                 tests = json.load(f)
+            self.loaded_test_file = test_file
             return tests
         except FileNotFoundError:
             raise FileNotFoundError(f"Test file not found: {test_file}")
@@ -408,6 +432,12 @@ class SilentTestRunner:
     
     def run_tests(self, tests):
         """Run tests silently and capture results"""
+        test_dir = str(Path(self.loaded_test_file).parent) if self.loaded_test_file else os.getcwd()
+        default_module = getattr(self.evaluator, "module_name", "")
+        memory_bindings = normalize_memory_bindings(tests, test_dir, default_module)
+        if hasattr(self.evaluator, "configure_memory_bindings"):
+            self.evaluator.configure_memory_bindings(memory_bindings)
+
         # Check if this is the new sequential test format
         if isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
             return self._run_new_sequential_tests(tests)
@@ -724,6 +754,10 @@ class SystemVerilogTestRunner:
                     module_info.get("sequential_blocks", []),
                     module_info.get("clock_signals", []),
                     sv_file,
+                    module_info.get("memory_arrays", {}),
+                    module_info.get("name", ""),
+                    "",
+                    [],
                 )
             else:
                 # Combinational logic - use existing LogicEvaluator
@@ -736,6 +770,10 @@ class SystemVerilogTestRunner:
                     module_info.get("slice_assignments", []),
                     module_info.get("concat_assignments", []),
                     sv_file,
+                    module_info.get("memory_arrays", {}),
+                    module_info.get("name", ""),
+                    "",
+                    [],
                 )
             
             # Store evaluator in report for later use

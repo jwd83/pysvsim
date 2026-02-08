@@ -7,8 +7,8 @@ PySVSim is a pure Python SystemVerilog simulator for an educational digital logi
 ## Verified Current State (February 8, 2026)
 
 - `parts/` regression: 36/36 files passing, 316/316 test cases
-- `testing/` regression: 38/38 files passing, 258/258 test cases
-- Combined: 74 files passing, 574/574 test cases
+- `testing/` regression: 40/40 files passing, 261/261 test cases
+- Combined: 76 files passing, 577/577 test cases
 - Total NAND gates across `parts/`: 13,092
 
 ## Current Capabilities
@@ -37,7 +37,7 @@ PySVSim is a pure Python SystemVerilog simulator for an educational digital logi
 - Arithmetic operators are supported in sequential blocks; combinational arithmetic should use module composition (e.g. adder modules)
 - Modules are resolved from the same directory as the parent module
 - No timing delay simulation
-- No memory-array simulation support yet (for example `reg [7:0] mem [255:0]`)
+- Memory arrays are supported (`reg/logic [W] mem [D]`) with ROM/RAM initialization via test JSON bindings
 
 ## Common Commands
 

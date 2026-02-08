@@ -13,6 +13,7 @@ Defaults to 256 max combinations for comprehensive truth table generation.
 
 import argparse
 import json
+import os
 import re
 import sys
 from typing import Dict, List, Tuple, Any, Optional
@@ -27,6 +28,117 @@ import numpy as np
 GLOBAL_MODULE_CACHE = {}
 
 
+def parse_sv_range(range_expr: str) -> Tuple[int, int, int]:
+    """Parse a SystemVerilog range expression like [7:0]."""
+    range_match = re.match(r"\[\s*(\d+)\s*:\s*(\d+)\s*\]$", range_expr.strip())
+    if not range_match:
+        raise ValueError(f"Invalid range expression: {range_expr}")
+    msb = int(range_match.group(1))
+    lsb = int(range_match.group(2))
+    width = abs(msb - lsb) + 1
+    return msb, lsb, width
+
+
+def load_memory_txt_file(file_path: str, word_width: int, depth: int) -> List[int]:
+    """Load plain-text memory initialization data."""
+    memory = [0] * depth
+    if not file_path:
+        return memory
+
+    with open(file_path, "r", encoding="utf-8") as mem_file:
+        lines = mem_file.readlines()
+
+    current_address = 0
+    max_word = (1 << word_width) - 1 if word_width > 0 else 0
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#") or line.startswith("//"):
+            continue
+
+        # Optional address override syntax: <addr>:<value>
+        if ":" in line:
+            left, right = line.split(":", 1)
+            addr_str = left.strip()
+            value_str = right.strip()
+            address = int(addr_str, 0)
+        else:
+            value_str = line
+            address = current_address
+
+        if address < 0 or address >= depth:
+            continue
+
+        value = 0
+        value_clean = value_str.replace("_", "")
+        if re.fullmatch(r"[01]+", value_clean):
+            value = int(value_clean, 2)
+        elif re.fullmatch(r"0[bB][01]+", value_clean):
+            value = int(value_clean, 2)
+        elif re.fullmatch(r"0[xX][0-9a-fA-F]+", value_clean):
+            value = int(value_clean, 16)
+        else:
+            value = int(value_clean, 10)
+
+        memory[address] = value & max_word
+        current_address = address + 1
+
+    return memory
+
+
+def normalize_memory_bindings(test_data: Any, test_dir: str, default_module: str = "") -> List[Dict[str, Any]]:
+    """Normalize memory init entries from test JSON."""
+    if not isinstance(test_data, dict):
+        return []
+
+    normalized: List[Dict[str, Any]] = []
+
+    def _add_binding(entry: Dict[str, Any], mem_type: str):
+        if not isinstance(entry, dict):
+            return
+        file_value = entry.get("file") or entry.get("path")
+        if not file_value:
+            return
+        file_path = file_value
+        if not os.path.isabs(file_path):
+            file_path = os.path.normpath(os.path.join(test_dir, file_path))
+        normalized.append(
+            {
+                "type": (entry.get("type") or mem_type or "ram").lower(),
+                "module": entry.get("module") or default_module or "",
+                "instance": entry.get("instance") or entry.get("instance_path") or "",
+                "memory": entry.get("memory") or entry.get("name") or "",
+                "file": file_path,
+            }
+        )
+
+    memory_inits = test_data.get("memory_init", [])
+    if isinstance(memory_inits, list):
+        for init_entry in memory_inits:
+            _add_binding(init_entry, init_entry.get("type", "ram") if isinstance(init_entry, dict) else "ram")
+
+    memory_files = test_data.get("memory_files", {})
+    if isinstance(memory_files, dict):
+        for mem_type in ("rom", "ram"):
+            entries = memory_files.get(mem_type, [])
+            if isinstance(entries, dict):
+                _add_binding(entries, mem_type)
+            elif isinstance(entries, list):
+                for entry in entries:
+                    _add_binding(entry, mem_type)
+
+    # Backward/short-form support: top-level rom/ram blocks.
+    for mem_type in ("rom", "ram"):
+        top_level = test_data.get(mem_type)
+        if isinstance(top_level, dict):
+            _add_binding(top_level, mem_type)
+        elif isinstance(top_level, list):
+            for entry in top_level:
+                _add_binding(entry, mem_type)
+
+    return normalized
+
+
 def clear_module_cache():
     """Clear the global module cache. Useful for testing or when modules change."""
     global GLOBAL_MODULE_CACHE
@@ -37,6 +149,9 @@ class SystemVerilogParser:
     """Parser for a subset of SystemVerilog focused on basic combinational logic."""
 
     def __init__(self):
+        self._reset_parse_state()
+
+    def _reset_parse_state(self):
         self.module_name = ""
         self.inputs = []
         self.outputs = []
@@ -52,6 +167,7 @@ class SystemVerilogParser:
         self.instantiations = []
         self.sequential_blocks = []  # Track always_ff blocks and other sequential logic
         self.clock_signals = set()  # Track identified clock signals
+        self.memory_arrays = {}
         self.filepath = ""
 
     def parse_file(self, filepath: str) -> Dict[str, Any]:
@@ -64,6 +180,7 @@ class SystemVerilogParser:
         Returns:
             Dictionary containing module info: name, inputs, outputs, assignments
         """
+        self._reset_parse_state()
         self.filepath = filepath
         try:
             with open(self.filepath, "r", encoding="utf-8") as f:
@@ -95,6 +212,12 @@ class SystemVerilogParser:
         # Parse wire declarations
         self._parse_wires(content)
 
+        # Parse reg/logic signal declarations
+        self._parse_signal_declarations(content)
+
+        # Parse memory array declarations
+        self._parse_memory_arrays(content)
+
         # Parse assign statements
         self._parse_assignments(content)
 
@@ -115,6 +238,7 @@ class SystemVerilogParser:
             "sequential_blocks": self.sequential_blocks.copy(),
             "clock_signals": list(self.clock_signals),
             "bus_info": self.bus_info.copy(),
+            "memory_arrays": self.memory_arrays.copy(),
         }
 
     def _remove_comments(self, content: str) -> str:
@@ -264,6 +388,71 @@ class SystemVerilogParser:
                     self.bus_info[wire_name] = {"msb": 0, "lsb": 0, "width": 1}
                     self.wires.append(wire_name)
 
+    def _parse_signal_declarations(self, content: str):
+        """Parse reg/logic declarations (excluding memory arrays)."""
+        bus_decl_pattern = (
+            r"\b(?:reg|logic)\b(?:\s+(?:signed|unsigned))?\s+"
+            r"\[(\d+):(\d+)\]\s+([^;]+)\s*;"
+        )
+        for msb_str, lsb_str, name_list in re.findall(bus_decl_pattern, content):
+            msb = int(msb_str)
+            lsb = int(lsb_str)
+            width = abs(msb - lsb) + 1
+            for raw_name in name_list.split(","):
+                name = raw_name.strip()
+                if not name or "[" in name:
+                    # Memory declaration or malformed token - handled elsewhere.
+                    continue
+                if not re.fullmatch(r"\w+", name):
+                    continue
+                if name in {"input", "output", "wire", "logic", "reg", "signed", "unsigned"}:
+                    continue
+                if name not in self.bus_info:
+                    self.bus_info[name] = {"msb": msb, "lsb": lsb, "width": width}
+
+        single_decl_pattern = (
+            r"\b(?:reg|logic)\b(?:\s+(?:signed|unsigned))?\s+"
+            r"(?!\[)([^;]+)\s*;"
+        )
+        for name_list in re.findall(single_decl_pattern, content):
+            for raw_name in name_list.split(","):
+                name = raw_name.strip()
+                if not name or "[" in name:
+                    continue
+                if not re.fullmatch(r"\w+", name):
+                    continue
+                if name in {"input", "output", "wire", "logic", "reg", "signed", "unsigned"}:
+                    continue
+                if name not in self.bus_info:
+                    self.bus_info[name] = {"msb": 0, "lsb": 0, "width": 1}
+
+    def _parse_memory_arrays(self, content: str):
+        """Parse memory array declarations like reg [7:0] mem [255:0];."""
+        memory_pattern = (
+            r"\b(?:reg|logic)\b(?:\s+(?:signed|unsigned))?\s*"
+            r"(\[[^\]]+\])?\s+(\w+)\s*(\[[^\]]+\])\s*;"
+        )
+        declarations = re.findall(memory_pattern, content)
+
+        for packed_range, memory_name, unpacked_range in declarations:
+            try:
+                if packed_range:
+                    word_msb, word_lsb, word_width = parse_sv_range(packed_range)
+                else:
+                    word_msb, word_lsb, word_width = 0, 0, 1
+
+                index_msb, index_lsb, depth = parse_sv_range(unpacked_range)
+                self.memory_arrays[memory_name] = {
+                    "word_msb": word_msb,
+                    "word_lsb": word_lsb,
+                    "word_width": word_width,
+                    "index_msb": index_msb,
+                    "index_lsb": index_lsb,
+                    "depth": depth,
+                }
+            except Exception:
+                continue
+
     def _parse_assignments(self, content: str):
         """Parse assign statements and build assignment expressions."""
         # Enhanced pattern to capture all assignment types including concatenation targets
@@ -339,209 +528,302 @@ class SystemVerilogParser:
             )
     
     def _parse_sequential_blocks(self, content: str):
-        """Parse sequential logic blocks like always_ff."""
-        # Find all always_ff blocks with proper begin/end matching
-        always_ff_starts = list(re.finditer(r'always_ff\s*@\s*\(([^)]+)\)\s*begin', content))
-        
-        for start_match in always_ff_starts:
-            sensitivity_list = start_match.group(1).strip()
-            
-            # Find matching end by counting nested begin/end pairs
-            start_pos = start_match.end() - 5  # Position of 'begin'
-            begin_count = 1
-            pos = start_match.end()
-            block_end_pos = None
-            
-            while pos < len(content) and begin_count > 0:
-                # Look for next 'begin' or 'end'
-                begin_match = re.search(r'\bbegin\b', content[pos:])
-                end_match = re.search(r'\bend\b', content[pos:])
-                
-                next_begin_pos = (pos + begin_match.start()) if begin_match else float('inf')
-                next_end_pos = (pos + end_match.start()) if end_match else float('inf')
-                
-                if next_begin_pos < next_end_pos:
-                    # Found another 'begin'
-                    begin_count += 1
-                    pos = next_begin_pos + 5
-                elif next_end_pos != float('inf'):
-                    # Found an 'end'
-                    begin_count -= 1
-                    if begin_count == 0:
-                        block_end_pos = next_end_pos
-                        break
-                    pos = next_end_pos + 3
-                else:
-                    # No more begin/end found
-                    break
-            
-            if block_end_pos is not None:
-                # Extract the block content between the outer begin/end
-                block_content = content[start_match.end():block_end_pos].strip()
-                
-                # Parse sensitivity list to find clock and edge type
-                clock_info = self._parse_sensitivity_list(sensitivity_list)
-                
-                # Parse assignments within the block
-                assignments = self._parse_sequential_assignments(block_content)
-                
-                sequential_block = {
-                    'type': 'always_ff',
-                    'clock': clock_info['clock'],
-                    'edge': clock_info['edge'],
-                    'assignments': assignments
-                }
-                
-                self.sequential_blocks.append(sequential_block)
-                self.clock_signals.add(clock_info['clock'])
-    
-    def _parse_sensitivity_list(self, sensitivity_list: str) -> Dict[str, str]:
-        """Parse sensitivity list like 'posedge clk' or 'negedge reset'."""
-        sensitivity_list = sensitivity_list.strip()
-        
-        if sensitivity_list.startswith('posedge'):
-            clock_name = sensitivity_list.replace('posedge', '').strip()
-            return {'clock': clock_name, 'edge': 'posedge'}
-        elif sensitivity_list.startswith('negedge'):
-            clock_name = sensitivity_list.replace('negedge', '').strip()
-            return {'clock': clock_name, 'edge': 'negedge'}
-        else:
-            # Default to posedge for unspecified edge
-            return {'clock': sensitivity_list, 'edge': 'posedge'}
-    
-    def _parse_sequential_assignments(self, block_content: str) -> List[Dict[str, str]]:
-        """Parse assignments within a sequential block."""
-        assignments = []
-        
-        # Clean the content by removing begin/end statements and normalizing whitespace
-        clean_content = block_content
-        clean_content = re.sub(r'\s*begin\s*', ' ', clean_content)
-        clean_content = re.sub(r'\s*end\s*', ' ', clean_content)
-        clean_content = ' '.join(clean_content.split())  # Normalize whitespace
-        
-        # Use a more sophisticated approach to parse if-else chains
-        # Look for if statements with nested structure
-        if_match = re.search(r'if\s*\(([^)]+)\)(.+?)(?=else|$)', clean_content)
-        if if_match:
-            # Parse if condition and body
-            if_condition = if_match.group(1).strip()
-            if_body = if_match.group(2).strip()
-            
-            # Look for assignment in if body
-            if_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', if_body)
-            if if_assign_match:
-                assignments.append({
-                    'type': 'conditional_assignment',
-                    'condition': if_condition,
-                    'target': if_assign_match.group(1),
-                    'expression': if_assign_match.group(2).strip()
-                })
-        
-        # Look for else if statements
-        else_if_matches = re.finditer(r'else\s+if\s*\(([^)]+)\)(.+?)(?=else|$)', clean_content)
-        for else_if_match in else_if_matches:
-            elif_condition = else_if_match.group(1).strip()
-            elif_body = else_if_match.group(2).strip()
-            
-            # Look for assignment in else if body
-            elif_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', elif_body)
-            if elif_assign_match:
-                assignments.append({
-                    'type': 'conditional_assignment',
-                    'condition': elif_condition,
-                    'target': elif_assign_match.group(1),
-                    'expression': elif_assign_match.group(2).strip()
-                })
-        
-        # Look for plain else statements (no additional condition)
-        else_match = re.search(r'else(?!\s+if)\s*(.+?)$', clean_content)
-        if else_match:
-            else_body = else_match.group(1).strip()
-            
-            # Look for assignment in else body
-            else_assign_match = re.search(r'(\w+)\s*<=\s*([^;]+)', else_body)
-            if else_assign_match:
-                assignments.append({
-                    'type': 'conditional_assignment',
-                    'condition': '!(previous_conditions)',  # Placeholder - will be handled by evaluator
-                    'target': else_assign_match.group(1),
-                    'expression': else_assign_match.group(2).strip()
-                })
-        
-        return assignments
-    
-    def _parse_if_statement(self, statement: str) -> Optional[Dict[str, Any]]:
-        """Parse if statements within sequential blocks."""
-        # Handle simple if-else structure: if (condition) target <= expression
-        if_pattern = r'if\s*\(([^)]+)\)\s*begin?\s*(\w+)\s*<=\s*([^;]+)'
-        match = re.match(if_pattern, statement)
-        
-        if match:
-            condition = match.group(1).strip()
-            target = match.group(2).strip()
-            expression = match.group(3).strip()
-            
-            return {
-                'type': 'conditional_assignment',
-                'condition': condition,
-                'target': target,
-                'expression': expression
+        """Parse sequential logic blocks like always_ff into executable AST."""
+        pos = 0
+        block_index = 0
+        pattern = re.compile(r"always_ff\s*@\s*\(([^)]+)\)", re.IGNORECASE)
+
+        while True:
+            match = pattern.search(content, pos)
+            if not match:
+                break
+
+            sensitivity_list = match.group(1).strip()
+            clock_info = self._parse_sensitivity_list(sensitivity_list)
+            body_start = self._skip_whitespace(content, match.end())
+
+            if body_start >= len(content):
+                break
+
+            statement_ast = {"type": "block", "statements": []}
+            next_pos = body_start
+
+            if content.startswith("begin", body_start):
+                begin_pos = body_start
+                end_pos = self._find_matching_begin_end(content, begin_pos)
+                block_body = content[begin_pos + len("begin"):end_pos].strip()
+                statement_ast = self._parse_statement_block(block_body)
+                next_pos = end_pos + len("end")
+            else:
+                statement_ast, next_pos = self._parse_statement(content, body_start)
+
+            sequential_block = {
+                "type": "always_ff",
+                "clock": clock_info["clock"],
+                "edge": clock_info["edge"],
+                "statement": statement_ast,
+                "order": block_index,
             }
-        
-        return None
-    
-    def _parse_complex_if_statement(self, statement: str) -> List[Dict[str, Any]]:
-        """Parse complex if/else if statements like those in counter."""
-        assignments = []
-        
-        # Handle patterns like "if (count == 0) count <= 1"
-        if_pattern = r'if\s*\(([^)]+)\)\s*(\w+)\s*<=\s*([^;\s]+)'
-        elif_pattern = r'else\s+if\s*\(([^)]+)\)\s*(\w+)\s*<=\s*([^;\s]+)'
-        else_pattern = r'else\s+(\w+)\s*<=\s*([^;\s]+)'
-        
-        # Try to match if statement
-        if_match = re.search(if_pattern, statement)
-        if if_match:
-            condition = if_match.group(1).strip()
-            target = if_match.group(2).strip()
-            expression = if_match.group(3).strip()
-            
-            assignments.append({
-                'type': 'conditional_assignment',
-                'condition': condition,
-                'target': target,
-                'expression': expression
-            })
-        
-        # Try to find all else if statements
-        elif_matches = re.finditer(elif_pattern, statement)
-        for elif_match in elif_matches:
-            condition = elif_match.group(1).strip()
-            target = elif_match.group(2).strip()
-            expression = elif_match.group(3).strip()
-            
-            assignments.append({
-                'type': 'conditional_assignment',
-                'condition': condition,
-                'target': target,
-                'expression': expression
-            })
-        
-        # Try to find else statement
-        else_match = re.search(else_pattern, statement)
-        if else_match:
-            target = else_match.group(1).strip()
-            expression = else_match.group(2).strip()
-            
-            # Else is treated as "if (1)" - always true condition
-            assignments.append({
-                'type': 'conditional_assignment',
-                'condition': '1',  # Always true
-                'target': target,
-                'expression': expression
-            })
-        
-        return assignments
+            self.sequential_blocks.append(sequential_block)
+            self.clock_signals.add(clock_info["clock"])
+            block_index += 1
+            pos = next_pos
+
+    def _parse_sensitivity_list(self, sensitivity_list: str) -> Dict[str, str]:
+        """Parse sensitivity list like 'posedge clk' or 'posedge clk or posedge rst'."""
+        entries = [entry.strip() for entry in re.split(r"\bor\b|,", sensitivity_list) if entry.strip()]
+        if not entries:
+            return {"clock": "clk", "edge": "posedge"}
+
+        first = entries[0]
+        match = re.match(r"(posedge|negedge)\s+(\w+)", first)
+        if match:
+            return {"clock": match.group(2), "edge": match.group(1)}
+
+        return {"clock": first, "edge": "posedge"}
+
+    def _parse_statement_block(self, block_content: str) -> Dict[str, Any]:
+        """Parse a begin/end block body into a list of statements."""
+        statements = []
+        pos = 0
+        while True:
+            pos = self._skip_whitespace(block_content, pos)
+            if pos >= len(block_content):
+                break
+            statement, pos = self._parse_statement(block_content, pos)
+            if statement and statement.get("type") != "empty":
+                statements.append(statement)
+        return {"type": "block", "statements": statements}
+
+    def _parse_statement(self, text: str, pos: int) -> Tuple[Dict[str, Any], int]:
+        pos = self._skip_whitespace(text, pos)
+        if pos >= len(text):
+            return {"type": "empty"}, pos
+
+        if text.startswith("begin", pos):
+            return self._parse_begin_block(text, pos)
+
+        if text.startswith("if", pos) and self._is_keyword_boundary(text, pos, "if"):
+            return self._parse_if_statement(text, pos)
+
+        if text.startswith("case", pos) and self._is_keyword_boundary(text, pos, "case"):
+            return self._parse_case_statement(text, pos)
+
+        if text[pos] == ";":
+            return {"type": "empty"}, pos + 1
+
+        statement_text, next_pos = self._consume_until_semicolon(text, pos)
+        parsed = self._parse_assignment_statement(statement_text)
+        return parsed, next_pos
+
+    def _parse_begin_block(self, text: str, pos: int) -> Tuple[Dict[str, Any], int]:
+        begin_end = self._find_matching_begin_end(text, pos)
+        inner = text[pos + len("begin"):begin_end]
+        block_ast = self._parse_statement_block(inner)
+        return block_ast, begin_end + len("end")
+
+    def _parse_if_statement(self, text: str, pos: int) -> Tuple[Dict[str, Any], int]:
+        cond_open = text.find("(", pos)
+        if cond_open == -1:
+            return {"type": "raw", "text": text[pos:].strip()}, len(text)
+        condition, after_cond = self._extract_parenthesized(text, cond_open)
+        then_stmt, cursor = self._parse_statement(text, after_cond)
+        cursor = self._skip_whitespace(text, cursor)
+
+        else_stmt = None
+        if text.startswith("else", cursor) and self._is_keyword_boundary(text, cursor, "else"):
+            else_stmt, cursor = self._parse_statement(text, cursor + len("else"))
+
+        return {
+            "type": "if",
+            "condition": condition.strip(),
+            "then": then_stmt,
+            "else": else_stmt,
+        }, cursor
+
+    def _parse_case_statement(self, text: str, pos: int) -> Tuple[Dict[str, Any], int]:
+        expr_open = text.find("(", pos)
+        if expr_open == -1:
+            return {"type": "raw", "text": text[pos:].strip()}, len(text)
+        expression, cursor = self._extract_parenthesized(text, expr_open)
+
+        items = []
+        default_stmt = None
+
+        while cursor < len(text):
+            cursor = self._skip_whitespace(text, cursor)
+            if text.startswith("endcase", cursor):
+                cursor += len("endcase")
+                break
+
+            label_text, cursor = self._consume_until_colon(text, cursor)
+            labels = [label.strip() for label in label_text.split(",") if label.strip()]
+            stmt, cursor = self._parse_statement(text, cursor)
+
+            if any(label == "default" for label in labels):
+                default_stmt = stmt
+            else:
+                items.append({"labels": labels, "statement": stmt})
+
+        return {
+            "type": "case",
+            "expression": expression.strip(),
+            "items": items,
+            "default": default_stmt,
+        }, cursor
+
+    def _parse_assignment_statement(self, statement_text: str) -> Dict[str, Any]:
+        statement_text = statement_text.strip()
+        if not statement_text:
+            return {"type": "empty"}
+
+        match = re.match(r"(.+?)(<=|=)(.+)", statement_text)
+        if not match:
+            return {"type": "raw", "text": statement_text}
+
+        target_expr = match.group(1).strip()
+        operator = match.group(2)
+        rhs_expr = match.group(3).strip()
+        target = self._parse_assignment_target(target_expr)
+
+        if operator == "<=":
+            return {"type": "nonblocking_assign", "target": target, "expression": rhs_expr}
+        return {"type": "blocking_assign", "target": target, "expression": rhs_expr}
+
+    def _parse_assignment_target(self, target_expr: str) -> Dict[str, Any]:
+        mem_match = re.match(r"(\w+)\[(.+)\]$", target_expr)
+        if mem_match:
+            signal = mem_match.group(1)
+            index_expr = mem_match.group(2).strip()
+            if signal in self.memory_arrays:
+                return {"kind": "memory", "memory": signal, "index": index_expr}
+
+            if ":" in index_expr:
+                slice_match = re.match(r"(\d+)\s*:\s*(\d+)$", index_expr)
+                if slice_match:
+                    return {
+                        "kind": "slice",
+                        "signal": signal,
+                        "msb": int(slice_match.group(1)),
+                        "lsb": int(slice_match.group(2)),
+                    }
+
+            bit_match = re.match(r"(\d+)$", index_expr)
+            if bit_match:
+                return {"kind": "bit", "signal": signal, "index": int(bit_match.group(1))}
+
+            # Treat variable index on non-memory signals as generic index target.
+            return {"kind": "indexed_signal", "signal": signal, "index": index_expr}
+
+        return {"kind": "signal", "signal": target_expr}
+
+    def _find_matching_begin_end(self, text: str, begin_pos: int) -> int:
+        begin_count = 1
+        pos = begin_pos + len("begin")
+
+        while pos < len(text):
+            begin_match = re.search(r"\bbegin\b", text[pos:])
+            end_match = re.search(r"\bend\b", text[pos:])
+            next_begin = pos + begin_match.start() if begin_match else float("inf")
+            next_end = pos + end_match.start() if end_match else float("inf")
+
+            if next_begin < next_end:
+                begin_count += 1
+                pos = next_begin + len("begin")
+                continue
+
+            if next_end != float("inf"):
+                begin_count -= 1
+                if begin_count == 0:
+                    return next_end
+                pos = next_end + len("end")
+                continue
+
+            break
+
+        raise ValueError("Unmatched begin/end block")
+
+    def _extract_parenthesized(self, text: str, open_paren_pos: int) -> Tuple[str, int]:
+        depth = 0
+        pos = open_paren_pos
+        start = open_paren_pos + 1
+
+        while pos < len(text):
+            char = text[pos]
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return text[start:pos], pos + 1
+            pos += 1
+
+        raise ValueError("Unmatched parentheses in sequential block")
+
+    def _consume_until_semicolon(self, text: str, pos: int) -> Tuple[str, int]:
+        depth_paren = 0
+        depth_bracket = 0
+        depth_brace = 0
+        start = pos
+
+        while pos < len(text):
+            char = text[pos]
+            if char == "(":
+                depth_paren += 1
+            elif char == ")":
+                depth_paren -= 1
+            elif char == "[":
+                depth_bracket += 1
+            elif char == "]":
+                depth_bracket -= 1
+            elif char == "{":
+                depth_brace += 1
+            elif char == "}":
+                depth_brace -= 1
+            elif char == ";" and depth_paren == 0 and depth_bracket == 0 and depth_brace == 0:
+                return text[start:pos], pos + 1
+            pos += 1
+
+        return text[start:].strip(), len(text)
+
+    def _consume_until_colon(self, text: str, pos: int) -> Tuple[str, int]:
+        depth_paren = 0
+        depth_bracket = 0
+        depth_brace = 0
+        start = pos
+
+        while pos < len(text):
+            char = text[pos]
+            if char == "(":
+                depth_paren += 1
+            elif char == ")":
+                depth_paren -= 1
+            elif char == "[":
+                depth_bracket += 1
+            elif char == "]":
+                depth_bracket -= 1
+            elif char == "{":
+                depth_brace += 1
+            elif char == "}":
+                depth_brace -= 1
+            elif char == ":" and depth_paren == 0 and depth_bracket == 0 and depth_brace == 0:
+                return text[start:pos], pos + 1
+            pos += 1
+
+        raise ValueError("Malformed case item: missing ':'")
+
+    def _skip_whitespace(self, text: str, pos: int) -> int:
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+        return pos
+
+    def _is_keyword_boundary(self, text: str, start: int, keyword: str) -> bool:
+        end = start + len(keyword)
+        if not text.startswith(keyword, start):
+            return False
+        before_ok = start == 0 or not (text[start - 1].isalnum() or text[start - 1] == "_")
+        after_ok = end >= len(text) or not (text[end].isalnum() or text[end] == "_")
+        return before_ok and after_ok
 
 
 class LogicEvaluator:
@@ -557,6 +839,10 @@ class LogicEvaluator:
         slice_assignments: List[Dict[str, Any]] = None,
         concat_assignments: List[Dict[str, Any]] = None,
         current_file_path: str = None,
+        memory_arrays: Dict[str, Dict[str, Any]] = None,
+        module_name: str = "",
+        instance_path: str = "",
+        memory_bindings: List[Dict[str, Any]] = None,
     ):
         self.inputs = inputs
         self.outputs = outputs
@@ -566,8 +852,82 @@ class LogicEvaluator:
         self.instantiations = instantiations or []
         self.bus_info = bus_info or {}
         self.current_file_path = current_file_path
+        self.module_name = module_name or "top_module"
+        self.instance_path = instance_path
+        self.memory_arrays = memory_arrays or {}
+        self.memory_bindings = memory_bindings or []
+        self.memory_state: Dict[str, List[int]] = {}
+        self.memory_access: Dict[str, str] = {}
+        self.instance_evaluators: Dict[str, Any] = {}
 
-    def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
+        self._initialize_memory_state()
+
+    def _initialize_memory_state(self):
+        for memory_name, memory_info in self.memory_arrays.items():
+            depth = memory_info.get("depth", 0)
+            self.memory_state[memory_name] = [0] * depth
+            self.memory_access[memory_name] = "ram"
+        self._apply_memory_bindings()
+
+    def _binding_matches_instance(self, binding_instance: str) -> bool:
+        if not binding_instance:
+            return True
+        if self.instance_path == binding_instance:
+            return True
+        return self.instance_path.endswith(f".{binding_instance}")
+
+    def _apply_memory_bindings(self):
+        for binding in self.memory_bindings:
+            binding_module = binding.get("module", "")
+            binding_instance = binding.get("instance", "")
+            memory_name = binding.get("memory", "")
+            file_path = binding.get("file", "")
+            memory_type = (binding.get("type") or "ram").lower()
+
+            if binding_module and binding_module != self.module_name:
+                continue
+            if not self._binding_matches_instance(binding_instance):
+                continue
+            if memory_name and memory_name not in self.memory_arrays:
+                raise ValueError(
+                    f"Memory binding refers to unknown memory '{memory_name}' in module '{self.module_name}'"
+                )
+            if not file_path:
+                raise ValueError(
+                    f"Memory binding missing file path for module '{self.module_name}'"
+                )
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(
+                    f"Memory init file not found: {file_path}"
+                )
+
+            if memory_name:
+                memory_names = [memory_name]
+            else:
+                memory_names = list(self.memory_arrays.keys())
+
+            for mem_name in memory_names:
+                mem_info = self.memory_arrays.get(mem_name)
+                if not mem_info:
+                    continue
+                loaded = load_memory_txt_file(
+                    file_path,
+                    mem_info.get("word_width", 1),
+                    mem_info.get("depth", 0),
+                )
+                self.memory_state[mem_name] = loaded
+                self.memory_access[mem_name] = memory_type
+
+    def configure_memory_bindings(self, memory_bindings: List[Dict[str, Any]]):
+        self.memory_bindings = memory_bindings or []
+        self._initialize_memory_state()
+        for evaluator in self.instance_evaluators.values():
+            if hasattr(evaluator, "configure_memory_bindings"):
+                evaluator.configure_memory_bindings(self.memory_bindings)
+
+    def evaluate(
+        self, input_values: Dict[str, int], advance_sequential_instances: bool = True
+    ) -> Dict[str, int]:
         """
         Evaluate all output expressions for given input values.
 
@@ -589,7 +949,9 @@ class LogicEvaluator:
 
         # Evaluate module instantiations first
         for inst in self.instantiations:
-            self._evaluate_instantiation(inst, signal_values)
+            self._evaluate_instantiation(
+                inst, signal_values, advance_sequential_instances=advance_sequential_instances
+            )
 
         # Evaluate all assignments (including intermediate wires) until no more changes
         # This handles cases where assignments depend on each other
@@ -717,7 +1079,6 @@ class LogicEvaluator:
         self, expression: str, signal_values: Dict[str, int], target_signal: str = None
     ) -> int:
         """Evaluate a single SystemVerilog expression."""
-        # Replace signal names with their values
         eval_expr = expression.strip()
 
         # Handle simple bus-to-bus assignment (like Y = A)
@@ -727,6 +1088,26 @@ class LogicEvaluator:
         # Handle concatenation expressions like {a, b, c}
         if eval_expr.startswith("{") and eval_expr.endswith("}"):
             return self._evaluate_concatenation(eval_expr, signal_values)
+
+        # Handle memory reads like mem[address]
+        memory_access_pattern = r"(\w+)\[([^\[\]:]+)\]"
+
+        def replace_memory_access(match):
+            memory_name = match.group(1)
+            index_expr = match.group(2).strip()
+            if memory_name not in self.memory_state:
+                return match.group(0)
+            try:
+                index_value = self._evaluate_expression(index_expr, signal_values)
+            except Exception:
+                index_value = 0
+            memory_data = self.memory_state.get(memory_name, [])
+            if not memory_data:
+                return "0"
+            index_value = max(0, min(len(memory_data) - 1, int(index_value)))
+            return str(memory_data[index_value])
+
+        eval_expr = re.sub(memory_access_pattern, replace_memory_access, eval_expr)
 
         # Handle bus slice expressions like A[7:0], in[15:8] first
         bus_slice_pattern = r"(\w+)\[(\d+):(\d+)\]"
@@ -762,10 +1143,25 @@ class LogicEvaluator:
 
         eval_expr = re.sub(bit_select_pattern, replace_bit_select, eval_expr)
 
-        # Handle parentheses and operators in correct precedence
-        # For now, we'll use a simple approach with string replacement
+        # Replace SystemVerilog literal constants
+        literal_pattern = r"(\d+)'([bhdBHD])([0-9a-fA-F_xXzZ]+)"
+
+        def replace_literal(match):
+            width = int(match.group(1))
+            base = match.group(2).lower()
+            value_str = match.group(3).replace("_", "").lower().replace("x", "0").replace("z", "0")
+            if base == "b":
+                value = int(value_str, 2)
+            elif base == "h":
+                value = int(value_str, 16)
+            else:
+                value = int(value_str, 10)
+            return str(value & ((1 << width) - 1))
+
+        eval_expr = re.sub(literal_pattern, replace_literal, eval_expr)
+
+        # Replace identifiers with current values
         for signal_name, value in signal_values.items():
-            # Skip bit selection signals as they're already handled above
             if "[" not in signal_name:
                 eval_expr = re.sub(
                     r"\b" + re.escape(signal_name) + r"\b", str(value), eval_expr
@@ -775,18 +1171,16 @@ class LogicEvaluator:
         eval_expr = self._convert_operators(eval_expr)
 
         try:
-            # Evaluate the expression safely
             result = eval(eval_expr)
             result = int(result)
 
             # Apply bit masking based on target signal width or expression content
-            if target_signal and target_signal in self.bus_info:
-                bus_info = self.bus_info[target_signal]
-                if bus_info["width"] > 1:
-                    # Multi-bit signal - mask to the appropriate width
-                    width = bus_info["width"]
-                    mask = (1 << width) - 1
-                    return result & mask
+            if target_signal:
+                if target_signal in self.bus_info:
+                    width = self.bus_info[target_signal].get("width", 1)
+                    if width > 1:
+                        return result & ((1 << width) - 1)
+                return result & 1
 
             # Check if the original expression was a bus slice (like in[7:0])
             if re.match(r"\w+\[\d+:\d+\]", expression.strip()):
@@ -798,21 +1192,17 @@ class LogicEvaluator:
                 # Expression contains bus slice - don't force to single bit
                 return result
 
-            # Default to single bit for unknown signals or single-bit signals
-            return result & 1
+            # Expressions without explicit assignment target should keep full width.
+            return result
         except Exception as e:
             raise ValueError(f"Error evaluating expression '{expression}': {e}")
 
     def _convert_operators(self, expression: str) -> str:
         """Convert SystemVerilog operators to Python equivalents."""
-        # Handle bitwise NOT
-        expression = re.sub(r"~", "~", expression)
-        # Handle bitwise AND
-        expression = re.sub(r"&", "&", expression)
-        # Handle bitwise OR
-        expression = re.sub(r"\|", "|", expression)
-        # Handle bitwise XOR
-        expression = re.sub(r"\^", "^", expression)
+        # Logical operators
+        expression = expression.replace("&&", " and ")
+        expression = expression.replace("||", " or ")
+        expression = re.sub(r"(?<![=!<>])!(?!=)", " not ", expression)
 
         return expression
 
@@ -965,88 +1355,88 @@ class LogicEvaluator:
         return total_width
 
     def _evaluate_instantiation(
-        self, inst: Dict[str, Any], signal_values: Dict[str, int]
+        self,
+        inst: Dict[str, Any],
+        signal_values: Dict[str, int],
+        advance_sequential_instances: bool = True,
     ):
-        """Evaluate a module instantiation."""
+        """Evaluate a module instantiation with persistent per-instance state."""
         module_type = inst["module_type"]
         connections = inst["connections"]
         instance_name = inst.get("instance_name", "unknown")
+        instance_path = (
+            f"{self.instance_path}.{instance_name}" if self.instance_path else instance_name
+        )
 
-        # Load the referenced module if not already loaded
         if module_type not in GLOBAL_MODULE_CACHE:
             self._load_module(module_type)
-        # else:
-        #     print(f"Using cached module '{module_type}'")
-
         if module_type not in GLOBAL_MODULE_CACHE:
             raise ValueError(f"Could not load module '{module_type}' for instance '{instance_name}'")
 
         module_info = GLOBAL_MODULE_CACHE[module_type]
 
-        # Build input values for the instantiated module
         inst_input_values = {}
         for port_name, signal_name in connections.items():
-            if port_name in module_info["inputs"]:
-                signal_value = None
+            if port_name not in module_info["inputs"]:
+                continue
+            signal_value = self._resolve_signal_reference(signal_name, signal_values)
+            if signal_value is None:
+                available_signals = list(signal_values.keys())
+                raise ValueError(
+                    f"Signal '{signal_name}' not found for instantiation '{instance_name}' "
+                    f"(port '{port_name}'). Available signals: "
+                    f"{available_signals[:10]}{'...' if len(available_signals) > 10 else ''}"
+                )
+            inst_input_values[port_name] = signal_value
 
-                # Handle SystemVerilog literals like 1'b0, 1'b1
-                if re.match(r"\d+'b[01]+", signal_name):
-                    # Parse SystemVerilog binary literal
-                    literal_match = re.match(r"(\d+)'b([01]+)", signal_name)
-                    if literal_match:
-                        width = int(literal_match.group(1))
-                        binary_value = literal_match.group(2)
-                        signal_value = int(binary_value, 2)
-                # Handle direct signal reference
-                elif signal_name in signal_values:
-                    signal_value = signal_values[signal_name]
-                else:
-                    # Check if it's a bus slice like A[3:0]
-                    bus_slice_match = re.match(r"(\w+)\[(\d+):(\d+)\]", signal_name)
-                    if bus_slice_match:
-                        bus_name = bus_slice_match.group(1)
-                        msb = int(bus_slice_match.group(2))
-                        lsb = int(bus_slice_match.group(3))
+        if instance_name not in self.instance_evaluators:
+            has_sequential_logic = bool(
+                module_info.get("sequential_blocks") or module_info.get("clock_signals")
+            )
+            if has_sequential_logic:
+                instance_evaluator = SequentialLogicEvaluator(
+                    module_info["inputs"],
+                    module_info["outputs"],
+                    module_info["assignments"],
+                    module_info.get("instantiations", []),
+                    module_info.get("bus_info", {}),
+                    module_info.get("slice_assignments", []),
+                    module_info.get("concat_assignments", []),
+                    module_info.get("sequential_blocks", []),
+                    module_info.get("clock_signals", []),
+                    self.current_file_path,
+                    module_info.get("memory_arrays", {}),
+                    module_info.get("name", module_type),
+                    instance_path,
+                    self.memory_bindings,
+                )
+            else:
+                instance_evaluator = LogicEvaluator(
+                    module_info["inputs"],
+                    module_info["outputs"],
+                    module_info["assignments"],
+                    module_info.get("instantiations", []),
+                    module_info.get("bus_info", {}),
+                    module_info.get("slice_assignments", []),
+                    module_info.get("concat_assignments", []),
+                    self.current_file_path,
+                    module_info.get("memory_arrays", {}),
+                    module_info.get("name", module_type),
+                    instance_path,
+                    self.memory_bindings,
+                )
+            self.instance_evaluators[instance_name] = instance_evaluator
 
-                        if bus_name in signal_values:
-                            # Extract the bus slice from the parent bus
-                            bus_value = signal_values[bus_name]
-                            width = abs(msb - lsb) + 1
-                            shift = lsb if msb >= lsb else msb
-                            mask = (1 << width) - 1
-                            signal_value = (bus_value >> shift) & mask
-                    else:
-                        # Check if it's a bit selection like A[0]
-                        bit_select_match = re.match(r"(\w+)\[(\d+)\]", signal_name)
-                        if bit_select_match:
-                            bus_name = bit_select_match.group(1)
-                            bit_index = int(bit_select_match.group(2))
-                            bit_signal_name = f"{bus_name}[{bit_index}]"
-                            if bit_signal_name in signal_values:
-                                signal_value = signal_values[bit_signal_name]
-
-                if signal_value is not None:
-                    inst_input_values[port_name] = signal_value
-                else:
-                    available_signals = list(signal_values.keys())
-                    raise ValueError(
-                        f"Signal '{signal_name}' not found for instantiation '{instance_name}' (port '{port_name}'). Available signals: {available_signals[:10]}{'...' if len(available_signals) > 10 else ''}"
-                    )
-
-        # Create evaluator for the instantiated module
-        inst_evaluator = LogicEvaluator(
-            module_info["inputs"],
-            module_info["outputs"],
-            module_info["assignments"],
-            module_info.get("instantiations", []),
-            module_info.get("bus_info", {}),
-            module_info.get("slice_assignments", []),
-            module_info.get("concat_assignments", []),
-            self.current_file_path,
-        )
-
-        # Evaluate the instantiated module
-        inst_outputs = inst_evaluator.evaluate(inst_input_values)
+        inst_evaluator = self.instance_evaluators[instance_name]
+        if hasattr(inst_evaluator, "evaluate_cycle"):
+            if advance_sequential_instances:
+                inst_outputs = inst_evaluator.evaluate_cycle(inst_input_values)
+            elif hasattr(inst_evaluator, "peek_outputs"):
+                inst_outputs = inst_evaluator.peek_outputs(inst_input_values)
+            else:
+                inst_outputs = inst_evaluator.evaluate(inst_input_values)
+        else:
+            inst_outputs = inst_evaluator.evaluate(inst_input_values)
 
         # Map outputs back to the parent module's signals
         for port_name, signal_name in connections.items():
@@ -1093,6 +1483,57 @@ class LogicEvaluator:
                         bit_signal_name = f"{bus_name}[{bit_index}]"
                         signal_values[bit_signal_name] = inst_outputs[port_name]
 
+    def _resolve_signal_reference(self, signal_name: str, signal_values: Dict[str, int]) -> Optional[int]:
+        """Resolve a connected signal/expression from parent scope."""
+        signal_name = signal_name.strip()
+
+        # SystemVerilog literal
+        literal_match = re.match(r"(\d+)'([bhdBHD])([0-9a-fA-F_xXzZ]+)$", signal_name)
+        if literal_match:
+            width = int(literal_match.group(1))
+            base = literal_match.group(2).lower()
+            value_str = literal_match.group(3).replace("_", "").lower().replace("x", "0").replace("z", "0")
+            if base == "b":
+                value = int(value_str, 2)
+            elif base == "h":
+                value = int(value_str, 16)
+            else:
+                value = int(value_str, 10)
+            return value & ((1 << width) - 1)
+
+        if signal_name in signal_values:
+            return signal_values[signal_name]
+
+        # Bus slice
+        bus_slice_match = re.match(r"(\w+)\[(\d+):(\d+)\]$", signal_name)
+        if bus_slice_match:
+            bus_name = bus_slice_match.group(1)
+            msb = int(bus_slice_match.group(2))
+            lsb = int(bus_slice_match.group(3))
+            if bus_name in signal_values:
+                bus_value = signal_values[bus_name]
+                width = abs(msb - lsb) + 1
+                shift = lsb if msb >= lsb else msb
+                mask = (1 << width) - 1
+                return (bus_value >> shift) & mask
+
+        # Bit select
+        bit_select_match = re.match(r"(\w+)\[(\d+)\]$", signal_name)
+        if bit_select_match:
+            bus_name = bit_select_match.group(1)
+            bit_index = int(bit_select_match.group(2))
+            bit_signal_name = f"{bus_name}[{bit_index}]"
+            if bit_signal_name in signal_values:
+                return signal_values[bit_signal_name]
+            if bus_name in signal_values:
+                return (signal_values[bus_name] >> bit_index) & 1
+
+        # Numeric literal without width
+        if re.fullmatch(r"\d+", signal_name):
+            return int(signal_name)
+
+        return None
+
     def _expand_bus_to_bits(
         self, bus_name: str, bus_value: int, signal_values: Dict[str, int]
     ):
@@ -1121,6 +1562,14 @@ class LogicEvaluator:
                 bus_value |= (signal_values[bit_name] & 1) << bit_index
 
         return bus_value
+
+    def reset_instance_state(self):
+        """Reset cached sub-module instance state."""
+        for evaluator in self.instance_evaluators.values():
+            if hasattr(evaluator, "reset_state"):
+                evaluator.reset_state()
+            elif hasattr(evaluator, "reset_instance_state"):
+                evaluator.reset_instance_state()
 
     def count_nand_gates(self) -> int:
         """Count the total number of NAND gates in the module hierarchy."""
@@ -1210,105 +1659,357 @@ class LogicEvaluator:
 
 class SequentialLogicEvaluator:
     """Evaluator for sequential (clocked) SystemVerilog modules."""
-    
-    def __init__(self, inputs: List[str], outputs: List[str], assignments: Dict[str, str],
-                 instantiations: List[Dict], bus_info: Dict[str, Dict], 
-                 slice_assignments: List[Dict], concat_assignments: List[Dict],
-                 sequential_blocks: List[Dict], clock_signals: List[str], filepath: str = ""):
-        
-        # Initialize combinational evaluator for non-clocked logic
-        self.comb_evaluator = LogicEvaluator(
-            inputs, outputs, assignments, instantiations, bus_info,
-            slice_assignments, concat_assignments, filepath
-        )
-        
+    def __init__(
+        self,
+        inputs: List[str],
+        outputs: List[str],
+        assignments: Dict[str, str],
+        instantiations: List[Dict],
+        bus_info: Dict[str, Dict],
+        slice_assignments: List[Dict],
+        concat_assignments: List[Dict],
+        sequential_blocks: List[Dict],
+        clock_signals: List[str],
+        filepath: str = "",
+        memory_arrays: Dict[str, Dict[str, Any]] = None,
+        module_name: str = "",
+        instance_path: str = "",
+        memory_bindings: List[Dict[str, Any]] = None,
+    ):
         self.inputs = inputs
         self.outputs = outputs
-        self.sequential_blocks = sequential_blocks
-        self.clock_signals = set(clock_signals)
-        self.state = {}  # Current state of sequential elements
-        self.next_state = {}  # Next state to update on clock edge
-        
-        # Store bus_info for compatibility with TruthTableGenerator
-        self.bus_info = bus_info
-        
-        # Initialize all outputs to 0
-        for output in outputs:
-            self.state[output] = 0
-    
-    def evaluate_cycle(self, input_values: Dict[str, int]) -> Dict[str, int]:
-        """Evaluate one clock cycle with given inputs."""
-        
-        # First, evaluate combinational logic with current state + inputs
-        current_signals = {**self.state, **input_values}
-        
-        # Get combinational outputs (handles instantiations, assigns, etc.)
-        comb_outputs = self.comb_evaluator.evaluate(input_values)
-        current_signals.update(comb_outputs)
-        
-        # Process sequential blocks to determine next state
-        self.next_state = self.state.copy()
-        
+        self.sequential_blocks = sorted(sequential_blocks or [], key=lambda b: b.get("order", 0))
+        self.clock_signals = set(clock_signals or [])
+        self.bus_info = bus_info or {}
+        self.module_name = module_name or "top_module"
+        self.instance_path = instance_path
+
+        self.comb_evaluator = LogicEvaluator(
+            inputs,
+            outputs,
+            assignments,
+            instantiations,
+            bus_info,
+            slice_assignments,
+            concat_assignments,
+            filepath,
+            memory_arrays or {},
+            self.module_name,
+            self.instance_path,
+            memory_bindings or [],
+        )
+        self.memory_arrays = self.comb_evaluator.memory_arrays
+
+        self.state_signals = self._collect_state_signals()
+        self.state: Dict[str, int] = {}
+        self.reset_state()
+
+    def _collect_state_signals(self) -> set:
+        signals = set(self.outputs)
+
+        def collect_from_statement(statement: Dict[str, Any]):
+            stype = statement.get("type")
+            if stype in {"nonblocking_assign", "blocking_assign"}:
+                target = statement.get("target", {})
+                kind = target.get("kind")
+                if kind in {"signal", "bit", "slice", "indexed_signal"}:
+                    signals.add(target.get("signal"))
+            elif stype == "block":
+                for child in statement.get("statements", []):
+                    collect_from_statement(child)
+            elif stype == "if":
+                if statement.get("then"):
+                    collect_from_statement(statement["then"])
+                if statement.get("else"):
+                    collect_from_statement(statement["else"])
+            elif stype == "case":
+                for item in statement.get("items", []):
+                    collect_from_statement(item.get("statement", {}))
+                if statement.get("default"):
+                    collect_from_statement(statement["default"])
+
         for block in self.sequential_blocks:
-            if block['type'] == 'always_ff':
-                clock_signal = block['clock']
-                
-                # Check if clock signal changed (simulate clock edge)
-                # For now, we'll assume every evaluation represents a clock edge
-                self._evaluate_sequential_block(block, current_signals)
-        
-        # Update state (clock edge occurs)
-        self.state.update(self.next_state)
-        
-        # Return current output values
-        output_values = {}
+            collect_from_statement(block.get("statement", {}))
+
+        return {signal for signal in signals if signal}
+
+    def _expand_known_buses(self, signal_values: Dict[str, int]):
+        for signal_name, value in list(signal_values.items()):
+            if (
+                signal_name in self.bus_info
+                and self.bus_info[signal_name].get("width", 1) > 1
+                and "[" not in signal_name
+            ):
+                self.comb_evaluator._expand_bus_to_bits(signal_name, value, signal_values)
+
+    def _clock_edge_active(self, block: Dict[str, Any], input_values: Dict[str, int]) -> bool:
+        clock = block.get("clock")
+        edge = block.get("edge", "posedge")
+        if not clock or clock not in input_values:
+            return True
+        clock_value = input_values.get(clock, 0)
+        if edge == "negedge":
+            return clock_value == 0
+        return clock_value == 1
+
+    def evaluate_cycle(self, input_values: Dict[str, int]) -> Dict[str, int]:
+        """Evaluate one clock cycle with nonblocking scheduling semantics."""
+        current_signals = {**self.state, **input_values}
+        self._expand_known_buses(current_signals)
+
+        comb_outputs = self.comb_evaluator.evaluate(
+            current_signals, advance_sequential_instances=True
+        )
+        snapshot = {**current_signals, **comb_outputs}
+        self._expand_known_buses(snapshot)
+
+        blocking_updates: Dict[str, int] = {}
+        nonblocking_updates: Dict[str, int] = {}
+        blocking_mem_updates: Dict[Tuple[str, int], int] = {}
+        nonblocking_mem_updates: Dict[Tuple[str, int], int] = {}
+
+        for block in self.sequential_blocks:
+            if block.get("type") != "always_ff":
+                continue
+            if not self._clock_edge_active(block, input_values):
+                continue
+
+            local_context = snapshot.copy()
+            self._execute_statement(
+                block.get("statement", {}),
+                local_context,
+                blocking_updates,
+                nonblocking_updates,
+                blocking_mem_updates,
+                nonblocking_mem_updates,
+            )
+
+        next_state = self.state.copy()
+        self._commit_updates(next_state, blocking_updates)
+        self._commit_memory_updates(blocking_mem_updates)
+        self._commit_updates(next_state, nonblocking_updates)
+        self._commit_memory_updates(nonblocking_mem_updates)
+        self.state = next_state
+
+        post_signals = {**self.state, **input_values}
+        self._expand_known_buses(post_signals)
+        post_outputs = self.comb_evaluator.evaluate(
+            post_signals, advance_sequential_instances=False
+        )
+
+        output_values: Dict[str, int] = {}
         for output in self.outputs:
-            output_values[output] = self.state.get(output, 0)
-        
+            if output in post_outputs:
+                output_values[output] = post_outputs[output]
+            elif output in self.state:
+                output_values[output] = self.state[output]
+            elif output in self.bus_info and self.bus_info[output].get("width", 1) > 1:
+                output_values[output] = self.comb_evaluator._collect_bus_from_bits(output, post_signals)
+            else:
+                output_values[output] = 0
+
         return output_values
-    
-    def _evaluate_sequential_block(self, block: Dict, signals: Dict[str, int]):
-        """Evaluate a sequential block and update next_state."""
-        # Create enhanced signal context that includes current state for self-referencing expressions
-        enhanced_signals = signals.copy()
-        enhanced_signals.update(self.state)  # Include current state values
-        
-        for assignment in block['assignments']:
-            if assignment['type'] == 'assignment':
-                target = assignment['target']
-                expression = assignment['expression']
-                value = self.comb_evaluator._evaluate_expression(expression, enhanced_signals, target)
-                self.next_state[target] = value
-                # Update enhanced_signals so subsequent assignments see the new value
-                enhanced_signals[target] = value
-                
-            elif assignment['type'] == 'conditional_assignment':
-                condition = assignment['condition']
-                target = assignment['target']
-                expression = assignment['expression']
-                
-                # Evaluate condition with enhanced signal context
-                condition_value = self.comb_evaluator._evaluate_expression(condition, enhanced_signals)
-                if condition_value:
-                    value = self.comb_evaluator._evaluate_expression(expression, enhanced_signals, target)
-                    self.next_state[target] = value
-                    # Update enhanced_signals so subsequent assignments see the new value
-                    enhanced_signals[target] = value
-    
+
+    def _execute_statement(
+        self,
+        statement: Dict[str, Any],
+        local_context: Dict[str, int],
+        blocking_updates: Dict[str, int],
+        nonblocking_updates: Dict[str, int],
+        blocking_mem_updates: Dict[Tuple[str, int], int],
+        nonblocking_mem_updates: Dict[Tuple[str, int], int],
+    ):
+        stype = statement.get("type")
+
+        if stype == "block":
+            for child in statement.get("statements", []):
+                self._execute_statement(
+                    child,
+                    local_context,
+                    blocking_updates,
+                    nonblocking_updates,
+                    blocking_mem_updates,
+                    nonblocking_mem_updates,
+                )
+            return
+
+        if stype == "if":
+            condition = statement.get("condition", "0")
+            cond_value = self.comb_evaluator._evaluate_expression(condition, local_context)
+            branch = statement.get("then") if cond_value else statement.get("else")
+            if branch:
+                self._execute_statement(
+                    branch,
+                    local_context,
+                    blocking_updates,
+                    nonblocking_updates,
+                    blocking_mem_updates,
+                    nonblocking_mem_updates,
+                )
+            return
+
+        if stype == "case":
+            case_value = self.comb_evaluator._evaluate_expression(statement.get("expression", "0"), local_context)
+            selected = None
+            for item in statement.get("items", []):
+                labels = item.get("labels", [])
+                for label in labels:
+                    label_value = self.comb_evaluator._evaluate_expression(label, local_context)
+                    if label_value == case_value:
+                        selected = item.get("statement")
+                        break
+                if selected:
+                    break
+            if not selected:
+                selected = statement.get("default")
+            if selected:
+                self._execute_statement(
+                    selected,
+                    local_context,
+                    blocking_updates,
+                    nonblocking_updates,
+                    blocking_mem_updates,
+                    nonblocking_mem_updates,
+                )
+            return
+
+        if stype in {"blocking_assign", "nonblocking_assign"}:
+            target = statement.get("target", {})
+            target_signal = target.get("signal")
+            value = self.comb_evaluator._evaluate_expression(
+                statement.get("expression", "0"),
+                local_context,
+                target_signal,
+            )
+
+            if stype == "blocking_assign":
+                self._record_assignment(blocking_updates, blocking_mem_updates, target, value, local_context)
+                self._apply_to_context(local_context, target, value)
+            else:
+                self._record_assignment(nonblocking_updates, nonblocking_mem_updates, target, value, local_context)
+            return
+
+    def _record_assignment(
+        self,
+        signal_updates: Dict[str, int],
+        memory_updates: Dict[Tuple[str, int], int],
+        target: Dict[str, Any],
+        value: int,
+        context: Dict[str, int],
+    ):
+        kind = target.get("kind")
+        if kind == "memory":
+            memory_name = target.get("memory")
+            index_expr = target.get("index", "0")
+            index_value = self.comb_evaluator._evaluate_expression(index_expr, context)
+            memory_updates[(memory_name, int(index_value))] = value
+            return
+
+        signal_name = target.get("signal")
+        if not signal_name:
+            return
+        signal_updates[signal_name] = self._apply_target_transform(signal_name, target, value, signal_updates.get(signal_name))
+
+    def _apply_target_transform(
+        self,
+        signal_name: str,
+        target: Dict[str, Any],
+        value: int,
+        existing_signal_value: Optional[int] = None,
+    ) -> int:
+        kind = target.get("kind")
+        current_value = existing_signal_value
+        if current_value is None:
+            current_value = self.state.get(signal_name, 0)
+
+        if kind == "bit":
+            bit_index = int(target.get("index", 0))
+            if value & 1:
+                return current_value | (1 << bit_index)
+            return current_value & ~(1 << bit_index)
+
+        if kind == "slice":
+            msb = int(target.get("msb", 0))
+            lsb = int(target.get("lsb", 0))
+            width = abs(msb - lsb) + 1
+            shift = min(msb, lsb)
+            mask = (1 << width) - 1
+            return (current_value & ~(mask << shift)) | ((value & mask) << shift)
+
+        if signal_name in self.bus_info:
+            width = self.bus_info[signal_name].get("width", 1)
+            if width > 1:
+                return value & ((1 << width) - 1)
+        return value & 1
+
+    def _apply_to_context(self, context: Dict[str, int], target: Dict[str, Any], value: int):
+        kind = target.get("kind")
+        if kind == "memory":
+            return
+        signal_name = target.get("signal")
+        if not signal_name:
+            return
+        updated = self._apply_target_transform(signal_name, target, value, context.get(signal_name))
+        context[signal_name] = updated
+        if signal_name in self.bus_info and self.bus_info[signal_name].get("width", 1) > 1:
+            self.comb_evaluator._expand_bus_to_bits(signal_name, updated, context)
+        elif kind == "bit":
+            bit_index = int(target.get("index", 0))
+            context[f"{signal_name}[{bit_index}]"] = value & 1
+
+    def _commit_updates(self, next_state: Dict[str, int], updates: Dict[str, int]):
+        for signal_name, value in updates.items():
+            next_state[signal_name] = value
+
+    def _commit_memory_updates(self, memory_updates: Dict[Tuple[str, int], int]):
+        for (memory_name, index), value in memory_updates.items():
+            if memory_name not in self.comb_evaluator.memory_state:
+                continue
+            if self.comb_evaluator.memory_access.get(memory_name) == "rom":
+                continue
+            mem_data = self.comb_evaluator.memory_state[memory_name]
+            if index < 0 or index >= len(mem_data):
+                continue
+            word_width = self.memory_arrays.get(memory_name, {}).get("word_width", 1)
+            mem_data[index] = value & ((1 << word_width) - 1)
+
+    def configure_memory_bindings(self, memory_bindings: List[Dict[str, Any]]):
+        self.comb_evaluator.configure_memory_bindings(memory_bindings)
+        self.reset_state()
+
     def reset_state(self):
-        """Reset all sequential state to initial values."""
+        """Reset sequential signal state and nested instance state."""
         self.state = {}
-        self.next_state = {}
-        for output in self.outputs:
-            self.state[output] = 0
-    
+        for signal_name in self.state_signals:
+            width = self.bus_info.get(signal_name, {}).get("width", 1)
+            self.state[signal_name] = 0 if width <= 1 else 0
+        self.comb_evaluator._initialize_memory_state()
+        self.comb_evaluator.reset_instance_state()
+
     def count_nand_gates(self) -> int:
         """Count NAND gates by delegating to the combinational evaluator."""
         return self.comb_evaluator.count_nand_gates()
-    
+
     def evaluate(self, input_values: Dict[str, int]) -> Dict[str, int]:
         """Compatibility wrapper - evaluates one cycle for truth table generation."""
         return self.evaluate_cycle(input_values)
+
+    def peek_outputs(self, input_values: Dict[str, int]) -> Dict[str, int]:
+        """Read current outputs without advancing sequential state."""
+        signals = {**self.state, **input_values}
+        self._expand_known_buses(signals)
+        comb_outputs = self.comb_evaluator.evaluate(
+            signals, advance_sequential_instances=False
+        )
+        result = {}
+        for output in self.outputs:
+            if output in comb_outputs:
+                result[output] = comb_outputs[output]
+            elif output in self.state:
+                result[output] = self.state[output]
+            else:
+                result[output] = 0
+        return result
 
 
 class TruthTableGenerator:
@@ -1734,12 +2435,14 @@ class TestRunner:
     def __init__(self, evaluator: LogicEvaluator):
         self.evaluator = evaluator
         self.test_cycles = []  # Store test cycles for waveform generation
+        self.loaded_test_file = ""
 
     def load_tests(self, test_file: str) -> List[Dict[str, Any]]:
         """Load test cases from a JSON file."""
         try:
             with open(test_file, "r", encoding="utf-8") as f:
                 tests = json.load(f)
+            self.loaded_test_file = test_file
             return tests
         except FileNotFoundError:
             raise FileNotFoundError(f"Test file not found: {test_file}")
@@ -1757,6 +2460,13 @@ class TestRunner:
         Returns:
             Tuple of (passed_count, total_count)
         """
+        # Configure ROM/RAM bindings before running cycles.
+        test_dir = os.path.dirname(self.loaded_test_file) if self.loaded_test_file else os.getcwd()
+        default_module = getattr(self.evaluator, "module_name", "")
+        memory_bindings = normalize_memory_bindings(tests, test_dir, default_module)
+        if hasattr(self.evaluator, "configure_memory_bindings"):
+            self.evaluator.configure_memory_bindings(memory_bindings)
+
         # Check if this is the new sequential test format
         if isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
             return self._run_new_sequential_tests(tests)
@@ -2013,6 +2723,10 @@ def main():
                 module_info.get("sequential_blocks", []),
                 module_info.get("clock_signals", []),
                 args.file,
+                module_info.get("memory_arrays", {}),
+                module_info.get("name", ""),
+                "",
+                [],
             )
             print(f"Sequential blocks detected: {len(module_info.get('sequential_blocks', []))}")
             print(f"Clock signals: {list(module_info.get('clock_signals', []))}")
@@ -2027,6 +2741,10 @@ def main():
                 module_info.get("slice_assignments", []),
                 module_info.get("concat_assignments", []),
                 args.file,
+                module_info.get("memory_arrays", {}),
+                module_info.get("name", ""),
+                "",
+                [],
             )
 
         # Count NAND gates
