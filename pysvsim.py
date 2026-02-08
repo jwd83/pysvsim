@@ -39,6 +39,16 @@ def parse_sv_range(range_expr: str) -> Tuple[int, int, int]:
     return msb, lsb, width
 
 
+def _parse_memory_value(value_str: str) -> int:
+    """Parse a memory value string supporting binary, hex, and decimal formats."""
+    value_clean = value_str.replace("_", "")
+    # Plain binary (only 0s and 1s, no prefix)
+    if re.fullmatch(r"[01]+", value_clean):
+        return int(value_clean, 2)
+    # Use Python's auto-detection for 0b, 0x, 0o prefixes and decimal
+    return int(value_clean, 0)
+
+
 def load_memory_txt_file(file_path: str, word_width: int, depth: int) -> List[int]:
     """Load plain-text memory initialization data."""
     memory = [0] * depth
@@ -58,10 +68,9 @@ def load_memory_txt_file(file_path: str, word_width: int, depth: int) -> List[in
 
         # Optional address override syntax: <addr>:<value>
         if ":" in line:
-            left, right = line.split(":", 1)
-            addr_str = left.strip()
-            value_str = right.strip()
-            address = int(addr_str, 0)
+            addr_str, value_str = line.split(":", 1)
+            address = int(addr_str.strip(), 0)
+            value_str = value_str.strip()
         else:
             value_str = line
             address = current_address
@@ -69,18 +78,7 @@ def load_memory_txt_file(file_path: str, word_width: int, depth: int) -> List[in
         if address < 0 or address >= depth:
             continue
 
-        value = 0
-        value_clean = value_str.replace("_", "")
-        if re.fullmatch(r"[01]+", value_clean):
-            value = int(value_clean, 2)
-        elif re.fullmatch(r"0[bB][01]+", value_clean):
-            value = int(value_clean, 2)
-        elif re.fullmatch(r"0[xX][0-9a-fA-F]+", value_clean):
-            value = int(value_clean, 16)
-        else:
-            value = int(value_clean, 10)
-
-        memory[address] = value & max_word
+        memory[address] = _parse_memory_value(value_str) & max_word
         current_address = address + 1
 
     return memory
@@ -117,24 +115,22 @@ def normalize_memory_bindings(test_data: Any, test_dir: str, default_module: str
         for init_entry in memory_inits:
             _add_binding(init_entry, init_entry.get("type", "ram") if isinstance(init_entry, dict) else "ram")
 
+    def _process_entries(entries: Any, mem_type: str):
+        """Process dict or list of memory entries."""
+        if isinstance(entries, dict):
+            _add_binding(entries, mem_type)
+        elif isinstance(entries, list):
+            for entry in entries:
+                _add_binding(entry, mem_type)
+
     memory_files = test_data.get("memory_files", {})
     if isinstance(memory_files, dict):
         for mem_type in ("rom", "ram"):
-            entries = memory_files.get(mem_type, [])
-            if isinstance(entries, dict):
-                _add_binding(entries, mem_type)
-            elif isinstance(entries, list):
-                for entry in entries:
-                    _add_binding(entry, mem_type)
+            _process_entries(memory_files.get(mem_type, []), mem_type)
 
     # Backward/short-form support: top-level rom/ram blocks.
     for mem_type in ("rom", "ram"):
-        top_level = test_data.get(mem_type)
-        if isinstance(top_level, dict):
-            _add_binding(top_level, mem_type)
-        elif isinstance(top_level, list):
-            for entry in top_level:
-                _add_binding(entry, mem_type)
+        _process_entries(test_data.get(mem_type), mem_type)
 
     return normalized
 
@@ -388,6 +384,15 @@ class SystemVerilogParser:
                     self.bus_info[wire_name] = {"msb": 0, "lsb": 0, "width": 1}
                     self.wires.append(wire_name)
 
+    def _is_valid_signal_name(self, name: str) -> bool:
+        """Check if a name is a valid signal identifier."""
+        reserved_keywords = {"input", "output", "wire", "logic", "reg", "signed", "unsigned"}
+        if not name or "[" in name:
+            return False
+        if not re.fullmatch(r"\w+", name):
+            return False
+        return name not in reserved_keywords
+
     def _parse_signal_declarations(self, content: str):
         """Parse reg/logic declarations (excluding memory arrays)."""
         bus_decl_pattern = (
@@ -400,14 +405,7 @@ class SystemVerilogParser:
             width = abs(msb - lsb) + 1
             for raw_name in name_list.split(","):
                 name = raw_name.strip()
-                if not name or "[" in name:
-                    # Memory declaration or malformed token - handled elsewhere.
-                    continue
-                if not re.fullmatch(r"\w+", name):
-                    continue
-                if name in {"input", "output", "wire", "logic", "reg", "signed", "unsigned"}:
-                    continue
-                if name not in self.bus_info:
+                if self._is_valid_signal_name(name) and name not in self.bus_info:
                     self.bus_info[name] = {"msb": msb, "lsb": lsb, "width": width}
 
         single_decl_pattern = (
@@ -417,13 +415,7 @@ class SystemVerilogParser:
         for name_list in re.findall(single_decl_pattern, content):
             for raw_name in name_list.split(","):
                 name = raw_name.strip()
-                if not name or "[" in name:
-                    continue
-                if not re.fullmatch(r"\w+", name):
-                    continue
-                if name in {"input", "output", "wire", "logic", "reg", "signed", "unsigned"}:
-                    continue
-                if name not in self.bus_info:
+                if self._is_valid_signal_name(name) and name not in self.bus_info:
                     self.bus_info[name] = {"msb": 0, "lsb": 0, "width": 1}
 
     def _parse_memory_arrays(self, content: str):
@@ -760,7 +752,10 @@ class SystemVerilogParser:
 
         raise ValueError("Unmatched parentheses in sequential block")
 
-    def _consume_until_semicolon(self, text: str, pos: int) -> Tuple[str, int]:
+    def _consume_until_delimiter(
+        self, text: str, pos: int, delimiter: str, error_on_missing: bool = False
+    ) -> Tuple[str, int]:
+        """Consume text until a delimiter is found at zero nesting depth."""
         depth_paren = 0
         depth_bracket = 0
         depth_brace = 0
@@ -780,37 +775,19 @@ class SystemVerilogParser:
                 depth_brace += 1
             elif char == "}":
                 depth_brace -= 1
-            elif char == ";" and depth_paren == 0 and depth_bracket == 0 and depth_brace == 0:
+            elif char == delimiter and depth_paren == 0 and depth_bracket == 0 and depth_brace == 0:
                 return text[start:pos], pos + 1
             pos += 1
 
+        if error_on_missing:
+            raise ValueError(f"Malformed statement: missing '{delimiter}'")
         return text[start:].strip(), len(text)
 
+    def _consume_until_semicolon(self, text: str, pos: int) -> Tuple[str, int]:
+        return self._consume_until_delimiter(text, pos, ";", error_on_missing=False)
+
     def _consume_until_colon(self, text: str, pos: int) -> Tuple[str, int]:
-        depth_paren = 0
-        depth_bracket = 0
-        depth_brace = 0
-        start = pos
-
-        while pos < len(text):
-            char = text[pos]
-            if char == "(":
-                depth_paren += 1
-            elif char == ")":
-                depth_paren -= 1
-            elif char == "[":
-                depth_bracket += 1
-            elif char == "]":
-                depth_bracket -= 1
-            elif char == "{":
-                depth_brace += 1
-            elif char == "}":
-                depth_brace -= 1
-            elif char == ":" and depth_paren == 0 and depth_bracket == 0 and depth_brace == 0:
-                return text[start:pos], pos + 1
-            pos += 1
-
-        raise ValueError("Malformed case item: missing ':'")
+        return self._consume_until_delimiter(text, pos, ":", error_on_missing=True)
 
     def _skip_whitespace(self, text: str, pos: int) -> int:
         while pos < len(text) and text[pos].isspace():
@@ -1174,7 +1151,7 @@ class LogicEvaluator:
             result = eval(eval_expr)
             result = int(result)
 
-            # Apply bit masking based on target signal width or expression content
+            # Apply bit masking based on target signal width
             if target_signal:
                 if target_signal in self.bus_info:
                     width = self.bus_info[target_signal].get("width", 1)
@@ -1182,17 +1159,7 @@ class LogicEvaluator:
                         return result & ((1 << width) - 1)
                 return result & 1
 
-            # Check if the original expression was a bus slice (like in[7:0])
-            if re.match(r"\w+\[\d+:\d+\]", expression.strip()):
-                # This is a bus slice expression - don't force to single bit
-                return result
-
-            # Check if the original expression contains a bus slice (like ~b[2:0])
-            if re.search(r"\w+\[\d+:\d+\]", expression.strip()):
-                # Expression contains bus slice - don't force to single bit
-                return result
-
-            # Expressions without explicit assignment target should keep full width.
+            # Expressions without explicit assignment target keep full width
             return result
         except Exception as e:
             raise ValueError(f"Error evaluating expression '{expression}': {e}")
@@ -1979,10 +1946,7 @@ class SequentialLogicEvaluator:
 
     def reset_state(self):
         """Reset sequential signal state and nested instance state."""
-        self.state = {}
-        for signal_name in self.state_signals:
-            width = self.bus_info.get(signal_name, {}).get("width", 1)
-            self.state[signal_name] = 0 if width <= 1 else 0
+        self.state = {signal_name: 0 for signal_name in self.state_signals}
         self.comb_evaluator._initialize_memory_state()
         self.comb_evaluator.reset_instance_state()
 

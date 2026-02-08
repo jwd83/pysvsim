@@ -24,13 +24,21 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
 
 
+def _outputs_match(actual_outputs: Dict[str, int], expected_outputs: Dict[str, Any]) -> bool:
+    """Check if actual outputs match expected outputs."""
+    for output_name, expected_value in expected_outputs.items():
+        if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
+            return False
+    return True
+
+
 def _check_missing_expect_fields(tests) -> str:
     """Check if any test cases are missing expect/expected fields.
-    
+
     Returns a warning message if any tests are missing expect fields, empty string otherwise.
     """
     missing_count = 0
-    
+
     if isinstance(tests, dict):
         if tests.get('test_type') == 'sequential':
             # Old sequential format
@@ -51,7 +59,7 @@ def _check_missing_expect_fields(tests) -> str:
         for test in tests:
             if not test.get('expect'):
                 missing_count += 1
-    
+
     if missing_count > 0:
         return f"Warning: {missing_count} test(s) missing expect field"
     return ""
@@ -199,27 +207,20 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
                             actual_outputs = evaluator.evaluate_cycle(input_values)
                         else:
                             actual_outputs = evaluator.evaluate(input_values)
-                        
-                        # Check results
-                        test_passed = True
-                        for output_name, expected_value in expected_outputs.items():
-                            if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
-                                test_passed = False
-                                break
-                        
+
+                        test_passed = _outputs_match(actual_outputs, expected_outputs)
+                        status = "passed" if test_passed else "failed"
+                        test_outputs.append(f"Cycle {cycle_num} {status} - {description}")
                         if test_passed:
-                            test_outputs.append(f"Cycle {cycle_num} passed - {description}")
                             passed_tests += 1
-                        else:
-                            test_outputs.append(f"Cycle {cycle_num} failed - {description}")
                         total_tests += 1
-                
+
                 elif isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
                     # New sequential format
                     test_cases = tests.get('test_cases', [])
                     if hasattr(evaluator, 'reset_state'):
                         evaluator.reset_state()
-                    
+
                     for test_case in test_cases:
                         name = test_case.get('name', 'Unnamed test')
                         if 'sequence' in test_case:
@@ -227,67 +228,51 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
                             for step in test_case['sequence']:
                                 input_values = step.get('inputs', {})
                                 expected_outputs = step.get('expected', {})
-                                
+
                                 if hasattr(evaluator, 'evaluate_cycle'):
                                     actual_outputs = evaluator.evaluate_cycle(input_values)
                                 else:
                                     actual_outputs = evaluator.evaluate(input_values)
-                                
-                                for output_name, expected_value in expected_outputs.items():
-                                    if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
-                                        sequence_passed = False
-                                        break
-                                if not sequence_passed:
+
+                                if not _outputs_match(actual_outputs, expected_outputs):
+                                    sequence_passed = False
                                     break
-                            
+
+                            status = "passed" if sequence_passed else "failed"
+                            test_outputs.append(f"{name} {status}")
                             if sequence_passed:
-                                test_outputs.append(f"{name} passed")
                                 passed_tests += 1
-                            else:
-                                test_outputs.append(f"{name} failed")
                             total_tests += 1
                         else:
                             # Single test case
                             input_values = test_case.get('inputs', {})
                             expected_outputs = test_case.get('expected', {})
-                            
+
                             if hasattr(evaluator, 'evaluate_cycle'):
                                 actual_outputs = evaluator.evaluate_cycle(input_values)
                             else:
                                 actual_outputs = evaluator.evaluate(input_values)
-                            
-                            test_passed = True
-                            for output_name, expected_value in expected_outputs.items():
-                                if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
-                                    test_passed = False
-                                    break
-                            
+
+                            test_passed = _outputs_match(actual_outputs, expected_outputs)
+                            status = "passed" if test_passed else "failed"
+                            test_outputs.append(f"{name} {status}")
                             if test_passed:
-                                test_outputs.append(f"{name} passed")
                                 passed_tests += 1
-                            else:
-                                test_outputs.append(f"{name} failed")
                             total_tests += 1
-                
+
                 else:
                     # Old combinational format
                     for i, test in enumerate(tests, 1):
                         input_values = {k: v for k, v in test.items() if k != "expect"}
                         expected_outputs = test.get("expect", {})
-                        
+
                         actual_outputs = evaluator.evaluate(input_values)
-                        
-                        test_passed = True
-                        for output_name, expected_value in expected_outputs.items():
-                            if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
-                                test_passed = False
-                                break
-                        
+
+                        test_passed = _outputs_match(actual_outputs, expected_outputs)
+                        status = "passed" if test_passed else "failed"
+                        test_outputs.append(f"Test {i} {status}")
                         if test_passed:
-                            test_outputs.append(f"Test {i} passed")
                             passed_tests += 1
-                        else:
-                            test_outputs.append(f"Test {i} failed")
                         total_tests += 1
                 
                 test_success = (passed_tests == total_tests)
