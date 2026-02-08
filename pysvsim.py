@@ -839,6 +839,55 @@ class LogicEvaluator:
 
         self._initialize_memory_state()
 
+        self.rom_data = None
+        self.rom_addr_port = None
+        self.rom_data_port = None
+        self._initialize_rom_primitive()
+
+    def _initialize_rom_primitive(self):
+        """Auto-detect rom_* modules and load ROM data by naming convention."""
+        if not self.module_name.startswith("rom_"):
+            return
+
+        rom_name = self.module_name[4:]
+
+        # Determine address and data ports from inputs/outputs
+        if not self.inputs or not self.outputs:
+            return
+
+        addr_port = self.inputs[0]
+        data_port = self.outputs[0]
+
+        addr_width = self.bus_info.get(addr_port, {}).get("width", 1)
+        data_width = self.bus_info.get(data_port, {}).get("width", 1)
+        depth = 1 << addr_width
+
+        # Search for the data file
+        data_file = f"{rom_name}.txt"
+        search_dirs = []
+        if self.current_file_path:
+            sv_dir = os.path.dirname(self.current_file_path)
+            search_dirs.append(sv_dir)
+            search_dirs.append(os.path.join(sv_dir, "roms"))
+        search_dirs.append(os.path.join(os.getcwd(), "roms"))
+
+        file_path = None
+        for d in search_dirs:
+            candidate = os.path.join(d, data_file)
+            if os.path.exists(candidate):
+                file_path = candidate
+                break
+
+        if file_path is None:
+            raise FileNotFoundError(
+                f"ROM data file '{data_file}' not found for module '{self.module_name}'. "
+                f"Searched: {search_dirs}"
+            )
+
+        self.rom_data = load_memory_txt_file(file_path, data_width, depth)
+        self.rom_addr_port = addr_port
+        self.rom_data_port = data_port
+
     def _initialize_memory_state(self):
         for memory_name, memory_info in self.memory_arrays.items():
             depth = memory_info.get("depth", 0)
@@ -914,6 +963,14 @@ class LogicEvaluator:
         Returns:
             Dictionary mapping output names to their computed values
         """
+        # ROM primitive: simple address→data lookup
+        if self.rom_data is not None:
+            addr = input_values.get(self.rom_addr_port, 0)
+            depth = len(self.rom_data)
+            if addr < 0 or addr >= depth:
+                addr = addr % depth
+            return {self.rom_data_port: self.rom_data[addr]}
+
         # Start with input values and expand buses to individual bits
         signal_values = {}
         for signal_name, value in input_values.items():
