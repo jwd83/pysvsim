@@ -203,42 +203,44 @@ Three progressive CPU milestones. See `goals/` for detailed plans.
 | **Description** | 8-bit CPU, 8-bit instructions | 8-bit CPU, 32-bit instructions | 32-bit RISC-V CPU |
 | **Reference** | `goal-1-overture_cpu_isa_reference.md` | `goal-2-advanced-8bitcpu-milestone.md` | `goal-3-rv32i-milestone.md` |
 
+✅ = ready, ❌ = needed but not built yet, ➖ = not needed
+
 ### Simulator Features
 
-| Feature | Have? | Goal 1 | Goal 2 | Goal 3 |
-|---------|:-----:|:------:|:------:|:------:|
-| Combinational logic | Yes | Yes | Yes | Yes |
-| Sequential logic (`always_ff`) | Yes | Yes | Yes | Yes |
-| `always_comb` blocks | Yes | Yes | Yes | Yes |
-| Ternary operator | Yes | Yes | Yes | Yes |
-| ROM primitives | Yes | Yes | Yes | Yes |
-| Memory arrays (RAM) | Yes | N/A | Yes | Yes |
-| Hierarchical instantiation | Yes | Yes | Yes | Yes |
-| Memory-mapped I/O | No | No | N/A | No |
-| UART / serial I/O | No | N/A | N/A | No |
+| Feature | Have | Goal 1 | Goal 2 | Goal 3 |
+|---------|:----:|:------:|:------:|:------:|
+| Combinational logic | ✅ | ✅ | ✅ | ✅ |
+| Sequential logic (`always_ff`) | ✅ | ✅ | ✅ | ✅ |
+| `always_comb` blocks | ✅ | ✅ | ✅ | ✅ |
+| Ternary operator | ✅ | ✅ | ✅ | ✅ |
+| ROM primitives | ✅ | ✅ | ✅ | ✅ |
+| Memory arrays (RAM) | ✅ | ➖ | ✅ | ✅ |
+| Hierarchical instantiation | ✅ | ✅ | ✅ | ✅ |
+| Memory-mapped I/O | ❌ | ❌ | ➖ | ❌ |
+| UART / serial I/O | ❌ | ➖ | ➖ | ❌ |
 
 ### Hardware Modules (`parts/`)
 
-| Module | Have? | Goal 1 | Goal 2 | Goal 3 |
-|--------|:-----:|:------:|:------:|:------:|
-| Logic gates (1-bit, 8-bit) | Yes | Yes | Yes | Yes |
-| Adders (up to 64-bit) | Yes | Yes | Yes | Yes |
-| Muxes (2:1 up to 32-bit) | Yes | Yes | Yes | Yes |
-| Muxes (4:1, 8:1) | Yes | Yes | Yes | Yes |
-| Decoder (3-to-8) | Yes | Yes | Yes | Yes |
-| Registers (1 to 64-bit) | Yes | Yes | Yes | Yes |
-| Register file (8x8) | Yes | Yes | Yes | N/A |
-| Register file (32x32) | No | N/A | N/A | No |
-| Counter (8-bit) | Yes | Yes | Yes | N/A |
-| ALU (8-bit, basic) | Yes | Yes | Yes | N/A |
-| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | No | No | No | N/A |
-| ALU (32-bit, RV32I ops) | No | N/A | N/A | No |
-| Program counter (with jump/load) | No | No | No | No |
-| Instruction decoder | No | No | No | No |
-| Status/flags register | No | N/A | No | No |
-| RAM module | No | N/A | No | No |
-| ROM (data) | Yes | Yes | Yes | Yes |
-| I/O ports | No | No | N/A | No |
-| Comparator (32-bit) | No | N/A | N/A | No |
-| Barrel shifter | No | N/A | N/A | No |
-| Immediate generator | No | N/A | N/A | No |
+| Module | Have | Goal 1 | Goal 2 | Goal 3 |
+|--------|:----:|:------:|:------:|:------:|
+| Logic gates (1-bit, 8-bit) | ✅ | ✅ | ✅ | ✅ |
+| Adders (up to 64-bit) | ✅ | ✅ | ✅ | ✅ |
+| Muxes (2:1 up to 32-bit) | ✅ | ✅ | ✅ | ✅ |
+| Muxes (4:1, 8:1) | ✅ | ✅ | ✅ | ✅ |
+| Decoder (3-to-8) | ✅ | ✅ | ✅ | ✅ |
+| Registers (1 to 64-bit) | ✅ | ✅ | ✅ | ✅ |
+| Register file (8x8) | ✅ | ✅ | ✅ | ➖ |
+| Register file (32x32) | ❌ | ➖ | ➖ | ❌ |
+| Counter (8-bit) | ✅ | ✅ | ✅ | ➖ |
+| ALU (8-bit, basic) | ✅ | ✅ | ✅ | ➖ |
+| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | ❌ | ❌ | ❌ | ➖ |
+| ALU (32-bit, RV32I ops) | ❌ | ➖ | ➖ | ❌ |
+| Program counter (with jump/load) | ❌ | ❌ | ❌ | ❌ |
+| Instruction decoder | ❌ | ❌ | ❌ | ❌ |
+| Status/flags register | ❌ | ➖ | ❌ | ❌ |
+| RAM module | ❌ | ➖ | ❌ | ❌ |
+| ROM (data) | ✅ | ✅ | ✅ | ✅ |
+| I/O ports | ❌ | ❌ | ➖ | ❌ |
+| Comparator (32-bit) | ❌ | ➖ | ➖ | ❌ |
+| Barrel shifter | ❌ | ➖ | ➖ | ❌ |
+| Immediate generator | ❌ | ➖ | ➖ | ❌ |
