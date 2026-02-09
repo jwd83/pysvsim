@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(uv run python:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "WebSearch",
+      "WebFetch(domain:steamcommunity.com)",
+      "WebFetch(domain:turingcomplete.wiki)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:richeyward.com)",
+      "WebFetch(domain:circuitverse.org)",
+      "WebFetch(domain:playgame.tips)",
+      "WebFetch(domain:strategywiki.org)",
+      "WebFetch(domain:tommytt427.github.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:rentry.co)",
+      "WebFetch(domain:notejo.com)",
+      "WebFetch(domain:luka-kopse.com)",
+      "WebFetch(domain:blog.jverkamp.com)"
     ]
   }
 }
