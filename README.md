@@ -4,15 +4,16 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Project Status
 
-**Current State: Core simulator stable, working toward 8-bit CPU milestone**
+**Current State: Core simulator stable, Overture CPU core implemented and validated**
 
 | Metric | Value |
 |--------|-------|
 | Last Verified | February 9, 2026 |
-| `parts/` Regression | 44/44 files passing, 416/416 test cases |
+| `parts/` Regression | 74/74 files passing, 678/678 test cases |
 | `testing/` Regression | 40/40 files passing, 261/261 test cases |
-| Combined Regression | 84 files passing, 677/677 test cases |
-| Total NAND Gates (`parts/`) | 14,698 |
+| Combined Regression | 114 files passing, 939/939 test cases |
+| Overture ROM ISA Suites | ALU smoke, branch, and I/O programs passing |
+| Total NAND Gates (`parts/`) | 16,735 |
 
 ## Features
 
@@ -105,6 +106,20 @@ All modules are built hierarchically from NAND gates.
 
 ROM modules use a naming convention: `rom_{name}` auto-loads `{name}.txt`. See [ROM Primitives](#rom-primitives-1) below.
 
+### Overture CPU (`parts/overture/`)
+- `overture_cpu.sv`: 8-bit Overture ISA executor (`Immediate`, `Calculate`, `Copy`, `Condition`)
+- `overture_alu_8bit.sv`: OR/NAND/NOR/AND/ADD/SUB ALU
+- `overture_decoder_8bit.sv`: instruction field decoder
+- `overture_pc_8bit.sv`: 8-bit program counter with jump/load behavior
+- ROM test programs:
+  - `overture_prog_alu.txt`
+  - `overture_prog_branch.txt`
+  - `overture_prog_io.txt`
+- Validation JSONs:
+  - `overture_cpu.json`
+  - `overture_cpu_program_branch.json`
+  - `overture_cpu_program_io.json`
+
 ## Test File Format
 
 JSON test files share the same base name as the SystemVerilog file.
@@ -188,7 +203,7 @@ Modules with a `rom_` prefix are treated as built-in ROM primitives. The SV file
 pysvsim/
 ├── pysvsim.py          # Main simulator
 ├── test_runner.py      # Parallel test runner
-├── parts/              # 44 verified library modules
+├── parts/              # 74 verified library modules (includes overture CPU workspace)
 ├── testing/            # 40 HDLBits/validation modules
 ├── roms/               # ROM data files (for CPU)
 └── goals/              # Milestone documents
@@ -233,14 +248,15 @@ Three progressive CPU milestones. See `goals/` for detailed plans.
 | Register file (32x32) | ❌ | ➖ | ➖ | ❌ |
 | Counter (8-bit) | ✅ | ✅ | ✅ | ➖ |
 | ALU (8-bit, basic) | ✅ | ✅ | ✅ | ➖ |
-| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | ❌ | ❌ | ❌ | ➖ |
+| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | ✅ | ✅ | ➖ | ➖ |
 | ALU (32-bit, RV32I ops) | ❌ | ➖ | ➖ | ❌ |
-| Program counter (with jump/load) | ❌ | ❌ | ❌ | ❌ |
-| Instruction decoder | ❌ | ❌ | ❌ | ❌ |
+| Program counter (with jump/load) | ✅ | ✅ | ✅ | ❌ |
+| Instruction decoder | ✅ | ✅ | ✅ | ❌ |
+| Overture CPU core (8-bit ISA + ROM fetch) | ✅ | ✅ | ➖ | ➖ |
 | Status/flags register | ❌ | ➖ | ❌ | ❌ |
 | RAM module | ❌ | ➖ | ❌ | ❌ |
 | ROM (data) | ✅ | ✅ | ✅ | ✅ |
-| I/O ports | ❌ | ❌ | ➖ | ❌ |
+| I/O ports | ✅ | ✅ | ➖ | ❌ |
 | Comparator (32-bit) | ❌ | ➖ | ➖ | ❌ |
 | Barrel shifter | ❌ | ➖ | ➖ | ❌ |
 | Immediate generator | ❌ | ➖ | ➖ | ❌ |
