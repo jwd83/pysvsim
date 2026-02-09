@@ -194,25 +194,51 @@ pysvsim/
 └── goals/              # Milestone documents
 ```
 
-## Next Steps: 8-bit CPU
+## Goal Readiness
 
-The next milestone is a simple 8-bit CPU. See `goals/8bitcpu-milestone.md` for details.
+Three progressive CPU milestones. See `goals/` for detailed plans.
 
-### Required Modules
-1. **Program Counter** - 8-bit counter with load for jumps
-2. ~~**Register File**~~ - Done: `regfile_8x8` (8x8, dual read ports, 939 NANDs)
-3. ~~**ALU**~~ - Done: `alu_1bit` (8-bit, 4 ops via `always_comb`)
-4. **Instruction Decoder** - Decodes 8-bit instructions to control signals
-5. **Status Register** - Zero, Carry, Negative flags
-6. ~~**ROM Module**~~ - Done: ROM primitives (`rom_*` auto-detection)
-7. **RAM Module** - Data memory (256 bytes)
+| | Goal 1: Overture | Goal 2: LEG | Goal 3: RV32I |
+|---|---|---|---|
+| **Description** | 8-bit CPU, 8-bit instructions | 8-bit CPU, 32-bit instructions | 32-bit RISC-V CPU |
+| **Reference** | `goal-1-overture_cpu_isa_reference.md` | `goal-2-advanced-8bitcpu-milestone.md` | `goal-3-rv32i-milestone.md` |
 
-### Simulator Enhancements Needed
-1. **Extended CPU Programs** - Broader instruction coverage and longer traces
-2. **I/O Peripherals** - Memory-mapped serial/timer-style modules
-3. **Extended Testing** - Program-level regression sets
+### Simulator Features
 
-## Future Roadmap
+| Feature | Have? | Goal 1 | Goal 2 | Goal 3 |
+|---------|:-----:|:------:|:------:|:------:|
+| Combinational logic | Yes | Yes | Yes | Yes |
+| Sequential logic (`always_ff`) | Yes | Yes | Yes | Yes |
+| `always_comb` blocks | Yes | Yes | Yes | Yes |
+| Ternary operator | Yes | Yes | Yes | Yes |
+| ROM primitives | Yes | Yes | Yes | Yes |
+| Memory arrays (RAM) | Yes | N/A | Yes | Yes |
+| Hierarchical instantiation | Yes | Yes | Yes | Yes |
+| Memory-mapped I/O | No | No | N/A | No |
+| UART / serial I/O | No | N/A | N/A | No |
 
-- **8-bit CPU** - Simple CPU with ROM/RAM (`goals/8bitcpu-milestone.md`)
-- **RV32I CPU** - Full RISC-V implementation (`goals/rv32i-milestone.md`)
+### Hardware Modules (`parts/`)
+
+| Module | Have? | Goal 1 | Goal 2 | Goal 3 |
+|--------|:-----:|:------:|:------:|:------:|
+| Logic gates (1-bit, 8-bit) | Yes | Yes | Yes | Yes |
+| Adders (up to 64-bit) | Yes | Yes | Yes | Yes |
+| Muxes (2:1 up to 32-bit) | Yes | Yes | Yes | Yes |
+| Muxes (4:1, 8:1) | Yes | Yes | Yes | Yes |
+| Decoder (3-to-8) | Yes | Yes | Yes | Yes |
+| Registers (1 to 64-bit) | Yes | Yes | Yes | Yes |
+| Register file (8x8) | Yes | Yes | Yes | N/A |
+| Register file (32x32) | No | N/A | N/A | No |
+| Counter (8-bit) | Yes | Yes | Yes | N/A |
+| ALU (8-bit, basic) | Yes | Yes | Yes | N/A |
+| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | No | No | No | N/A |
+| ALU (32-bit, RV32I ops) | No | N/A | N/A | No |
+| Program counter (with jump/load) | No | No | No | No |
+| Instruction decoder | No | No | No | No |
+| Status/flags register | No | N/A | No | No |
+| RAM module | No | N/A | No | No |
+| ROM (data) | Yes | Yes | Yes | Yes |
+| I/O ports | No | No | N/A | No |
+| Comparator (32-bit) | No | N/A | N/A | No |
+| Barrel shifter | No | N/A | N/A | No |
+| Immediate generator | No | N/A | N/A | No |
