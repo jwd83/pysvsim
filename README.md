@@ -8,11 +8,11 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 | Metric | Value |
 |--------|-------|
-| Last Verified | February 8, 2026 |
-| `parts/` Regression | 36/36 files passing, 316/316 test cases |
+| Last Verified | February 9, 2026 |
+| `parts/` Regression | 44/44 files passing, 416/416 test cases |
 | `testing/` Regression | 40/40 files passing, 261/261 test cases |
-| Combined Regression | 76 files passing, 577/577 test cases |
-| Total NAND Gates (`parts/`) | 13,092 |
+| Combined Regression | 84 files passing, 677/677 test cases |
+| Total NAND Gates (`parts/`) | 14,698 |
 
 ## Features
 
@@ -20,9 +20,11 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 - **Pure Python**: Single direct dependency (`matplotlib`) for visualization
 - **Bus Support**: Multi-bit buses with clean notation (`input [7:0] data`)
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
-- **Combinational Logic**: Bitwise operators (`&`, `|`, `^`, `~`)
+- **Combinational Logic**: Bitwise operators (`&`, `|`, `^`, `~`), arithmetic (`+`, `-`, `*`), ternary operator (`sel ? a : b`)
+- **`always_comb` Blocks**: Full combinational procedural blocks with `if/else` and `case/default`
 - **Sequential Logic**: `always_ff` blocks, registers, counters with clock/enable/reset
 - **Sequential AST Execution**: `if/else`, `case/default`, blocking/nonblocking assignment semantics
+- **ROM Primitives**: Modules named `rom_*` auto-load data files by naming convention
 - **Memory Arrays**: `reg/logic [W] mem [D]` read/write support for ROM/RAM-style modules
 - **NAND Gate Analysis**: Counts NAND gates in hierarchical designs for complexity scoring
 
@@ -87,8 +89,21 @@ All modules are built hierarchically from NAND gates.
 | Module | Variants |
 |--------|----------|
 | 2:1 Mux | 1, 4, 8, 16, 32-bit |
+| 4:1 Mux | 8-bit (gate-level), 8-bit (`always_comb`) |
+| 8:1 Mux | 8-bit |
+| Ternary Mux | 8-bit (ternary operator) |
+| Decoder | 3-to-8 |
 | Register | 1, 8, 16, 32, 64-bit |
+| Register File | 8x8 (dual read ports) |
 | Counter | 8-bit with reset/enable |
+| ALU | 8-bit (`always_comb`, 4 ops: AND, OR, XOR, NOT) |
+
+### ROM Primitives
+| Module | Description |
+|--------|-------------|
+| `rom_deadbeef` | 4x8 ROM (demo) |
+
+ROM modules use a naming convention: `rom_{name}` auto-loads `{name}.txt`. See [ROM Primitives](#rom-primitives-1) below.
 
 ## Test File Format
 
@@ -142,19 +157,30 @@ JSON test files share the same base name as the SystemVerilog file.
 - Bit selection: `A[2]`, `bus[7:4]`
 - Concatenation: `{a, b}`, `{4{bit}}`
 - Bitwise operators: `&`, `|`, `^`, `~`
+- Arithmetic in assign statements: `+`, `-`, `*`
+- Ternary operator: `assign out = sel ? a : b` (nested right-associative)
 - Literals: `1'b0`, `8'hFF`, `4'd10`
 - Keywords: `logic`, `reg`, `signed`, `unsigned`
+- `always_comb` blocks with `if/else` and `case/default`
 - `always_ff @(posedge clk)` blocks
 - `if/else` and `case/default` in sequential blocks
-- Blocking (`=`) and nonblocking (`<=`) assignment execution in sequential AST
+- Blocking (`=`) and nonblocking (`<=`) assignment execution
 - Arithmetic in sequential blocks: `count + 1`
 - Memory arrays: `reg [7:0] memory [255:0]`
+- ROM primitives: `rom_*` modules auto-load data files
 
 ### Limitations
-- Arithmetic only in sequential blocks (combinational uses adder modules)
 - Modules must be in same directory as parent
 - No timing/propagation delays
 - No event-driven timing wheel (cycle-based sequential stepping only)
+
+### ROM Primitives
+
+Modules with a `rom_` prefix are treated as built-in ROM primitives. The SV file only needs to declare the interface -- the simulator handles data loading automatically.
+
+- **Naming convention**: `rom_{name}` loads `{name}.txt` (e.g., `rom_deadbeef` loads `deadbeef.txt`)
+- **Data file search order**: SV file directory, then `roms/` subdirectory, then `roms/` relative to CWD
+- **Data format**: One binary value per line (e.g., `11011110`), supports `#`/`//` comments
 
 ## Directory Structure
 
@@ -162,7 +188,7 @@ JSON test files share the same base name as the SystemVerilog file.
 pysvsim/
 ├── pysvsim.py          # Main simulator
 ├── test_runner.py      # Parallel test runner
-├── parts/              # 36 verified library modules
+├── parts/              # 44 verified library modules
 ├── testing/            # 40 HDLBits/validation modules
 ├── roms/               # ROM data files (for CPU)
 └── goals/              # Milestone documents
@@ -174,11 +200,11 @@ The next milestone is a simple 8-bit CPU. See `goals/8bitcpu-milestone.md` for d
 
 ### Required Modules
 1. **Program Counter** - 8-bit counter with load for jumps
-2. **Register File** - 8 registers x 8 bits with dual read
-3. **ALU** - 8-bit with ADD, SUB, AND, OR, XOR, NOT, PASS
+2. ~~**Register File**~~ - Done: `regfile_8x8` (8x8, dual read ports, 939 NANDs)
+3. ~~**ALU**~~ - Done: `alu_1bit` (8-bit, 4 ops via `always_comb`)
 4. **Instruction Decoder** - Decodes 8-bit instructions to control signals
 5. **Status Register** - Zero, Carry, Negative flags
-6. **ROM Module** - Instruction memory interface
+6. ~~**ROM Module**~~ - Done: ROM primitives (`rom_*` auto-detection)
 7. **RAM Module** - Data memory (256 bytes)
 
 ### Simulator Enhancements Needed

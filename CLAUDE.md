@@ -30,9 +30,10 @@ uv add <package>
 
 **pysvsim.py** - Main simulator with these core classes:
 
-- **SystemVerilogParser**: Regex-based parser extracting modules, ports, buses, wires, assignments, and `always_ff` blocks
-- **LogicEvaluator**: Evaluates combinational logic expressions; handles hierarchical module instantiation and NAND gate counting
+- **SystemVerilogParser**: Regex-based parser extracting modules, ports, buses, wires, assignments, `always_ff` blocks, and `always_comb` blocks
+- **LogicEvaluator**: Evaluates combinational logic expressions including `always_comb` blocks and ternary operators; handles hierarchical module instantiation and NAND gate counting
 - **SequentialLogicEvaluator**: Extends LogicEvaluator for sequential logic with state across clock cycles
+- **create_evaluator()**: Factory function that picks the right evaluator (sequential vs combinational) from parsed module info
 - **TruthTableGenerator/ImageGenerator**: Generates truth tables and PNG visualizations
 - **WaveformImageGenerator**: Creates timing diagrams for sequential logic
 - **TestRunner**: Executes JSON test cases against modules
