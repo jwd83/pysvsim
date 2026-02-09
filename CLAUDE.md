@@ -98,13 +98,13 @@ Test files share the same base name as their SystemVerilog file:
 
 ## SystemVerilog Support
 
-**Combinational**: Module declarations, buses (`[7:0]`), bit selection (`A[2]`), concatenation (`{a,b}`), bitwise operators (`&|^~`), literals (`8'hFF`)
+**Combinational**: Module declarations, buses (`[7:0]`), bit selection (`A[2]`), concatenation (`{a,b}`), bitwise operators (`&|^~`), literals (`8'hFF`), arithmetic in assign (`+`, `-`, `*`), ternary operator (`sel ? a : b`), `always_comb` blocks with if/else and case statements
 
 **Sequential**: `always_ff @(posedge clk)`, if/else chains, arithmetic (`count + 1`), clock/enable/reset
 
 **ROM Primitives**: Modules named `rom_*` are auto-detected as ROM primitives. The simulator strips the `rom_` prefix to find the data file (e.g., `rom_deadbeef` loads `deadbeef.txt`). No assignments or logic needed in the SV file — just declare ports.
 
-**Limitations**: Arithmetic only in sequential blocks (combinational uses adder modules); modules must be in same directory; no timing simulation
+**Limitations**: Modules must be in same directory; no timing simulation
 
 ## Key Directories
 

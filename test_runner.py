@@ -128,16 +128,18 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
                 module_info.get("instantiations", []), module_info.get("bus_info", {}),
                 module_info.get("slice_assignments", []), module_info.get("concat_assignments", []),
                 module_info.get("sequential_blocks", []), module_info.get("clock_signals", []), sv_file,
-                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", []
+                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", [],
+                module_info.get("combinational_blocks", []),
             )
         else:
             evaluator = LogicEvaluator(
                 module_info["inputs"], module_info["outputs"], module_info["assignments"],
                 module_info.get("instantiations", []), module_info.get("bus_info", {}),
                 module_info.get("slice_assignments", []), module_info.get("concat_assignments", []), sv_file,
-                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", []
+                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", [],
+                module_info.get("combinational_blocks", []),
             )
-        
+
         # Count NAND gates
         nand_count = evaluator.count_nand_gates()
         
@@ -743,6 +745,7 @@ class SystemVerilogTestRunner:
                     module_info.get("name", ""),
                     "",
                     [],
+                    module_info.get("combinational_blocks", []),
                 )
             else:
                 # Combinational logic - use existing LogicEvaluator
@@ -759,6 +762,7 @@ class SystemVerilogTestRunner:
                     module_info.get("name", ""),
                     "",
                     [],
+                    module_info.get("combinational_blocks", []),
                 )
             
             # Store evaluator in report for later use

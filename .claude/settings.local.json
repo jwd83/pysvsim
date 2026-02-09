@@ -16,7 +16,9 @@
       "WebFetch(domain:rentry.co)",
       "WebFetch(domain:notejo.com)",
       "WebFetch(domain:luka-kopse.com)",
-      "WebFetch(domain:blog.jverkamp.com)"
+      "WebFetch(domain:blog.jverkamp.com)",
+      "Bash(python3:*)",
+      "Bash(grep:*)"
     ]
   }
 }

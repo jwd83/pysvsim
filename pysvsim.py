@@ -162,6 +162,7 @@ class SystemVerilogParser:
         )  # Track concatenation assignments like {w, x, y, z} = expr
         self.instantiations = []
         self.sequential_blocks = []  # Track always_ff blocks and other sequential logic
+        self.combinational_blocks = []  # Track always_comb blocks
         self.clock_signals = set()  # Track identified clock signals
         self.memory_arrays = {}
         self.filepath = ""
@@ -223,6 +224,9 @@ class SystemVerilogParser:
         # Parse sequential logic blocks
         self._parse_sequential_blocks(content)
 
+        # Parse combinational logic blocks
+        self._parse_combinational_blocks(content)
+
         return {
             "name": self.module_name,
             "inputs": self.inputs.copy(),
@@ -232,6 +236,7 @@ class SystemVerilogParser:
             "concat_assignments": self.concat_assignments.copy(),
             "instantiations": self.instantiations.copy(),
             "sequential_blocks": self.sequential_blocks.copy(),
+            "combinational_blocks": self.combinational_blocks.copy(),
             "clock_signals": list(self.clock_signals),
             "bus_info": self.bus_info.copy(),
             "memory_arrays": self.memory_arrays.copy(),
@@ -561,6 +566,35 @@ class SystemVerilogParser:
             block_index += 1
             pos = next_pos
 
+    def _parse_combinational_blocks(self, content: str):
+        """Parse always_comb blocks into executable AST."""
+        pos = 0
+        block_index = 0
+        while pos < len(content):
+            match = re.search(r"\balways_comb\b", content[pos:])
+            if not match:
+                break
+
+            body_start = self._skip_whitespace(content, pos + match.start() + len("always_comb"))
+            if body_start >= len(content):
+                break
+
+            if content.startswith("begin", body_start):
+                end_pos = self._find_matching_begin_end(content, body_start)
+                block_body = content[body_start + len("begin"):end_pos].strip()
+                statement_ast = self._parse_statement_block(block_body)
+                next_pos = end_pos + len("end")
+            else:
+                statement_ast, next_pos = self._parse_statement(content, body_start)
+
+            self.combinational_blocks.append({
+                "type": "always_comb",
+                "statement": statement_ast,
+                "order": block_index,
+            })
+            block_index += 1
+            pos = next_pos
+
     def _parse_sensitivity_list(self, sensitivity_list: str) -> Dict[str, str]:
         """Parse sensitivity list like 'posedge clk' or 'posedge clk or posedge rst'."""
         entries = [entry.strip() for entry in re.split(r"\bor\b|,", sensitivity_list) if entry.strip()]
@@ -820,6 +854,7 @@ class LogicEvaluator:
         module_name: str = "",
         instance_path: str = "",
         memory_bindings: List[Dict[str, Any]] = None,
+        combinational_blocks: List[Dict[str, Any]] = None,
     ):
         self.inputs = inputs
         self.outputs = outputs
@@ -833,6 +868,7 @@ class LogicEvaluator:
         self.instance_path = instance_path
         self.memory_arrays = memory_arrays or {}
         self.memory_bindings = memory_bindings or []
+        self.combinational_blocks = combinational_blocks or []
         self.memory_state: Dict[str, List[int]] = {}
         self.memory_access: Dict[str, str] = {}
         self.instance_evaluators: Dict[str, Any] = {}
@@ -982,7 +1018,7 @@ class LogicEvaluator:
 
         # Evaluate all assignments (including intermediate wires) until no more changes
         # This handles cases where assignments depend on each other
-        max_iterations = len(self.assignments) + 10  # Prevent infinite loops
+        max_iterations = len(self.assignments) + len(self.combinational_blocks) * 2 + 10
         iteration = 0
 
         while iteration < max_iterations:
@@ -1011,6 +1047,17 @@ class LogicEvaluator:
                 except:
                     # Skip assignments that can't be evaluated yet (dependencies not ready)
                     continue
+
+            # Execute always_comb blocks
+            for comb_block in self.combinational_blocks:
+                snapshot = {k: v for k, v in signal_values.items()
+                            if k in self._comb_block_targets(comb_block)}
+                self._execute_comb_statement(
+                    comb_block.get("statement", {}), signal_values
+                )
+                for sig in snapshot:
+                    if signal_values.get(sig) != snapshot[sig]:
+                        changed = True
 
             # If no changes were made, we're done
             if not changed:
@@ -1101,6 +1148,117 @@ class LogicEvaluator:
                     signal_values[output_name] = bus_value
 
         return output_values
+
+    def _execute_comb_statement(
+        self, statement: Dict[str, Any], signal_values: Dict[str, int]
+    ):
+        """Execute a combinational statement AST node, updating signal_values in place."""
+        stype = statement.get("type")
+
+        if stype == "block":
+            for child in statement.get("statements", []):
+                self._execute_comb_statement(child, signal_values)
+            return
+
+        if stype == "if":
+            condition = statement.get("condition", "0")
+            cond_value = self._evaluate_expression(condition, signal_values)
+            branch = statement.get("then") if cond_value else statement.get("else")
+            if branch:
+                self._execute_comb_statement(branch, signal_values)
+            return
+
+        if stype == "case":
+            case_value = self._evaluate_expression(
+                statement.get("expression", "0"), signal_values
+            )
+            selected = None
+            for item in statement.get("items", []):
+                for label in item.get("labels", []):
+                    if self._evaluate_expression(label, signal_values) == case_value:
+                        selected = item.get("statement")
+                        break
+                if selected:
+                    break
+            if not selected:
+                selected = statement.get("default")
+            if selected:
+                self._execute_comb_statement(selected, signal_values)
+            return
+
+        if stype in {"blocking_assign", "nonblocking_assign"}:
+            target = statement.get("target", {})
+            target_signal = target.get("signal")
+            value = self._evaluate_expression(
+                statement.get("expression", "0"), signal_values, target_signal
+            )
+            self._apply_comb_assignment(target, value, signal_values)
+            return
+
+    def _apply_comb_assignment(
+        self, target: Dict[str, Any], value: int, signal_values: Dict[str, int]
+    ):
+        """Apply a parsed assignment target to signal_values (combinational context)."""
+        kind = target.get("kind")
+        signal_name = target.get("signal")
+        if not signal_name:
+            return
+
+        if kind == "bit":
+            bit_index = int(target.get("index", 0))
+            current = signal_values.get(signal_name, 0)
+            if value & 1:
+                signal_values[signal_name] = current | (1 << bit_index)
+            else:
+                signal_values[signal_name] = current & ~(1 << bit_index)
+        elif kind == "slice":
+            msb = int(target.get("msb", 0))
+            lsb = int(target.get("lsb", 0))
+            width = abs(msb - lsb) + 1
+            shift = min(msb, lsb)
+            mask = (1 << width) - 1
+            current = signal_values.get(signal_name, 0)
+            signal_values[signal_name] = (current & ~(mask << shift)) | ((value & mask) << shift)
+        else:
+            if signal_name in self.bus_info:
+                w = self.bus_info[signal_name].get("width", 1)
+                if w > 1:
+                    signal_values[signal_name] = value & ((1 << w) - 1)
+                else:
+                    signal_values[signal_name] = value & 1
+            else:
+                signal_values[signal_name] = value & 1
+
+        # Expand bus bits for consistency
+        if signal_name in self.bus_info and self.bus_info[signal_name].get("width", 1) > 1:
+            self._expand_bus_to_bits(signal_name, signal_values[signal_name], signal_values)
+
+    def _comb_block_targets(self, block: Dict[str, Any]) -> set:
+        """Collect all target signal names from a combinational block's AST."""
+        targets: set = set()
+
+        def collect(stmt: Dict[str, Any]):
+            stype = stmt.get("type")
+            if stype in {"blocking_assign", "nonblocking_assign"}:
+                sig = stmt.get("target", {}).get("signal")
+                if sig:
+                    targets.add(sig)
+            elif stype == "block":
+                for child in stmt.get("statements", []):
+                    collect(child)
+            elif stype == "if":
+                if stmt.get("then"):
+                    collect(stmt["then"])
+                if stmt.get("else"):
+                    collect(stmt["else"])
+            elif stype == "case":
+                for item in stmt.get("items", []):
+                    collect(item.get("statement", {}))
+                if stmt.get("default"):
+                    collect(stmt["default"])
+
+        collect(block.get("statement", {}))
+        return targets
 
     def _evaluate_expression(
         self, expression: str, signal_values: Dict[str, int], target_signal: str = None
@@ -1194,6 +1352,10 @@ class LogicEvaluator:
                     r"\b" + re.escape(signal_name) + r"\b", str(value), eval_expr
                 )
 
+        # Convert ternary operator (after slices/literals are resolved, so : is unambiguous)
+        if "?" in eval_expr:
+            eval_expr = self._convert_ternary(eval_expr)
+
         # Convert SystemVerilog operators to Python equivalents
         eval_expr = self._convert_operators(eval_expr)
 
@@ -1222,6 +1384,40 @@ class LogicEvaluator:
         expression = re.sub(r"(?<![=!<>])!(?!=)", " not ", expression)
 
         return expression
+
+    def _convert_ternary(self, expression: str) -> str:
+        """Convert SV ternary `cond ? true_val : false_val` to Python `((true_val) if (cond) else (false_val))`."""
+        # Process right-to-left (ternary is right-associative in SV)
+        q_pos = expression.rfind("?")
+        if q_pos == -1:
+            return expression
+        cond = expression[:q_pos].strip()
+        rest = expression[q_pos + 1:].strip()
+        colon_pos = self._find_ternary_colon(rest)
+        if colon_pos == -1:
+            return expression
+        true_val = rest[:colon_pos].strip()
+        false_val = rest[colon_pos + 1:].strip()
+        # Recursively handle nested ternaries in the condition part
+        if "?" in cond:
+            cond = self._convert_ternary(cond)
+        if "?" in false_val:
+            false_val = self._convert_ternary(false_val)
+        if "?" in true_val:
+            true_val = self._convert_ternary(true_val)
+        return f"(({true_val}) if ({cond}) else ({false_val}))"
+
+    def _find_ternary_colon(self, text: str) -> int:
+        """Find the colon matching a ternary '?' while respecting paren/bracket nesting."""
+        depth = 0
+        for i, ch in enumerate(text):
+            if ch in "({[":
+                depth += 1
+            elif ch in ")}]":
+                depth -= 1
+            elif ch == ":" and depth == 0:
+                return i
+        return -1
 
     def _evaluate_concatenation(
         self, concat_expr: str, signal_values: Dict[str, int]
@@ -1426,6 +1622,7 @@ class LogicEvaluator:
                     module_info.get("name", module_type),
                     instance_path,
                     self.memory_bindings,
+                    module_info.get("combinational_blocks", []),
                 )
             else:
                 instance_evaluator = LogicEvaluator(
@@ -1441,6 +1638,7 @@ class LogicEvaluator:
                     module_info.get("name", module_type),
                     instance_path,
                     self.memory_bindings,
+                    module_info.get("combinational_blocks", []),
                 )
             self.instance_evaluators[instance_name] = instance_evaluator
 
@@ -1692,6 +1890,7 @@ class SequentialLogicEvaluator:
         module_name: str = "",
         instance_path: str = "",
         memory_bindings: List[Dict[str, Any]] = None,
+        combinational_blocks: List[Dict[str, Any]] = None,
     ):
         self.inputs = inputs
         self.outputs = outputs
@@ -1714,6 +1913,7 @@ class SequentialLogicEvaluator:
             self.module_name,
             self.instance_path,
             memory_bindings or [],
+            combinational_blocks or [],
         )
         self.memory_arrays = self.comb_evaluator.memory_arrays
 
@@ -2741,6 +2941,7 @@ def main():
                 module_info.get("name", ""),
                 "",
                 [],
+                module_info.get("combinational_blocks", []),
             )
             print(f"Sequential blocks detected: {len(module_info.get('sequential_blocks', []))}")
             print(f"Clock signals: {list(module_info.get('clock_signals', []))}")
@@ -2759,6 +2960,7 @@ def main():
                 module_info.get("name", ""),
                 "",
                 [],
+                module_info.get("combinational_blocks", []),
             )
 
         # Count NAND gates
