@@ -570,12 +570,14 @@ class SystemVerilogParser:
         """Parse always_comb blocks into executable AST."""
         pos = 0
         block_index = 0
-        while pos < len(content):
-            match = re.search(r"\balways_comb\b", content[pos:])
+        pattern = re.compile(r"\balways_comb\b")
+
+        while True:
+            match = pattern.search(content, pos)
             if not match:
                 break
 
-            body_start = self._skip_whitespace(content, pos + match.start() + len("always_comb"))
+            body_start = self._skip_whitespace(content, match.end())
             if body_start >= len(content):
                 break
 
@@ -1021,6 +1023,11 @@ class LogicEvaluator:
         max_iterations = len(self.assignments) + len(self.combinational_blocks) * 2 + 10
         iteration = 0
 
+        # Pre-compute comb block targets (static per AST, no need to recompute each iteration)
+        comb_targets = [
+            self._comb_block_targets(block) for block in self.combinational_blocks
+        ]
+
         while iteration < max_iterations:
             changed = False
             iteration += 1
@@ -1049,13 +1056,12 @@ class LogicEvaluator:
                     continue
 
             # Execute always_comb blocks
-            for comb_block in self.combinational_blocks:
-                snapshot = {k: v for k, v in signal_values.items()
-                            if k in self._comb_block_targets(comb_block)}
+            for comb_block, targets in zip(self.combinational_blocks, comb_targets):
+                snapshot = {sig: signal_values.get(sig) for sig in targets}
                 self._execute_comb_statement(
                     comb_block.get("statement", {}), signal_values
                 )
-                for sig in snapshot:
+                for sig in targets:
                     if signal_values.get(sig) != snapshot[sig]:
                         changed = True
 
@@ -1220,14 +1226,8 @@ class LogicEvaluator:
             current = signal_values.get(signal_name, 0)
             signal_values[signal_name] = (current & ~(mask << shift)) | ((value & mask) << shift)
         else:
-            if signal_name in self.bus_info:
-                w = self.bus_info[signal_name].get("width", 1)
-                if w > 1:
-                    signal_values[signal_name] = value & ((1 << w) - 1)
-                else:
-                    signal_values[signal_name] = value & 1
-            else:
-                signal_values[signal_name] = value & 1
+            width = self.bus_info.get(signal_name, {}).get("width", 1)
+            signal_values[signal_name] = value & ((1 << width) - 1)
 
         # Expand bus bits for consistency
         if signal_name in self.bus_info and self.bus_info[signal_name].get("width", 1) > 1:
@@ -1603,44 +1603,13 @@ class LogicEvaluator:
             inst_input_values[port_name] = signal_value
 
         if instance_name not in self.instance_evaluators:
-            has_sequential_logic = bool(
-                module_info.get("sequential_blocks") or module_info.get("clock_signals")
+            self.instance_evaluators[instance_name] = create_evaluator(
+                module_info,
+                filepath=self.current_file_path,
+                module_name=module_info.get("name", module_type),
+                instance_path=instance_path,
+                memory_bindings=self.memory_bindings,
             )
-            if has_sequential_logic:
-                instance_evaluator = SequentialLogicEvaluator(
-                    module_info["inputs"],
-                    module_info["outputs"],
-                    module_info["assignments"],
-                    module_info.get("instantiations", []),
-                    module_info.get("bus_info", {}),
-                    module_info.get("slice_assignments", []),
-                    module_info.get("concat_assignments", []),
-                    module_info.get("sequential_blocks", []),
-                    module_info.get("clock_signals", []),
-                    self.current_file_path,
-                    module_info.get("memory_arrays", {}),
-                    module_info.get("name", module_type),
-                    instance_path,
-                    self.memory_bindings,
-                    module_info.get("combinational_blocks", []),
-                )
-            else:
-                instance_evaluator = LogicEvaluator(
-                    module_info["inputs"],
-                    module_info["outputs"],
-                    module_info["assignments"],
-                    module_info.get("instantiations", []),
-                    module_info.get("bus_info", {}),
-                    module_info.get("slice_assignments", []),
-                    module_info.get("concat_assignments", []),
-                    self.current_file_path,
-                    module_info.get("memory_arrays", {}),
-                    module_info.get("name", module_type),
-                    instance_path,
-                    self.memory_bindings,
-                    module_info.get("combinational_blocks", []),
-                )
-            self.instance_evaluators[instance_name] = instance_evaluator
 
         inst_evaluator = self.instance_evaluators[instance_name]
         if hasattr(inst_evaluator, "evaluate_cycle"):
@@ -2224,6 +2193,80 @@ class SequentialLogicEvaluator:
             else:
                 result[output] = 0
         return result
+
+
+def _has_sequential_submodules(module_info: Dict[str, Any]) -> bool:
+    """Check if any instantiated sub-modules appear to be sequential (registers)."""
+    for inst in module_info.get("instantiations", []):
+        module_type = inst["module_type"].lower()
+        if "register" in module_type or "reg" in module_type:
+            return True
+    return False
+
+
+def create_evaluator(
+    module_info: Dict[str, Any],
+    filepath: str = "",
+    module_name: str = "",
+    instance_path: str = "",
+    memory_bindings: List[Dict[str, Any]] = None,
+    check_submodules: bool = False,
+):
+    """Create the appropriate evaluator (sequential or combinational) for a parsed module.
+
+    Args:
+        module_info: Parsed module dictionary from SystemVerilogParser.
+        filepath: Path to the SystemVerilog source file.
+        module_name: Override for module name (defaults to module_info["name"]).
+        instance_path: Hierarchical instance path for sub-module instantiation.
+        memory_bindings: Memory initialization bindings.
+        check_submodules: Also check instantiated sub-modules for sequential hints.
+
+    Returns:
+        A LogicEvaluator or SequentialLogicEvaluator instance.
+    """
+    is_sequential = bool(
+        module_info.get("sequential_blocks") or module_info.get("clock_signals")
+    )
+    if not is_sequential and check_submodules:
+        is_sequential = _has_sequential_submodules(module_info)
+
+    resolved_name = module_name or module_info.get("name", "")
+
+    if is_sequential:
+        return SequentialLogicEvaluator(
+            module_info["inputs"],
+            module_info["outputs"],
+            module_info["assignments"],
+            module_info.get("instantiations", []),
+            module_info.get("bus_info", {}),
+            module_info.get("slice_assignments", []),
+            module_info.get("concat_assignments", []),
+            module_info.get("sequential_blocks", []),
+            module_info.get("clock_signals", []),
+            filepath,
+            module_info.get("memory_arrays", {}),
+            resolved_name,
+            instance_path,
+            memory_bindings or [],
+            module_info.get("combinational_blocks", []),
+        )
+
+    return LogicEvaluator(
+        module_info["inputs"],
+        module_info["outputs"],
+        module_info["assignments"],
+        module_info.get("instantiations", []),
+        module_info.get("bus_info", {}),
+        module_info.get("slice_assignments", []),
+        module_info.get("concat_assignments", []),
+        filepath,
+        module_info.get("memory_arrays", {}),
+        resolved_name,
+        instance_path,
+        memory_bindings or [],
+        module_info.get("combinational_blocks", []),
+    )
 
 
 class TruthTableGenerator:
@@ -2912,63 +2955,20 @@ def main():
         print(f"Outputs: {module_info['outputs']}")
 
         # Create evaluator (sequential or combinational based on module content)
-        # Check for direct sequential blocks or clock signals in sub-modules
-        is_sequential = module_info.get("sequential_blocks") or module_info.get("clock_signals")
-        
-        # Also check if any instantiated sub-modules are sequential
-        if not is_sequential:
-            for inst in module_info.get("instantiations", []):
-                module_type = inst["module_type"]
-                # Check for known sequential modules (like register_1bit)
-                if "register" in module_type.lower() or "reg" in module_type.lower():
-                    is_sequential = True
-                    break
-        
+        evaluator = create_evaluator(
+            module_info, filepath=args.file, check_submodules=True
+        )
+
+        is_sequential = hasattr(evaluator, 'evaluate_cycle')
         if is_sequential:
-            # Sequential logic detected - use SequentialLogicEvaluator
-            evaluator = SequentialLogicEvaluator(
-                module_info["inputs"],
-                module_info["outputs"],
-                module_info["assignments"],
-                module_info.get("instantiations", []),
-                module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []),
-                module_info.get("concat_assignments", []),
-                module_info.get("sequential_blocks", []),
-                module_info.get("clock_signals", []),
-                args.file,
-                module_info.get("memory_arrays", {}),
-                module_info.get("name", ""),
-                "",
-                [],
-                module_info.get("combinational_blocks", []),
-            )
             print(f"Sequential blocks detected: {len(module_info.get('sequential_blocks', []))}")
             print(f"Clock signals: {list(module_info.get('clock_signals', []))}")
-        else:
-            # Combinational logic - use LogicEvaluator
-            evaluator = LogicEvaluator(
-                module_info["inputs"],
-                module_info["outputs"],
-                module_info["assignments"],
-                module_info.get("instantiations", []),
-                module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []),
-                module_info.get("concat_assignments", []),
-                args.file,
-                module_info.get("memory_arrays", {}),
-                module_info.get("name", ""),
-                "",
-                [],
-                module_info.get("combinational_blocks", []),
-            )
 
         # Count NAND gates
         nand_count = evaluator.count_nand_gates()
         print(f"\nNAND Gate Count: {nand_count}")
 
         # Generate and display truth table (only for combinational logic)
-        is_sequential = hasattr(evaluator, 'evaluate_cycle')
         if not is_sequential:
             truth_table_gen = TruthTableGenerator(evaluator)
             truth_table = truth_table_gen.generate_truth_table(args.max_combinations)

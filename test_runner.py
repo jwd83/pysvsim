@@ -79,16 +79,12 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
         # Import here to avoid issues with multiprocessing
         from pysvsim import (
             SystemVerilogParser,
-            LogicEvaluator,
             TruthTableGenerator,
             clear_module_cache,
             normalize_memory_bindings,
+            create_evaluator,
         )
         from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
-        try:
-            from pysvsim import SequentialLogicEvaluator
-        except ImportError:
-            SequentialLogicEvaluator = None
         
         # Inline simplified version of test logic to avoid circular imports
         start_time = time.time()
@@ -114,31 +110,9 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
         module_info = parser.parse_file(sv_file)
         
         # Create evaluator
-        is_sequential = module_info.get("sequential_blocks") or module_info.get("clock_signals")
-        if not is_sequential:
-            for inst in module_info.get("instantiations", []):
-                module_type = inst["module_type"]
-                if "register" in module_type.lower() or "reg" in module_type.lower():
-                    is_sequential = True
-                    break
-        
-        if is_sequential and SequentialLogicEvaluator:
-            evaluator = SequentialLogicEvaluator(
-                module_info["inputs"], module_info["outputs"], module_info["assignments"],
-                module_info.get("instantiations", []), module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []),
-                module_info.get("sequential_blocks", []), module_info.get("clock_signals", []), sv_file,
-                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", [],
-                module_info.get("combinational_blocks", []),
-            )
-        else:
-            evaluator = LogicEvaluator(
-                module_info["inputs"], module_info["outputs"], module_info["assignments"],
-                module_info.get("instantiations", []), module_info.get("bus_info", {}),
-                module_info.get("slice_assignments", []), module_info.get("concat_assignments", []), sv_file,
-                module_info.get("memory_arrays", {}), module_info.get("name", ""), "", [],
-                module_info.get("combinational_blocks", []),
-            )
+        evaluator = create_evaluator(
+            module_info, filepath=sv_file, check_submodules=True
+        )
 
         # Count NAND gates
         nand_count = evaluator.count_nand_gates()
@@ -380,16 +354,12 @@ def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
 # Import our simulator components
 from pysvsim import (
     SystemVerilogParser,
-    LogicEvaluator,
     TruthTableGenerator,
     clear_module_cache,
+    create_evaluator,
     normalize_memory_bindings,
 )
 from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
-try:
-    from pysvsim import SequentialLogicEvaluator
-except ImportError:
-    SequentialLogicEvaluator = None
 import json
 import io
 import contextlib
@@ -716,54 +686,9 @@ class SystemVerilogTestRunner:
             report.parse_success = True
             
             # Create evaluator (sequential or combinational based on module content)
-            # Check for direct sequential blocks or clock signals
-            is_sequential = module_info.get("sequential_blocks") or module_info.get("clock_signals")
-            
-            # Also check if any instantiated sub-modules are sequential
-            if not is_sequential:
-                for inst in module_info.get("instantiations", []):
-                    module_type = inst["module_type"]
-                    # Check for known sequential modules (like register_1bit)
-                    if "register" in module_type.lower() or "reg" in module_type.lower():
-                        is_sequential = True
-                        break
-            
-            if is_sequential and SequentialLogicEvaluator:
-                # Sequential logic detected - use SequentialLogicEvaluator
-                evaluator = SequentialLogicEvaluator(
-                    module_info["inputs"],
-                    module_info["outputs"],
-                    module_info["assignments"],
-                    module_info.get("instantiations", []),
-                    module_info.get("bus_info", {}),
-                    module_info.get("slice_assignments", []),
-                    module_info.get("concat_assignments", []),
-                    module_info.get("sequential_blocks", []),
-                    module_info.get("clock_signals", []),
-                    sv_file,
-                    module_info.get("memory_arrays", {}),
-                    module_info.get("name", ""),
-                    "",
-                    [],
-                    module_info.get("combinational_blocks", []),
-                )
-            else:
-                # Combinational logic - use existing LogicEvaluator
-                evaluator = LogicEvaluator(
-                    module_info["inputs"],
-                    module_info["outputs"],
-                    module_info["assignments"],
-                    module_info.get("instantiations", []),
-                    module_info.get("bus_info", {}),
-                    module_info.get("slice_assignments", []),
-                    module_info.get("concat_assignments", []),
-                    sv_file,
-                    module_info.get("memory_arrays", {}),
-                    module_info.get("name", ""),
-                    "",
-                    [],
-                    module_info.get("combinational_blocks", []),
-                )
+            evaluator = create_evaluator(
+                module_info, filepath=sv_file, check_submodules=True
+            )
             
             # Store evaluator in report for later use
             report.evaluator = evaluator
