@@ -111,14 +111,9 @@ ROM modules use a naming convention: `rom_{name}` auto-loads `{name}.txt`. See [
 - `overture_alu_8bit.sv`: OR/NAND/NOR/AND/ADD/SUB ALU
 - `overture_decoder_8bit.sv`: instruction field decoder
 - `overture_pc_8bit.sv`: 8-bit program counter with jump/load behavior
-- ROM test programs:
-  - `overture_prog_alu.txt`
-  - `overture_prog_branch.txt`
-  - `overture_prog_io.txt`
-- Validation JSONs:
-  - `overture_cpu.json`
-  - `overture_cpu_program_branch.json`
-  - `overture_cpu_program_io.json`
+- `pgm_*` program harness modules reuse `overture_cpu.sv` with per-program ROM files:
+  - `pgm_overture_alu.sv`, `pgm_overture_branch.sv`, `pgm_overture_io.sv`
+  - each has `{name}.txt` program + `pgm_{name}.json` test
 
 ## Test File Format
 
@@ -196,6 +191,14 @@ Modules with a `rom_` prefix are treated as built-in ROM primitives. The SV file
 - **Naming convention**: `rom_{name}` loads `{name}.txt` (e.g., `rom_deadbeef` loads `deadbeef.txt`)
 - **Data file search order**: SV file directory, then `roms/` subdirectory, then `roms/` relative to CWD
 - **Data format**: One binary value per line (e.g., `11011110`), supports `#`/`//` comments
+
+### Overture Program Harnesses (`pgm_*`)
+
+Use `pgm_{name}` wrappers to test multiple Overture programs against the same CPU:
+- `pgm_{name}.sv` instantiates `overture_cpu`
+- `{name}.txt` stores program bytes (for example, `pgm_overture_branch` uses `overture_branch.txt`)
+- `pgm_{name}.json` contains program-specific test sequences
+- when JSON has no explicit memory bindings, `pgm_` modules auto-bind `overture_fetch.rom` to `{name}.txt`
 
 ## Directory Structure
 

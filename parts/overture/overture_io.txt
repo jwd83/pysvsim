@@ -1,0 +1,33 @@
+# Program C: IN/OUT copy and eq/less_eq condition checks
+# R1 <- IN, R2 <- IN, R3 <- AND(R1,R2)
+177
+178
+67
+# If R3 == 0 jump to address 10
+0x0A
+193
+# Non-zero path: OUT <- 1, jump to 12
+1
+134
+12
+196
+192
+# Zero path: OUT <- 0
+0
+134
+# Build R1=R2=7 and SUB -> 0 for less_eq test
+7
+129
+7
+130
+69
+# If less_eq jump to 21 (taken)
+21
+195
+# Failure marker (should be skipped)
+2
+132
+# Success marker
+55
+133
+192

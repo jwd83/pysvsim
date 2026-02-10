@@ -132,6 +132,24 @@ def normalize_memory_bindings(test_data: Any, test_dir: str, default_module: str
     for mem_type in ("rom", "ram"):
         _process_entries(test_data.get(mem_type), mem_type)
 
+    # Program harness convention:
+    # pgm_<name> automatically binds overture_fetch.rom to <name>.txt
+    # when no explicit memory bindings were provided in JSON.
+    if not normalized and default_module.startswith("pgm_"):
+        program_name = default_module[4:]
+        if program_name:
+            program_file = os.path.normpath(os.path.join(test_dir, f"{program_name}.txt"))
+            if os.path.exists(program_file):
+                normalized.append(
+                    {
+                        "type": "rom",
+                        "module": "overture_fetch",
+                        "instance": "",
+                        "memory": "rom",
+                        "file": program_file,
+                    }
+                )
+
     return normalized
 
 

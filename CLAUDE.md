@@ -79,6 +79,26 @@ endmodule
 
 The address width determines ROM depth (2-bit addr = 4 entries). The output bus width determines word size. Data files use the same format as memory init files (binary strings, `#`/`//` comments, optional `addr:value` syntax).
 
+## Overture Program Harness Prefix (`pgm_`)
+
+For Overture program suites, use a wrapper module named `pgm_{name}` that:
+1. Instantiates `overture_cpu`
+2. Shares the same CPU I/O ports (clk/reset/run/in_port + observable outputs)
+3. Relies on the `pgm_` auto-binding convention in `normalize_memory_bindings()`
+
+Auto-binding rule:
+- If no explicit `memory_files`/`memory_init` entries are present in JSON and top module name starts with `pgm_`, the simulator binds:
+  - module: `overture_fetch`
+  - memory: `rom`
+  - file: `{name}.txt` where `{name}` is from `pgm_{name}`
+
+Example pairing:
+- `pgm_overture_branch.sv`
+- `overture_branch.txt` (program bytes)
+- `pgm_overture_branch.json` (program-specific test sequence)
+
+This allows multiple programs to share the same CPU core without per-test `memory_files` JSON bindings.
+
 ## Test File Conventions
 
 Test files share the same base name as their SystemVerilog file:
