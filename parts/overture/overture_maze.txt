@@ -1,0 +1,73 @@
+# The Maze: left-wall following algorithm
+# Output: 0=turn left, 1=move forward, 2=turn right
+# Input: 0=blocked, 1=moved successfully
+#
+# Strategy: try left, forward, right, right, right, forward (180)
+
+# --- Try left ---
+# 0: R0 <- 0 (LEFT)
+0
+# 1: out_port <- R0
+134
+# 2: R0 <- 1 (FORWARD)
+1
+# 3: out_port <- R0
+134
+# 4: R1 <- in_port (result)
+177
+# 5: R3 <- R1 (for condition check)
+139
+# 6: R0 <- 0 (restart addr)
+0
+# 7: if R3!=0 (not_eq), jump to addr 0
+197
+
+# --- Try forward (undo left turn first) ---
+# 8: R0 <- 2 (RIGHT)
+2
+# 9: out_port <- R0
+134
+# 10: R0 <- 1 (FORWARD)
+1
+# 11: out_port <- R0
+134
+# 12: R1 <- in_port
+177
+# 13: R3 <- R1
+139
+# 14: R0 <- 0
+0
+# 15: if R3!=0, jump to addr 0
+197
+
+# --- Try right ---
+# 16: R0 <- 2 (RIGHT)
+2
+# 17: out_port <- R0
+134
+# 18: R0 <- 1 (FORWARD)
+1
+# 19: out_port <- R0
+134
+# 20: R1 <- in_port
+177
+# 21: R3 <- R1
+139
+# 22: R0 <- 0
+0
+# 23: if R3!=0, jump to addr 0
+197
+
+# --- Turn around (right again + forward, must succeed) ---
+# 24: R0 <- 2 (RIGHT)
+2
+# 25: out_port <- R0
+134
+# 26: R0 <- 1 (FORWARD)
+1
+# 27: out_port <- R0
+134
+# 28: R0 <- 0
+0
+# 29: always jump to addr 0
+196
