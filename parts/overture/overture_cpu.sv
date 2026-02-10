@@ -88,6 +88,7 @@ module overture_cpu (
     );
 
     // --- Jump logic ---
+    wire jump_en;
     assign jump_en = is_condition & cond_met;
 
     // --- Register writeback and PC update ---
@@ -102,37 +103,31 @@ module overture_cpu (
             r3          <= 8'b0;
             r4          <= 8'b0;
             r5          <= 8'b0;
-        end else begin
-            pc <= pc;
+        end else if (run) begin
+            instr_debug <= instr;
 
-            if (run) begin
-                instr_debug <= instr;
-                if (jump_en) begin
-                    pc <= r0;
-                end else begin
-                    pc <= pc + 1'b1;
-                end
-
-                if (is_immediate)
-                    r0 <= imm_value;
-
-                if (is_calculate)
-                    r3 <= alu_result;
-
-                if (is_copy) begin
-                    out_port <= out_port;
-                    case (dst_sel)
-                        3'b000: r0 <= src_value;
-                        3'b001: r1 <= src_value;
-                        3'b010: r2 <= src_value;
-                        3'b011: r3 <= src_value;
-                        3'b100: r4 <= src_value;
-                        3'b101: r5 <= src_value;
-                        3'b110: out_port <= src_value;
-                        default: out_port <= out_port;
-                    endcase
-                end
+            if (jump_en) begin
+                pc <= r0;
+            end else begin
+                pc <= pc + 1'b1;
             end
+
+            if (is_immediate)
+                r0 <= imm_value;
+
+            if (is_calculate)
+                r3 <= alu_result;
+
+            if (is_copy)
+                case (dst_sel)
+                    3'b000: r0 <= src_value;
+                    3'b001: r1 <= src_value;
+                    3'b010: r2 <= src_value;
+                    3'b011: r3 <= src_value;
+                    3'b100: r4 <= src_value;
+                    3'b101: r5 <= src_value;
+                    3'b110: out_port <= src_value;
+                endcase
         end
 
     // Debug / observation outputs

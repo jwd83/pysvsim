@@ -877,6 +877,7 @@ class LogicEvaluator:
         self.rom_data: Optional[List[int]] = None
         self.rom_addr_port: Optional[str] = None
         self.rom_data_port: Optional[str] = None
+        self._last_signal_values: Dict[str, int] = {}
 
         self._initialize_memory_state()
         self._initialize_rom_primitive()
@@ -1954,7 +1955,7 @@ class SequentialLogicEvaluator:
         # Use all combinational signal values (not just outputs) so that
         # always_ff blocks can read intermediate wires from sub-module
         # instantiations and assigns (needed for structural designs).
-        all_comb_signals = getattr(self.comb_evaluator, '_last_signal_values', {})
+        all_comb_signals = self.comb_evaluator._last_signal_values
         snapshot = {**current_signals, **all_comb_signals}
         self._expand_known_buses(snapshot)
 
