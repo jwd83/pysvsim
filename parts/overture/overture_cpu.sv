@@ -14,10 +14,7 @@ module overture_cpu (
     output [7:0] r5_out
 );
 
-    // Program ROM: loaded from JSON memory_files binding in tests.
-    reg [7:0] rom [255:0];
-
-    // Architectural registers.
+    // Architectural registers
     reg [7:0] r0;
     reg [7:0] r1;
     reg [7:0] r2;
@@ -25,110 +22,120 @@ module overture_cpu (
     reg [7:0] r4;
     reg [7:0] r5;
 
-    // Debug/execute temporaries.
-    reg [7:0] instr;
-    reg [7:0] src_value;
-    reg       jump_taken;
+    // --- Fetch: ROM lookup by PC ---
+    wire [7:0] instr;
 
+    overture_fetch fetch_unit (
+        .addr(pc),
+        .data(instr)
+    );
+
+    // --- Decode: extract instruction fields ---
+    wire       is_immediate;
+    wire       is_calculate;
+    wire       is_copy;
+    wire       is_condition;
+    wire [5:0] imm_value;
+    wire [2:0] alu_op;
+    wire [2:0] src_sel;
+    wire [2:0] dst_sel;
+    wire [2:0] cond_sel;
+
+    overture_decoder_8bit decoder (
+        .instr(instr),
+        .is_immediate(is_immediate),
+        .is_calculate(is_calculate),
+        .is_copy(is_copy),
+        .is_condition(is_condition),
+        .imm_value(imm_value),
+        .alu_op(alu_op),
+        .src_sel(src_sel),
+        .dst_sel(dst_sel),
+        .cond_sel(cond_sel)
+    );
+
+    // --- Execute: ALU, source mux, condition evaluator ---
+    wire [7:0] alu_result;
+
+    overture_alu_8bit alu (
+        .inA(r1),
+        .inB(r2),
+        .op(alu_op),
+        .outY(alu_result)
+    );
+
+    wire [7:0] src_value;
+
+    mux_8to1_8bit src_mux (
+        .in0(r0),
+        .in1(r1),
+        .in2(r2),
+        .in3(r3),
+        .in4(r4),
+        .in5(r5),
+        .in6(in_port),
+        .in7(8'b0),
+        .sel(src_sel),
+        .out(src_value)
+    );
+
+    wire cond_met;
+
+    overture_condition cond_eval (
+        .r3(r3),
+        .cond_sel(cond_sel),
+        .cond_met(cond_met)
+    );
+
+    // --- Jump logic ---
+    assign jump_en = is_condition & cond_met;
+
+    // --- Register writeback and PC update ---
     always_ff @(posedge clk)
         if (reset) begin
-            pc        <= 8'b0;
-            out_port  <= 8'b0;
-            r0        <= 8'b0;
-            r1        <= 8'b0;
-            r2        <= 8'b0;
-            r3        <= 8'b0;
-            r4        <= 8'b0;
-            r5        <= 8'b0;
-            instr     <= 8'b0;
-            src_value <= 8'b0;
-            jump_taken <= 1'b0;
+            pc          <= 8'b0;
+            out_port    <= 8'b0;
+            instr_debug <= 8'b0;
+            r0          <= 8'b0;
+            r1          <= 8'b0;
+            r2          <= 8'b0;
+            r3          <= 8'b0;
+            r4          <= 8'b0;
+            r5          <= 8'b0;
         end else begin
-            // Avoid parser false positives by making first statement non-keyword.
-            instr = instr;
+            pc <= pc;
 
             if (run) begin
-                // Fetch current instruction.
-                instr = rom[pc];
+                instr_debug <= instr;
+                if (jump_en) begin
+                    pc <= r0;
+                end else begin
+                    pc <= pc + 1'b1;
+                end
 
-                // Default next PC is sequential.
-                pc <= pc + 1'b1;
+                if (is_immediate)
+                    r0 <= imm_value;
 
-                // Defaults for per-instruction temporaries.
-                src_value = 8'b0;
-                jump_taken = 1'b0;
+                if (is_calculate)
+                    r3 <= alu_result;
 
-                case (instr[7:6])
-                    // Immediate: R0 <- imm6
-                    2'b00: begin
-                        r0 <= instr[5:0];
-                    end
-
-                    // Calculate: R3 <- ALU(R1, R2)
-                    2'b01:
-                        case (instr[2:0])
-                            3'b000: r3 <= r1 | r2;          // OR
-                            3'b001: r3 <= ~(r1 & r2);       // NAND
-                            3'b010: r3 <= ~(r1 | r2);       // NOR
-                            3'b011: r3 <= r1 & r2;          // AND
-                            3'b100: r3 <= r1 + r2;          // ADD
-                            3'b101: r3 <= r1 - r2;          // SUB
-                            default: r3 <= r3;              // Reserved opcodes
-                        endcase
-
-                    // Copy: dst <- src
-                    2'b10: begin
-                        // Keep this as the first statement so parser doesn't misread "begin case".
-                        src_value = src_value;
-
-                        case (instr[5:3])
-                            3'b000: src_value = r0;
-                            3'b001: src_value = r1;
-                            3'b010: src_value = r2;
-                            3'b011: src_value = r3;
-                            3'b100: src_value = r4;
-                            3'b101: src_value = r5;
-                            3'b110: src_value = in_port;    // IN register
-                            default: src_value = 8'b0;      // Source 111 reads zero
-                        endcase
-
-                        case (instr[2:0])
-                            3'b000: r0 <= src_value;
-                            3'b001: r1 <= src_value;
-                            3'b010: r2 <= src_value;
-                            3'b011: r3 <= src_value;
-                            3'b100: r4 <= src_value;
-                            3'b101: r5 <= src_value;
-                            3'b110: out_port <= src_value;  // OUT register
-                            default: out_port <= out_port;  // Destination 111 ignored
-                        endcase
-                    end
-
-                    // Condition: if cond(R3) then PC <- R0
-                    default: begin
-                        // Keep this as the first statement so parser doesn't misread "begin case".
-                        jump_taken = jump_taken;
-
-                        case (instr[2:0])
-                            3'b000: jump_taken = 1'b0;                                 // never
-                            3'b001: if (r3 == 8'b0) jump_taken = 1'b1;                 // eq
-                            3'b010: if (r3[7] == 1'b1) jump_taken = 1'b1;              // less
-                            3'b011: if ((r3[7] == 1'b1) || (r3 == 8'b0)) jump_taken = 1'b1; // less_eq
-                            3'b100: jump_taken = 1'b1;                                 // always
-                            3'b101: if (r3 != 8'b0) jump_taken = 1'b1;                 // not_eq
-                            3'b110: if (r3[7] == 1'b0) jump_taken = 1'b1;              // greater_eq
-                            default: if ((r3[7] == 1'b0) && (r3 != 8'b0)) jump_taken = 1'b1; // greater
-                        endcase
-
-                        if (jump_taken) begin
-                            pc <= r0;
-                        end
-                    end
-                endcase
+                if (is_copy) begin
+                    out_port <= out_port;
+                    case (dst_sel)
+                        3'b000: r0 <= src_value;
+                        3'b001: r1 <= src_value;
+                        3'b010: r2 <= src_value;
+                        3'b011: r3 <= src_value;
+                        3'b100: r4 <= src_value;
+                        3'b101: r5 <= src_value;
+                        3'b110: out_port <= src_value;
+                        default: out_port <= out_port;
+                    endcase
+                end
             end
         end
 
-    assign instr_debug = instr;
+    // Debug / observation outputs
     assign r0_out = r0;
     assign r1_out = r1;
     assign r2_out = r2;

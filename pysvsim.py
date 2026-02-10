@@ -1138,6 +1138,11 @@ class LogicEvaluator:
                 if target in self.bus_info and self.bus_info[target]["width"] > 1:
                     self._expand_bus_to_bits(target, target_value, signal_values)
 
+        # Preserve all signal values for parent sequential evaluators that need
+        # access to intermediate combinational signals (e.g. structural CPU designs
+        # where always_ff reads wires driven by sub-module instantiations).
+        self._last_signal_values = signal_values
+
         # Extract output values
         output_values = {}
         for output_name in self.outputs:
@@ -1946,7 +1951,11 @@ class SequentialLogicEvaluator:
         comb_outputs = self.comb_evaluator.evaluate(
             current_signals, advance_sequential_instances=True
         )
-        snapshot = {**current_signals, **comb_outputs}
+        # Use all combinational signal values (not just outputs) so that
+        # always_ff blocks can read intermediate wires from sub-module
+        # instantiations and assigns (needed for structural designs).
+        all_comb_signals = getattr(self.comb_evaluator, '_last_signal_values', {})
+        snapshot = {**current_signals, **all_comb_signals}
         self._expand_known_buses(snapshot)
 
         blocking_updates: Dict[str, int] = {}

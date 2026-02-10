@@ -3,7 +3,7 @@
   "memory_files": {
     "rom": {
       "type": "rom",
-      "module": "overture_cpu",
+      "module": "overture_fetch",
       "memory": "rom",
       "file": "overture_prog_branch.txt"
     }

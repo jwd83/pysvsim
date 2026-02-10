@@ -18,7 +18,11 @@
       "WebFetch(domain:luka-kopse.com)",
       "WebFetch(domain:blog.jverkamp.com)",
       "Bash(python3:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git -C /Users/jared/projects/pysvsim show b15742d --stat)",
+      "Bash(git -C /Users/jared/projects/pysvsim show:*)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)"
     ]
   }
 }
