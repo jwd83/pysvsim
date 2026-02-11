@@ -65,6 +65,13 @@ def load_memory_txt_file(file_path: str, word_width: int, depth: int) -> List[in
         line = raw_line.strip()
         if not line or line.startswith("#") or line.startswith("//"):
             continue
+        # Strip inline comments
+        for marker in ("//", "#"):
+            pos = line.find(marker)
+            if pos >= 0:
+                line = line[:pos].strip()
+        if not line:
+            continue
 
         # Optional address override syntax: <addr>:<value>
         if ":" in line:
