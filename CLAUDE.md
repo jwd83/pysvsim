@@ -12,15 +12,17 @@ Use `uv` to manage dependencies and run Python:
 
 ```bash
 # Test a single module
-uv run test_runner.py parts/and_gate.sv
+uv run test_runner.py parts/basic/and_gate.sv
 
-# Test entire directory (parallel execution)
+# Test entire directory tree (parallel execution, recursive)
 uv run test_runner.py parts/
-uv run test_runner.py testing/
+uv run test_runner.py parts/basic/
+uv run test_runner.py parts/overture/
+uv run test_runner.py parts/testing/
 
 # Generate truth table / run simulation
-uv run pysvsim.py --file parts/full_adder.sv
-uv run pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
+uv run pysvsim.py --file parts/basic/full_adder.sv
+uv run pysvsim.py --file parts/basic/full_adder.sv --test parts/basic/full_adder.json
 
 # Add a dependency
 uv add <package>
@@ -59,7 +61,7 @@ Modules with a `rom_` prefix are treated as built-in ROM primitives by the simul
 2. `roms/` subdirectory relative to SV file
 3. `roms/` relative to CWD
 
-**Example SV file** (`parts/rom_deadbeef.sv`):
+**Example SV file** (`parts/basic/rom_deadbeef.sv`):
 ```systemverilog
 module rom_deadbeef (
     input  logic [1:0] addr,
@@ -69,7 +71,7 @@ module rom_deadbeef (
 endmodule
 ```
 
-**Data file format** (`parts/deadbeef.txt`): one binary value per line, one entry per address:
+**Data file format** (`parts/basic/deadbeef.txt`): one binary value per line, one entry per address:
 ```
 11011110
 10101101
@@ -102,7 +104,7 @@ This allows multiple programs to share the same CPU core without per-test `memor
 ## Test File Conventions
 
 Test files share the same base name as their SystemVerilog file:
-- `parts/and_gate.sv` + `parts/and_gate.json`
+- `parts/basic/and_gate.sv` + `parts/basic/and_gate.json`
 
 **Combinational format:**
 ```json
@@ -129,7 +131,11 @@ Test files share the same base name as their SystemVerilog file:
 
 ## Key Directories
 
-- **parts/**: Verified module library (gates, adders, muxes, registers, counters, ROMs)
-- **testing/**: HDLBits coursework modules for testing
+- **parts/**: All module files, organized into subdirectories:
+  - **parts/basic/**: Core building blocks (gates, adders, muxes, registers, counters, ROMs) — 44 modules
+  - **parts/overture/**: Overture CPU and program harnesses (cpu, alu, decoder, fetch, pgm_* wrappers) — 41 modules
+  - **parts/testing/**: HDLBits coursework modules and extra test modules — 40 modules
+  - **parts/roms/**: ROM data files (blank templates)
 - **goals/**: Project milestone documents (8-bit CPU, RV32I plans)
-- **roms/**: ROM data files (blank templates and CPU data)
+  - **goals/research/**: ISA research reports
+- **results/**: Test result output files
