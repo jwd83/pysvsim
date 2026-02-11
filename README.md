@@ -8,10 +8,6 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ![CPU Waveform](parts/overture/overture_cpu.png)
 
-### Waveform - 8-bit Counter with Reset/Enable
-
-![Counter Waveform](parts/basic/counter8.png)
-
 ### Truth Tables
 
 | NAND Gate | Full Adder | 3-to-8 Decoder |
