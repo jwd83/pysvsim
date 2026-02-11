@@ -15,14 +15,13 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Example Output
 
+### Waveform - Overture CPU Execution
+
+![CPU Waveform](parts/overture/overture_cpu.png)
 
 ### Waveform - 8-bit Counter with Reset/Enable
 
 ![Counter Waveform](parts/basic/counter8.png)
-
-### Waveform - Overture CPU Execution
-
-![CPU Waveform](parts/overture/overture_cpu.png)
 
 ### Truth Table - Full Adder
 
