@@ -46,7 +46,7 @@ uv run test_runner.py parts/          # all subdirectories
 ## Features
 
 ### Core Simulation
-- **Pure Python**: Dependencies: `matplotlib` (waveforms), `Pillow` (truth tables)
+- **Pure Python**: Dependencies: `Pillow`
 - **Bus Support**: Multi-bit buses (`input [7:0] data`), bit selection (`A[2]`), slices (`bus[7:4]`)
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
 - **Combinational Logic**: Bitwise operators, arithmetic (`+`, `-`, `*`), ternary (`sel ? a : b`)
