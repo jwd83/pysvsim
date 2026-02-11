@@ -4,30 +4,63 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Project Status
 
-**Current State: Core simulator stable, Overture CPU core implemented and validated**
-
 | Metric | Value |
 |--------|-------|
-| Last Verified | February 9, 2026 |
-| `parts/` Regression | 74/74 files passing, 678/678 test cases |
-| `testing/` Regression | 40/40 files passing, 261/261 test cases |
-| Combined Regression | 114 files passing, 939/939 test cases |
-| Overture ROM ISA Suites | ALU smoke, branch, and I/O programs passing |
-| Total NAND Gates (`parts/`) | 16,735 |
+| Last Verified | February 11, 2026 |
+| `parts/basic/` | 44/44 files, 416/416 tests |
+| `parts/overture/` | 41/41 files, 325/325 tests |
+| `parts/testing/` | 40/40 files, 261/261 tests |
+| **Combined** | **125 files, 1002 tests, all passing** |
+| Total NAND Gates | 21,835 |
+
+## Example Output
+
+### Truth Table - Full Adder (15 NAND gates)
+
+![Full Adder Truth Table](parts/basic/full_adder.png)
+
+### Truth Table - 3-to-8 Decoder (27 NAND gates)
+
+![Decoder Truth Table](parts/basic/decoder_3to8.png)
+
+### Truth Table - Overture ALU (OR/NAND/NOR/AND/ADD/SUB)
+
+![Overture ALU Truth Table](parts/overture/overture_alu_8bit.png)
+
+### Waveform - 8-bit Counter with Reset/Enable
+
+![Counter Waveform](parts/basic/counter8.png)
+
+## Quick Start
+
+```bash
+# Generate truth table for a module
+uv run pysvsim.py --file parts/basic/full_adder.sv
+
+# Run with test cases
+uv run pysvsim.py --file parts/basic/full_adder.sv --test parts/basic/full_adder.json
+
+# Test a single file
+uv run test_runner.py parts/basic/and_gate.sv
+
+# Test a subdirectory or entire tree (parallel)
+uv run test_runner.py parts/basic/
+uv run test_runner.py parts/overture/
+uv run test_runner.py parts/          # all subdirectories
+```
 
 ## Features
 
 ### Core Simulation
 - **Pure Python**: Single direct dependency (`matplotlib`) for visualization
-- **Bus Support**: Multi-bit buses with clean notation (`input [7:0] data`)
+- **Bus Support**: Multi-bit buses (`input [7:0] data`), bit selection (`A[2]`), slices (`bus[7:4]`)
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
-- **Combinational Logic**: Bitwise operators (`&`, `|`, `^`, `~`), arithmetic (`+`, `-`, `*`), ternary operator (`sel ? a : b`)
-- **`always_comb` Blocks**: Full combinational procedural blocks with `if/else` and `case/default`
-- **Sequential Logic**: `always_ff` blocks, registers, counters with clock/enable/reset
-- **Sequential AST Execution**: `if/else`, `case/default`, blocking/nonblocking assignment semantics
-- **ROM Primitives**: Modules named `rom_*` auto-load data files by naming convention
-- **Memory Arrays**: `reg/logic [W] mem [D]` read/write support for ROM/RAM-style modules
-- **NAND Gate Analysis**: Counts NAND gates in hierarchical designs for complexity scoring
+- **Combinational Logic**: Bitwise operators, arithmetic (`+`, `-`, `*`), ternary (`sel ? a : b`)
+- **`always_comb` Blocks**: Procedural blocks with `if/else` and `case/default`
+- **Sequential Logic**: `always_ff @(posedge clk)`, registers, counters, clock/enable/reset
+- **ROM Primitives**: `rom_*` modules auto-load data files by naming convention
+- **Memory Arrays**: `reg/logic [W] mem [D]` for ROM/RAM-style modules
+- **NAND Gate Analysis**: Counts NAND gates through hierarchical designs for complexity scoring
 
 ### Testing & Visualization
 - **Truth Table Generation**: Automatic truth tables for combinational logic
@@ -36,40 +69,52 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 - **JSON Testing**: Test cases for combinational and sequential designs
 - **Parallel Test Runner**: Multi-core regression testing
 
-## Quick Start
+## Directory Structure
 
-```bash
-# Generate truth table for a module
-uv run pysvsim.py --file parts/and_gate.sv
-
-# Run with test cases
-uv run pysvsim.py --file parts/full_adder.sv --test parts/full_adder.json
-
-# Test a single file
-uv run test_runner.py parts/and_gate.sv
-
-# Test entire directory (parallel)
-uv run test_runner.py parts/
-uv run test_runner.py testing/
-
-# Batch test (Windows)
-test.bat
+```
+pysvsim/
+├── pysvsim.py              # Main simulator
+├── test_runner.py           # Parallel test runner
+├── parts/
+│   ├── basic/              # 44 core building blocks
+│   │   ├── nand_gate.sv    #   gates, adders, muxes, registers,
+│   │   ├── full_adder.sv   #   counters, decoders, ALU, ROM,
+│   │   ├── regfile_8x8.sv  #   carry-select adders (up to 64-bit)
+│   │   └── ...
+│   ├── overture/           # 41 Overture CPU modules
+│   │   ├── overture_cpu.sv #   CPU core (structural instantiation)
+│   │   ├── overture_alu_8bit.sv
+│   │   ├── overture_decoder_8bit.sv
+│   │   ├── overture_fetch.sv
+│   │   ├── pgm_*.sv        #   9 program harness wrappers
+│   │   └── ...
+│   ├── testing/            # 40 HDLBits coursework + validation modules
+│   │   ├── 001-GettingStarted.sv
+│   │   ├── ...
+│   │   └── memory_cpu_stub.sv
+│   └── roms/               # Blank ROM templates
+├── goals/                   # Milestone documents
+│   ├── goal-1-overture_cpu_isa_reference.md
+│   ├── goal-2-advanced-8bitcpu-milestone.md
+│   ├── goal-3-rv32i-milestone.md
+│   └── research/           # ISA research reports
+└── results/                 # Test result output files
 ```
 
-## Module Library (`parts/`)
+## Module Library (`parts/basic/`)
 
 All modules are built hierarchically from NAND gates.
 
 ### Logic Gates
 | Module | 1-bit | 8-bit |
 |--------|-------|-------|
-| NAND | `nand_gate.sv` | `nand_gate_8bit.sv` |
-| AND | `and_gate.sv` | `and_gate_8bit.sv` |
-| OR | `or_gate.sv` | `or_gate_8bit.sv` |
-| NOR | `nor_gate.sv` | `nor_gate_8bit.sv` |
-| XOR | `xor_gate.sv` | `xor_gate_8bit.sv` |
-| XNOR | `xnor_gate.sv` | `xnor_gate_8bit.sv` |
-| NOT | `not_gate.sv` | `not_gate_8bit.sv` |
+| NAND | `nand_gate` | `nand_gate_8bit` |
+| AND | `and_gate` | `and_gate_8bit` |
+| OR | `or_gate` | `or_gate_8bit` |
+| NOR | `nor_gate` | `nor_gate_8bit` |
+| XOR | `xor_gate` | `xor_gate_8bit` |
+| XNOR | `xnor_gate` | `xnor_gate_8bit` |
+| NOT | `not_gate` | `not_gate_8bit` |
 
 ### Arithmetic
 | Module | NAND Gates |
@@ -95,7 +140,7 @@ All modules are built hierarchically from NAND gates.
 | Ternary Mux | 8-bit (ternary operator) |
 | Decoder | 3-to-8 |
 | Register | 1, 8, 16, 32, 64-bit |
-| Register File | 8x8 (dual read ports) |
+| Register File | 8x8 (dual read ports, 939 NANDs) |
 | Counter | 8-bit with reset/enable |
 | ALU | 8-bit (`always_comb`, 4 ops: AND, OR, XOR, NOT) |
 
@@ -104,16 +149,37 @@ All modules are built hierarchically from NAND gates.
 |--------|-------------|
 | `rom_deadbeef` | 4x8 ROM (demo) |
 
-ROM modules use a naming convention: `rom_{name}` auto-loads `{name}.txt`. See [ROM Primitives](#rom-primitives-1) below.
+ROM modules use a naming convention: `rom_{name}` auto-loads `{name}.txt`.
 
-### Overture CPU (`parts/overture/`)
-- `overture_cpu.sv`: 8-bit Overture ISA executor (`Immediate`, `Calculate`, `Copy`, `Condition`)
-- `overture_alu_8bit.sv`: OR/NAND/NOR/AND/ADD/SUB ALU
-- `overture_decoder_8bit.sv`: instruction field decoder
-- `overture_pc_8bit.sv`: 8-bit program counter with jump/load behavior
-- `pgm_*` program harness modules reuse `overture_cpu.sv` with per-program ROM files:
-  - `pgm_overture_alu.sv`, `pgm_overture_branch.sv`, `pgm_overture_io.sv`
-  - each has `{name}.txt` program + `pgm_{name}.json` test
+## Overture CPU (`parts/overture/`)
+
+An 8-bit CPU implementing the Overture ISA with structural sub-module instantiation.
+
+### CPU Sub-modules
+| Module | Role |
+|--------|------|
+| `overture_cpu` | Top-level CPU (448 NAND gates via mux tree) |
+| `overture_fetch` | Combinational ROM wrapper for instruction memory |
+| `overture_decoder_8bit` | Instruction field decoder (immediate/calculate/copy/condition) |
+| `overture_alu_8bit` | ALU with OR, NAND, NOR, AND, ADD, SUB operations |
+| `overture_condition` | Branch condition evaluator (8 conditions) |
+| `overture_pc_8bit` | Program counter with jump/load |
+| `mux_8to1_8bit` | 8:1 register select mux |
+
+### Program Harnesses (`pgm_*`)
+Each `pgm_{name}` module wraps `overture_cpu` with a dedicated ROM program:
+
+| Program | Description |
+|---------|-------------|
+| `pgm_overture_add5` | Adds 5 to input |
+| `pgm_overture_alu` | ALU smoke test |
+| `pgm_overture_branch` | Branch instruction test |
+| `pgm_overture_io` | I/O and condition codes |
+| `pgm_overture_laser` | Multiply by 6 (laser power) |
+| `pgm_overture_invasion` | Enemy detection (shoot/move) |
+| `pgm_overture_cracker` | Sequential counter output |
+| `pgm_overture_masking` | Bitwise AND masking |
+| `pgm_overture_maze` | Maze navigation (left-wall follower) |
 
 ## Test File Format
 
@@ -131,22 +197,6 @@ JSON test files share the same base name as the SystemVerilog file.
 ```json
 {
     "sequential": true,
-    "memory_files": {
-        "rom": [
-            {
-                "module": "memory_cpu_stub",
-                "memory": "rom",
-                "file": "memory_cpu_stub_rom.txt"
-            }
-        ],
-        "ram": [
-            {
-                "module": "memory_cpu_stub",
-                "memory": "ram",
-                "file": "memory_cpu_stub_ram.txt"
-            }
-        ]
-    },
     "test_cases": [
         {
             "name": "Reset behavior",
@@ -170,47 +220,16 @@ JSON test files share the same base name as the SystemVerilog file.
 - Arithmetic in assign statements: `+`, `-`, `*`
 - Ternary operator: `assign out = sel ? a : b` (nested right-associative)
 - Literals: `1'b0`, `8'hFF`, `4'd10`
-- Keywords: `logic`, `reg`, `signed`, `unsigned`
 - `always_comb` blocks with `if/else` and `case/default`
-- `always_ff @(posedge clk)` blocks
-- `if/else` and `case/default` in sequential blocks
-- Blocking (`=`) and nonblocking (`<=`) assignment execution
-- Arithmetic in sequential blocks: `count + 1`
+- `always_ff @(posedge clk)` blocks with `if/else` and `case/default`
+- Blocking (`=`) and nonblocking (`<=`) assignment
 - Memory arrays: `reg [7:0] memory [255:0]`
 - ROM primitives: `rom_*` modules auto-load data files
 
 ### Limitations
 - Modules must be in same directory as parent
 - No timing/propagation delays
-- No event-driven timing wheel (cycle-based sequential stepping only)
-
-### ROM Primitives
-
-Modules with a `rom_` prefix are treated as built-in ROM primitives. The SV file only needs to declare the interface -- the simulator handles data loading automatically.
-
-- **Naming convention**: `rom_{name}` loads `{name}.txt` (e.g., `rom_deadbeef` loads `deadbeef.txt`)
-- **Data file search order**: SV file directory, then `roms/` subdirectory, then `roms/` relative to CWD
-- **Data format**: One binary value per line (e.g., `11011110`), supports `#`/`//` comments
-
-### Overture Program Harnesses (`pgm_*`)
-
-Use `pgm_{name}` wrappers to test multiple Overture programs against the same CPU:
-- `pgm_{name}.sv` instantiates `overture_cpu`
-- `{name}.txt` stores program bytes (for example, `pgm_overture_branch` uses `overture_branch.txt`)
-- `pgm_{name}.json` contains program-specific test sequences
-- when JSON has no explicit memory bindings, `pgm_` modules auto-bind `overture_fetch.rom` to `{name}.txt`
-
-## Directory Structure
-
-```
-pysvsim/
-├── pysvsim.py          # Main simulator
-├── test_runner.py      # Parallel test runner
-├── parts/              # 74 verified library modules (includes overture CPU workspace)
-├── testing/            # 40 HDLBits/validation modules
-├── roms/               # ROM data files (for CPU)
-└── goals/              # Milestone documents
-```
+- No event-driven simulation (cycle-based stepping only)
 
 ## Goal Readiness
 
@@ -218,48 +237,6 @@ Three progressive CPU milestones. See `goals/` for detailed plans.
 
 | | Goal 1: Overture | Goal 2: LEG | Goal 3: RV32I |
 |---|---|---|---|
+| **Status** | Complete | Planned | Planned |
 | **Description** | 8-bit CPU, 8-bit instructions | 8-bit CPU, 32-bit instructions | 32-bit RISC-V CPU |
 | **Reference** | `goal-1-overture_cpu_isa_reference.md` | `goal-2-advanced-8bitcpu-milestone.md` | `goal-3-rv32i-milestone.md` |
-
-✅ = ready, ❌ = needed but not built yet, ➖ = not needed
-
-### Simulator Features
-
-| Feature | Have | Goal 1 | Goal 2 | Goal 3 |
-|---------|:----:|:------:|:------:|:------:|
-| Combinational logic | ✅ | ✅ | ✅ | ✅ |
-| Sequential logic (`always_ff`) | ✅ | ✅ | ✅ | ✅ |
-| `always_comb` blocks | ✅ | ✅ | ✅ | ✅ |
-| Ternary operator | ✅ | ✅ | ✅ | ✅ |
-| ROM primitives | ✅ | ✅ | ✅ | ✅ |
-| Memory arrays (RAM) | ✅ | ➖ | ✅ | ✅ |
-| Hierarchical instantiation | ✅ | ✅ | ✅ | ✅ |
-| Memory-mapped I/O | ❌ | ❌ | ➖ | ❌ |
-| UART / serial I/O | ❌ | ➖ | ➖ | ❌ |
-
-### Hardware Modules (`parts/`)
-
-| Module | Have | Goal 1 | Goal 2 | Goal 3 |
-|--------|:----:|:------:|:------:|:------:|
-| Logic gates (1-bit, 8-bit) | ✅ | ✅ | ✅ | ✅ |
-| Adders (up to 64-bit) | ✅ | ✅ | ✅ | ✅ |
-| Muxes (2:1 up to 32-bit) | ✅ | ✅ | ✅ | ✅ |
-| Muxes (4:1, 8:1) | ✅ | ✅ | ✅ | ✅ |
-| Decoder (3-to-8) | ✅ | ✅ | ✅ | ✅ |
-| Registers (1 to 64-bit) | ✅ | ✅ | ✅ | ✅ |
-| Register file (8x8) | ✅ | ✅ | ✅ | ➖ |
-| Register file (32x32) | ❌ | ➖ | ➖ | ❌ |
-| Counter (8-bit) | ✅ | ✅ | ✅ | ➖ |
-| ALU (8-bit, basic) | ✅ | ✅ | ✅ | ➖ |
-| ALU (Overture: OR/NAND/NOR/AND/ADD/SUB) | ✅ | ✅ | ➖ | ➖ |
-| ALU (32-bit, RV32I ops) | ❌ | ➖ | ➖ | ❌ |
-| Program counter (with jump/load) | ✅ | ✅ | ✅ | ❌ |
-| Instruction decoder | ✅ | ✅ | ✅ | ❌ |
-| Overture CPU core (8-bit ISA + ROM fetch) | ✅ | ✅ | ➖ | ➖ |
-| Status/flags register | ❌ | ➖ | ❌ | ❌ |
-| RAM module | ❌ | ➖ | ❌ | ❌ |
-| ROM (data) | ✅ | ✅ | ✅ | ✅ |
-| I/O ports | ✅ | ✅ | ➖ | ❌ |
-| Comparator (32-bit) | ❌ | ➖ | ➖ | ❌ |
-| Barrel shifter | ❌ | ➖ | ➖ | ❌ |
-| Immediate generator | ❌ | ➖ | ➖ | ❌ |
