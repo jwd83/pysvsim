@@ -2,17 +2,6 @@
 
 A pure Python SystemVerilog simulator designed for an educational digital logic game. Players design hardware modules from NAND gates up to CPUs. The simulator parses SystemVerilog, evaluates logic, generates truth tables/waveforms, and validates designs against test cases.
 
-## Project Status
-
-| Metric | Value |
-|--------|-------|
-| Last Verified | February 11, 2026 |
-| `parts/basic/` | 44/44 files, 416/416 tests |
-| `parts/overture/` | 41/41 files, 325/325 tests |
-| `parts/testing/` | 40/40 files, 261/261 tests |
-| **Combined** | **125 files, 1002 tests, all passing** |
-| Total NAND Gates | 21,835 |
-
 ## Example Output
 
 ### Waveform - Overture CPU Execution
@@ -28,6 +17,17 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 | NAND Gate | Full Adder | 3-to-8 Decoder |
 |:---------:|:----------:|:--------------:|
 | ![NAND Gate](parts/basic/nand_gate.png) | ![Full Adder](parts/basic/full_adder.png) | ![Decoder](parts/basic/decoder_3to8.png) |
+
+## Project Status
+
+| Metric | Value |
+|--------|-------|
+| Last Verified | February 11, 2026 |
+| `parts/basic/` | 44/44 files, 416/416 tests |
+| `parts/overture/` | 41/41 files, 325/325 tests |
+| `parts/testing/` | 40/40 files, 261/261 tests |
+| **Combined** | **125 files, 1002 tests, all passing** |
+| Total NAND Gates | 21,835 |
 
 ## Quick Start
 
