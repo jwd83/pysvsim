@@ -16,7 +16,7 @@ Module: full_adder
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 15
-Execution Time: 0.013s
+Execution Time: 0.020s
 PNG Output: parts/testing/full_adder.png
 JSON Test File: parts/testing/full_adder.json
 Test Results: 8/8 passed (100.0%)
@@ -51,7 +51,7 @@ Module: adder_16bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 240
-Execution Time: 0.228s
+Execution Time: 0.452s
 PNG Output: parts/testing/adder_16bit.png
 JSON Test File: parts/testing/adder_16bit.json
 Test Results: 8/8 passed (100.0%)
@@ -95,7 +95,7 @@ Module: xor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.048s
+Execution Time: 0.054s
 PNG Output: parts/testing/xor_gate_8bit.png
 JSON Test File: parts/testing/xor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -143,7 +143,7 @@ Module: memory_cpu_stub
 Inputs: ['clk', 'reset', 'run']
 Outputs: ['pc', 'acc', 'ram_out']
 NAND Gates: 0
-Execution Time: 0.004s
+Execution Time: 0.007s
 PNG Output: parts/testing/memory_cpu_stub.png
 JSON Test File: parts/testing/memory_cpu_stub.json
 Test Results: 1/1 passed (100.0%)
@@ -162,7 +162,7 @@ Module: 017-Vectorr
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.005s
 PNG Output: parts/testing/017-Vectorr.png
 JSON Test File: parts/testing/017-Vectorr.json
 Test Results: 10/10 passed (100.0%)
@@ -208,7 +208,7 @@ Module: 007-Norgate
 Inputs: ['a', 'b']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.003s
 PNG Output: parts/testing/007-Norgate.png
 JSON Test File: parts/testing/007-Norgate.json
 Test Results: 4/4 passed (100.0%)
@@ -235,7 +235,7 @@ Module: adder_4bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 60
-Execution Time: 0.057s
+Execution Time: 0.097s
 PNG Output: parts/testing/adder_4bit.png
 JSON Test File: parts/testing/adder_4bit.json
 Test Results: 10/10 passed (100.0%)
@@ -281,7 +281,7 @@ Module: nor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.002s
+Execution Time: 0.003s
 PNG Output: parts/testing/nor_gate.png
 JSON Test File: parts/testing/nor_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -308,7 +308,7 @@ Module: 002-OutputZero
 Inputs: []
 Outputs: ['zero']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/002-OutputZero.png
 JSON Test File: parts/testing/002-OutputZero.json
 Test Results: 1/1 passed (100.0%)
@@ -352,7 +352,7 @@ Module: xnor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 5
-Execution Time: 0.002s
+Execution Time: 0.003s
 PNG Output: parts/testing/xnor_gate.png
 JSON Test File: parts/testing/xnor_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -379,7 +379,7 @@ Module: 005-Notgate
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/005-Notgate.png
 JSON Test File: parts/testing/005-Notgate.json
 Test Results: 2/2 passed (100.0%)
@@ -402,7 +402,7 @@ Module: xnor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 40
-Execution Time: 0.032s
+Execution Time: 0.057s
 PNG Output: parts/testing/xnor_gate_8bit.png
 JSON Test File: parts/testing/xnor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -450,7 +450,7 @@ Module: 006-Andgate
 Inputs: ['a', 'b']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/006-Andgate.png
 JSON Test File: parts/testing/006-Andgate.json
 Test Results: 4/4 passed (100.0%)
@@ -477,7 +477,7 @@ Module: or_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 3
-Execution Time: 0.001s
+Execution Time: 0.002s
 PNG Output: parts/testing/or_gate.png
 JSON Test File: parts/testing/or_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -504,7 +504,7 @@ Module: 019-Vector5
 Inputs: ['a', 'b', 'c', 'd', 'e']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.004s
 PNG Output: parts/testing/019-Vector5.png
 JSON Test File: parts/testing/019-Vector5.json
 Test Results: 7/7 passed (100.0%)
@@ -547,7 +547,7 @@ Module: 011-Vector0
 Inputs: ['vec']
 Outputs: ['outv', 'o2', 'o1', 'o0']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/011-Vector0.png
 JSON Test File: parts/testing/011-Vector0.json
 Test Results: 8/8 passed (100.0%)
@@ -625,7 +625,7 @@ Module: 010-7458
 Inputs: ['p1a', 'p1b', 'p1c', 'p1d', 'p1e', 'p1f', 'p2a', 'p2b', 'p2c', 'p2d']
 Outputs: ['p1y', 'p2y']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.004s
 PNG Output: parts/testing/010-7458.png
 JSON Test File: parts/testing/010-7458.json
 Test Results: 5/5 passed (100.0%)
@@ -666,7 +666,7 @@ Module: 015-Gates4
 Inputs: ['in']
 Outputs: ['out_and', 'out_or', 'out_xor']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.006s
 PNG Output: parts/testing/015-Gates4.png
 JSON Test File: parts/testing/015-Gates4.json
 Test Results: 8/8 passed (100.0%)
@@ -732,7 +732,7 @@ Module: nor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.028s
+Execution Time: 0.113s
 PNG Output: parts/testing/nor_gate_8bit.png
 JSON Test File: parts/testing/nor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -780,7 +780,7 @@ Module: half_adder
 Inputs: ['inA', 'inB']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 6
-Execution Time: 0.002s
+Execution Time: 0.020s
 PNG Output: parts/testing/half_adder.png
 JSON Test File: parts/testing/half_adder.json
 Test Results: 4/4 passed (100.0%)
@@ -807,7 +807,7 @@ Module: 012-Vector1
 Inputs: ['in']
 Outputs: ['out_hi', 'out_lo']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.010s
 PNG Output: parts/testing/012-Vector1.png
 JSON Test File: parts/testing/012-Vector1.json
 Test Results: 8/8 passed (100.0%)
@@ -851,7 +851,7 @@ Module: 008-Xnorgate
 Inputs: ['a', 'b']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.003s
 PNG Output: parts/testing/008-Xnorgate.png
 JSON Test File: parts/testing/008-Xnorgate.json
 Test Results: 4/4 passed (100.0%)
@@ -878,7 +878,7 @@ Module: 004-Wire4
 Inputs: ['a', 'b', 'c']
 Outputs: ['w', 'x', 'y', 'z']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/004-Wire4.png
 JSON Test File: parts/testing/004-Wire4.json
 Test Results: 6/6 passed (100.0%)
@@ -911,7 +911,7 @@ Module: 014-VectorGates
 Inputs: ['a', 'b']
 Outputs: ['out_or_bitwise', 'out_or_logical', 'out_not']
 NAND Gates: 0
-Execution Time: 0.005s
+Execution Time: 0.006s
 PNG Output: parts/testing/014-VectorGates.png
 JSON Test File: parts/testing/014-VectorGates.json
 Test Results: 8/8 passed (100.0%)
@@ -955,7 +955,7 @@ Module: not_gate_8bit
 Inputs: ['inA']
 Outputs: ['outY']
 NAND Gates: 8
-Execution Time: 0.006s
+Execution Time: 0.024s
 PNG Output: parts/testing/not_gate_8bit.png
 JSON Test File: parts/testing/not_gate_8bit.json
 Test Results: 8/8 passed (100.0%)
@@ -999,7 +999,7 @@ Module: overture_cpu_8bit_math_sequence
 Inputs: ['clk', 'reset', 'run']
 Outputs: ['pc', 'acc', 'halted']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.006s
 PNG Output: parts/testing/overture_cpu_8bit_math_sequence.png
 JSON Test File: parts/testing/overture_cpu_8bit_math_sequence.json
 Test Results: 2/2 passed (100.0%)
@@ -1019,7 +1019,7 @@ Module: nand_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 8
-Execution Time: 0.018s
+Execution Time: 0.014s
 PNG Output: parts/testing/nand_gate_8bit.png
 JSON Test File: parts/testing/nand_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -1067,7 +1067,7 @@ Module: adder_8bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 120
-Execution Time: 0.116s
+Execution Time: 0.272s
 PNG Output: parts/testing/adder_8bit.png
 JSON Test File: parts/testing/adder_8bit.json
 Test Results: 10/10 passed (100.0%)
@@ -1113,7 +1113,7 @@ Module: 016-Vector3
 Inputs: ['a', 'b', 'c', 'd', 'e', 'f']
 Outputs: ['w', 'x', 'y', 'z']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.002s
 PNG Output: parts/testing/016-Vector3.png
 JSON Test File: parts/testing/016-Vector3.json
 Test Results: 8/8 passed (100.0%)
@@ -1157,7 +1157,7 @@ Module: and_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 16
-Execution Time: 0.012s
+Execution Time: 0.056s
 PNG Output: parts/testing/and_gate_8bit.png
 JSON Test File: parts/testing/and_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -1205,7 +1205,7 @@ Module: 013-Vector2
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.002s
+Execution Time: 0.017s
 PNG Output: parts/testing/013-Vector2.png
 JSON Test File: parts/testing/013-Vector2.json
 Test Results: 10/10 passed (100.0%)
@@ -1278,7 +1278,7 @@ Module: 018-Vector4SignExtension
 Inputs: ['in']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.002s
 PNG Output: parts/testing/018-Vector4SignExtension.png
 JSON Test File: parts/testing/018-Vector4SignExtension.json
 Test Results: 8/8 passed (100.0%)
@@ -1322,7 +1322,7 @@ Module: 001-GettingStarted
 Inputs: []
 Outputs: ['one']
 NAND Gates: 0
-Execution Time: 0.000s
+Execution Time: 0.001s
 PNG Output: parts/testing/001-GettingStarted.png
 JSON Test File: parts/testing/001-GettingStarted.json
 Test Results: 1/1 passed (100.0%)
@@ -1343,7 +1343,7 @@ Module: and_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 2
-Execution Time: 0.001s
+Execution Time: 0.003s
 PNG Output: parts/testing/and_gate.png
 JSON Test File: parts/testing/and_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -1370,7 +1370,7 @@ Module: xor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.001s
+Execution Time: 0.003s
 PNG Output: parts/testing/xor_gate.png
 JSON Test File: parts/testing/xor_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -1397,7 +1397,7 @@ Module: or_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 24
-Execution Time: 0.016s
+Execution Time: 0.062s
 PNG Output: parts/testing/or_gate_8bit.png
 JSON Test File: parts/testing/or_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -1449,12 +1449,12 @@ Files with JSON Tests:  40
 Test Case Failures:     0
 Total Test Cases:       261
 Passed Test Cases:      261/261 (100.0%)
-Total Execution Time:   0.619s
-Average Time per File:  0.015s
+Total Execution Time:   1.343s
+Average Time per File:  0.034s
 Total NAND Gates:       620
 Average NAND per File:  15.5
 ============================================================
 
-Total runtime: 0.404s
+Total runtime: 0.853s
 
 All tests passed! Exiting with code 0

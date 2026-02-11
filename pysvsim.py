@@ -2617,31 +2617,34 @@ class TruthTableImageGenerator:
                 val = row[name]
                 w = widths[col_idx]
                 if w == 1:
-                    self._draw_bit_cell(draw, x, ry, val)
+                    self._draw_bit_cell(draw, x, ry, cw, val)
                 elif w <= 8:
-                    self._draw_bus_cell(draw, x, ry, val, w)
+                    self._draw_bus_cell(draw, x, ry, cw, val, w)
                 else:
                     self._draw_large_bus_cell(draw, x, ry, val, w)
                 x += cw
 
-    def _draw_bit_cell(self, draw, x, y, val):
-        """Single-bit: LED circle + '0'/'1' text."""
+    def _draw_bit_cell(self, draw, x, y, cw, val):
+        """Single-bit: '0'/'1' text (left) + LED circle (right)."""
         cy = y + self.ROW_H // 2
-        led_x = x + self.CELL_PAD + self.LED_R
-        self._draw_led(draw, led_x, cy, val)
-        tx = led_x + self.LED_R + 6
+        tx = x + self.CELL_PAD
         draw.text((tx, self._text_y(y, 13)), str(val),
                   fill=self._value_color(val), font=self.font)
+        led_x = x + cw - self.CELL_PAD - self.LED_R
+        self._draw_led(draw, led_x, cy, val)
 
-    def _draw_bus_cell(self, draw, x, y, val, width):
-        """Bus 2-8 bits: decimal value + LED row (MSB to LSB)."""
+    def _draw_bus_cell(self, draw, x, y, cw, val, width):
+        """Bus 2-8 bits: decimal value (left) + LED row right-aligned (MSB to LSB)."""
         cy = y + self.ROW_H // 2
         val_str = str(val)
         tx = x + self.CELL_PAD
         draw.text((tx, self._text_y(y, 13)), val_str,
                   fill=self._value_color(val), font=self.font)
 
-        lx = tx + self._text_width(self.font, val_str) + 8 + self.LED_R
+        # Right-align LEDs: last LED's right edge at cell right padding
+        last_led_cx = x + cw - self.CELL_PAD - self.LED_R
+        first_led_cx = last_led_cx - (width - 1) * self.LED_SPACING
+        lx = first_led_cx
         for bit in range(width - 1, -1, -1):
             self._draw_led(draw, lx, cy, (val >> bit) & 1)
             lx += self.LED_SPACING
