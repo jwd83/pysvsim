@@ -23,9 +23,11 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ![Counter Waveform](parts/basic/counter8.png)
 
-### Truth Table - Full Adder
+### Truth Tables
 
-![Full Adder Truth Table](parts/basic/full_adder.png)
+| NAND Gate | Full Adder | 3-to-8 Decoder |
+|:---------:|:----------:|:--------------:|
+| ![NAND Gate](parts/basic/nand_gate.png) | ![Full Adder](parts/basic/full_adder.png) | ![Decoder](parts/basic/decoder_3to8.png) |
 
 ## Quick Start
 
@@ -48,7 +50,7 @@ uv run test_runner.py parts/          # all subdirectories
 ## Features
 
 ### Core Simulation
-- **Pure Python**: Single direct dependency (`matplotlib`) for visualization
+- **Pure Python**: Dependencies: `matplotlib` (waveforms), `Pillow` (truth tables)
 - **Bus Support**: Multi-bit buses (`input [7:0] data`), bit selection (`A[2]`), slices (`bus[7:4]`)
 - **Hierarchical Design**: Module instantiation with bit selection (`.A(data[0])`)
 - **Combinational Logic**: Bitwise operators, arithmetic (`+`, `-`, `*`), ternary (`sel ? a : b`)

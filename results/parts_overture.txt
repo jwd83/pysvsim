@@ -16,7 +16,7 @@ Module: mux_4to1_8bit
 Inputs: ['in0', 'in1', 'in2', 'in3', 'sel']
 Outputs: ['out']
 NAND Gates: 192
-Execution Time: 0.258s
+Execution Time: 0.262s
 PNG Output: parts/overture/mux_4to1_8bit.png
 JSON Test File: parts/overture/mux_4to1_8bit.json
 Test Results: 24/24 passed (100.0%)
@@ -76,7 +76,7 @@ Module: full_adder
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 15
-Execution Time: 0.009s
+Execution Time: 0.008s
 PNG Output: parts/overture/full_adder.png
 JSON Test File: parts/overture/full_adder.json
 Test Results: 8/8 passed (100.0%)
@@ -111,7 +111,7 @@ Module: xor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.033s
+Execution Time: 0.023s
 PNG Output: parts/overture/xor_gate_8bit.png
 JSON Test File: parts/overture/xor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -216,7 +216,7 @@ Module: mux_2to1_4bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 32
-Execution Time: 0.026s
+Execution Time: 0.033s
 PNG Output: parts/overture/mux_2to1_4bit.png
 JSON Test File: parts/overture/mux_2to1_4bit.json
 Test Results: 8/8 passed (100.0%)
@@ -260,7 +260,7 @@ Module: pgm_overture_maze
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 2.404s
+Execution Time: 2.541s
 PNG Output: parts/overture/pgm_overture_maze.png
 JSON Test File: parts/overture/pgm_overture_maze.json
 Test Results: 3/3 passed (100.0%)
@@ -299,7 +299,7 @@ Module: adder_4bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 60
-Execution Time: 0.041s
+Execution Time: 0.068s
 PNG Output: parts/overture/adder_4bit.png
 JSON Test File: parts/overture/adder_4bit.json
 Test Results: 10/10 passed (100.0%)
@@ -345,7 +345,7 @@ Module: nor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.001s
+Execution Time: 0.002s
 PNG Output: parts/overture/nor_gate.png
 JSON Test File: parts/overture/nor_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -372,7 +372,7 @@ Module: overture_decoder_8bit
 Inputs: ['instr']
 Outputs: ['is_immediate', 'is_calculate', 'is_copy', 'is_condition', 'imm_value', 'alu_op', 'src_sel', 'dst_sel', 'cond_sel']
 NAND Gates: 0
-Execution Time: 0.006s
+Execution Time: 0.009s
 PNG Output: parts/overture/overture_decoder_8bit.png
 JSON Test File: parts/overture/overture_decoder_8bit.json
 Test Results: 4/4 passed (100.0%)
@@ -412,7 +412,7 @@ Module: mux_2to1_1bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 8
-Execution Time: 0.004s
+Execution Time: 0.005s
 PNG Output: parts/overture/mux_2to1_1bit.png
 JSON Test File: parts/overture/mux_2to1_1bit.json
 Test Results: 8/8 passed (100.0%)
@@ -474,7 +474,7 @@ Module: pgm_overture_add5
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.181s
+Execution Time: 1.452s
 PNG Output: parts/overture/pgm_overture_add5.png
 JSON Test File: parts/overture/pgm_overture_add5.json
 Test Results: 3/3 passed (100.0%)
@@ -513,7 +513,7 @@ Module: overture_pc_8bit
 Inputs: ['clk', 'reset', 'run', 'jump_en', 'jump_addr']
 Outputs: ['pc']
 NAND Gates: 0
-Execution Time: 0.001s
+Execution Time: 0.008s
 PNG Output: parts/overture/overture_pc_8bit.png
 JSON Test File: parts/overture/overture_pc_8bit.json
 Test Results: 1/1 passed (100.0%)
@@ -532,7 +532,7 @@ Module: regfile_8x8
 Inputs: ['clk', 'write_en', 'write_addr', 'write_data', 'read_addr1', 'read_addr2']
 Outputs: ['read_data1', 'read_data2']
 NAND Gates: 939
-Execution Time: 3.072s
+Execution Time: 3.361s
 PNG Output: parts/overture/regfile_8x8.png
 JSON Test File: parts/overture/regfile_8x8.json
 Test Results: 8/8 passed (100.0%)
@@ -558,7 +558,7 @@ Module: pgm_overture_branch
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.113s
+Execution Time: 1.304s
 PNG Output: parts/overture/pgm_overture_branch.png
 JSON Test File: parts/overture/pgm_overture_branch.json
 Test Results: 1/1 passed (100.0%)
@@ -618,7 +618,7 @@ Module: alu_1bit
 Inputs: ['a', 'b', 'op']
 Outputs: ['out']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.005s
 PNG Output: parts/overture/alu_1bit.png
 JSON Test File: parts/overture/alu_1bit.json
 Test Results: 12/12 passed (100.0%)
@@ -666,7 +666,7 @@ Module: pgm_overture_alu
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.167s
+Execution Time: 1.326s
 PNG Output: parts/overture/pgm_overture_alu.png
 JSON Test File: parts/overture/pgm_overture_alu.json
 Test Results: 1/1 passed (100.0%)
@@ -703,7 +703,7 @@ Module: nor_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 32
-Execution Time: 0.026s
+Execution Time: 0.029s
 PNG Output: parts/overture/nor_gate_8bit.png
 JSON Test File: parts/overture/nor_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -751,7 +751,7 @@ Module: pgm_overture_cracker
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.240s
+Execution Time: 1.552s
 PNG Output: parts/overture/pgm_overture_cracker.png
 JSON Test File: parts/overture/pgm_overture_cracker.json
 Test Results: 1/1 passed (100.0%)
@@ -815,7 +815,7 @@ Module: pgm_overture_laser
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.506s
+Execution Time: 1.533s
 PNG Output: parts/overture/pgm_overture_laser.png
 JSON Test File: parts/overture/pgm_overture_laser.json
 Test Results: 3/3 passed (100.0%)
@@ -854,7 +854,7 @@ Module: overture_condition
 Inputs: ['r3', 'cond_sel']
 Outputs: ['cond_met']
 NAND Gates: 0
-Execution Time: 0.017s
+Execution Time: 0.009s
 PNG Output: parts/overture/overture_condition.png
 JSON Test File: parts/overture/overture_condition.json
 Test Results: 40/40 passed (100.0%)
@@ -930,7 +930,7 @@ Module: pgm_overture_invasion
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.167s
+Execution Time: 1.139s
 PNG Output: parts/overture/pgm_overture_invasion.png
 JSON Test File: parts/overture/pgm_overture_invasion.json
 Test Results: 2/2 passed (100.0%)
@@ -968,7 +968,7 @@ Module: mux_8to1_8bit
 Inputs: ['in0', 'in1', 'in2', 'in3', 'in4', 'in5', 'in6', 'in7', 'sel']
 Outputs: ['out']
 NAND Gates: 448
-Execution Time: 0.705s
+Execution Time: 0.734s
 PNG Output: parts/overture/mux_8to1_8bit.png
 JSON Test File: parts/overture/mux_8to1_8bit.json
 Test Results: 28/28 passed (100.0%)
@@ -1032,7 +1032,7 @@ Module: overture_fetch
 Inputs: ['addr']
 Outputs: ['data']
 NAND Gates: 0
-Execution Time: 0.003s
+Execution Time: 0.001s
 PNG Output: parts/overture/overture_fetch.png
 JSON Test File: parts/overture/overture_fetch.json
 Test Results: 3/3 passed (100.0%)
@@ -1146,7 +1146,7 @@ Module: adder_8bit
 Inputs: ['inA', 'inB', 'inCarry']
 Outputs: ['outSum', 'outCarry']
 NAND Gates: 120
-Execution Time: 0.129s
+Execution Time: 0.100s
 PNG Output: parts/overture/adder_8bit.png
 JSON Test File: parts/overture/adder_8bit.json
 Test Results: 10/10 passed (100.0%)
@@ -1192,7 +1192,7 @@ Module: and_gate_8bit
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 16
-Execution Time: 0.024s
+Execution Time: 0.015s
 PNG Output: parts/overture/and_gate_8bit.png
 JSON Test File: parts/overture/and_gate_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -1240,7 +1240,7 @@ Module: pgm_overture_masking
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.163s
+Execution Time: 1.263s
 PNG Output: parts/overture/pgm_overture_masking.png
 JSON Test File: parts/overture/pgm_overture_masking.json
 Test Results: 4/4 passed (100.0%)
@@ -1307,7 +1307,7 @@ Module: mux_2to1_8bit
 Inputs: ['in0', 'in1', 'sel']
 Outputs: ['out']
 NAND Gates: 64
-Execution Time: 0.082s
+Execution Time: 0.069s
 PNG Output: parts/overture/mux_2to1_8bit.png
 JSON Test File: parts/overture/mux_2to1_8bit.json
 Test Results: 12/12 passed (100.0%)
@@ -1355,7 +1355,7 @@ Module: decoder_3to8
 Inputs: ['addr']
 Outputs: ['out']
 NAND Gates: 27
-Execution Time: 0.011s
+Execution Time: 0.013s
 PNG Output: parts/overture/decoder_3to8.png
 JSON Test File: parts/overture/decoder_3to8.json
 Test Results: 8/8 passed (100.0%)
@@ -1390,7 +1390,7 @@ Module: and_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 2
-Execution Time: 0.002s
+Execution Time: 0.001s
 PNG Output: parts/overture/and_gate.png
 JSON Test File: parts/overture/and_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -1417,7 +1417,7 @@ Module: overture_alu_8bit
 Inputs: ['inA', 'inB', 'op']
 Outputs: ['outY']
 NAND Gates: 0
-Execution Time: 0.008s
+Execution Time: 0.004s
 PNG Output: parts/overture/overture_alu_8bit.png
 JSON Test File: parts/overture/overture_alu_8bit.json
 Test Results: 9/9 passed (100.0%)
@@ -1462,7 +1462,7 @@ Module: xor_gate
 Inputs: ['inA', 'inB']
 Outputs: ['outY']
 NAND Gates: 4
-Execution Time: 0.001s
+Execution Time: 0.002s
 PNG Output: parts/overture/xor_gate.png
 JSON Test File: parts/overture/xor_gate.json
 Test Results: 4/4 passed (100.0%)
@@ -1489,7 +1489,7 @@ Module: pgm_overture_io
 Inputs: ['clk', 'reset', 'run', 'in_port']
 Outputs: ['pc', 'out_port', 'instr_debug', 'r0_out', 'r1_out', 'r2_out', 'r3_out', 'r4_out', 'r5_out']
 NAND Gates: 448
-Execution Time: 1.345s
+Execution Time: 1.357s
 PNG Output: parts/overture/pgm_overture_io.png
 JSON Test File: parts/overture/pgm_overture_io.json
 Test Results: 2/2 passed (100.0%)
@@ -1598,12 +1598,12 @@ Files with JSON Tests:  41
 Test Case Failures:     0
 Total Test Cases:       325
 Passed Test Cases:      325/325 (100.0%)
-Total Execution Time:   17.286s
-Average Time per File:  0.422s
+Total Execution Time:   18.767s
+Average Time per File:  0.458s
 Total NAND Gates:       6517
 Average NAND per File:  159.0
 ============================================================
 
-Total runtime: 7.027s
+Total runtime: 7.381s
 
 All tests passed! Exiting with code 0

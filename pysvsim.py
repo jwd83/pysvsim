@@ -20,8 +20,6 @@ from typing import Dict, List, Tuple, Any, Optional
 from itertools import product
 from pathlib import Path
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 
@@ -2449,32 +2447,37 @@ class TruthTableImageGenerator:
         self.evaluator = evaluator
         self.font, self.font_bold, self.font_small = self._load_fonts()
 
+    # Font search paths per platform: (regular, bold)
+    FONT_PATHS = [
+        ("/System/Library/Fonts/Menlo.ttc",                                     # macOS
+         "/System/Library/Fonts/Menlo.ttc"),
+        ("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",                 # Linux (DejaVu)
+         "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"),
+        ("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",     # Linux (Liberation)
+         "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf"),
+        ("C:/Windows/Fonts/consola.ttf",                                        # Windows
+         "C:/Windows/Fonts/consolab.ttf"),
+    ]
+
     def _load_fonts(self):
         """Load monospace fonts with platform fallback."""
-        paths = [
-            "/System/Library/Fonts/Menlo.ttc",       # macOS
-            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",  # Linux
-            "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
-            "C:/Windows/Fonts/consola.ttf",           # Windows
-        ]
-        bold_paths = [
-            "/System/Library/Fonts/Menlo.ttc",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
-            "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",
-            "C:/Windows/Fonts/consolab.ttf",
-        ]
-        def _try_load(candidates, size):
-            for p in candidates:
-                try:
-                    return ImageFont.truetype(p, size)
-                except (OSError, IOError):
-                    continue
-            return ImageFont.load_default()
+        regular = [p[0] for p in self.FONT_PATHS]
+        bold    = [p[1] for p in self.FONT_PATHS]
 
-        font      = _try_load(paths, 13)
-        font_bold = _try_load(bold_paths, 13)
-        font_sm   = _try_load(paths, 11)
+        font      = self._try_load_font(regular, 13)
+        font_bold = self._try_load_font(bold, 13)
+        font_sm   = self._try_load_font(regular, 11)
         return font, font_bold, font_sm
+
+    @staticmethod
+    def _try_load_font(candidates, size):
+        """Try each font path, falling back to the default bitmap font."""
+        for path in candidates:
+            try:
+                return ImageFont.truetype(path, size)
+            except (OSError, IOError):
+                continue
+        return ImageFont.load_default()
 
     def generate_image(self, truth_table: List[Dict[str, int]], output_path: str):
         """Generate a PNG image of the truth table."""
@@ -2485,29 +2488,18 @@ class TruthTableImageGenerator:
         outputs  = self.evaluator.outputs
         bus_info = getattr(self.evaluator, 'bus_info', {})
 
-        # Build header labels
-        def _header(name):
-            if name in bus_info and bus_info[name]["width"] > 1:
-                return f"{name}[{bus_info[name]['msb']}:{bus_info[name]['lsb']}]"
-            return name
+        all_names  = inputs + outputs
+        num_inputs = len(inputs)
+        widths     = [self._signal_width(name, bus_info) for name in all_names]
 
-        in_headers  = [_header(n) for n in inputs]
-        out_headers = [_header(n) for n in outputs]
-        all_names   = inputs + outputs
+        in_headers  = [self._header_label(n, bus_info) for n in inputs]
+        out_headers = [self._header_label(n, bus_info) for n in outputs]
         all_headers = in_headers + out_headers
-        num_inputs  = len(inputs)
 
-        # Determine signal widths
-        widths = []
-        for name in all_names:
-            w = bus_info[name]["width"] if name in bus_info and bus_info[name]["width"] > 1 else 1
-            widths.append(w)
-
-        # Compute column pixel widths based on content
         col_widths = self._calculate_column_widths(all_headers, widths, truth_table, all_names)
+        table_w    = sum(col_widths)
 
         # Image dimensions
-        table_w = sum(col_widths)
         img_w = table_w + 2 * self.PAD
         img_h = (2 * self.PAD + self.TITLE_H + self.ACCENT_H +
                  self.HEADER_H + len(truth_table) * self.ROW_H)
@@ -2517,12 +2509,13 @@ class TruthTableImageGenerator:
 
         y = self.PAD
         y = self._draw_title(draw, img_w, y, output_path)
-        y = self._draw_header_row(draw, y, col_widths, in_headers, out_headers, num_inputs)
-        self._draw_data_rows(draw, y, col_widths, truth_table, all_names, widths, num_inputs)
-        self._draw_grid_lines(draw, col_widths, num_inputs, len(truth_table),
-                              self.PAD + self.TITLE_H + self.ACCENT_H)
+        y = self._draw_header_row(draw, y, col_widths, table_w,
+                                  in_headers, out_headers, num_inputs)
+        self._draw_data_rows(draw, y, col_widths, table_w,
+                             truth_table, all_names, widths, num_inputs)
+        self._draw_grid_lines(draw, col_widths, table_w, num_inputs,
+                              len(truth_table), self.PAD + self.TITLE_H + self.ACCENT_H)
 
-        # Glow pass for small tables
         if len(truth_table) <= 64:
             img = self._apply_glow(img)
 
@@ -2530,9 +2523,33 @@ class TruthTableImageGenerator:
 
     # ── internal helpers ──────────────────────────────────────────
 
+    @staticmethod
+    def _signal_width(name, bus_info):
+        """Return the bit-width for a signal (1 for single-bit signals)."""
+        info = bus_info.get(name)
+        if info and info["width"] > 1:
+            return info["width"]
+        return 1
+
+    @staticmethod
+    def _header_label(name, bus_info):
+        """Format a signal name as a header label, appending bit range for buses."""
+        info = bus_info.get(name)
+        if info and info["width"] > 1:
+            return f"{name}[{info['msb']}:{info['lsb']}]"
+        return name
+
     def _text_width(self, font, text):
         bbox = font.getbbox(text)
         return bbox[2] - bbox[0]
+
+    def _text_y(self, row_y, font_height):
+        """Vertical offset to center text of the given height within a data row."""
+        return row_y + (self.ROW_H - font_height) // 2
+
+    def _value_color(self, val):
+        """Green for nonzero values, dim for zero."""
+        return self.TEXT_ONE if val else self.TEXT_DIM
 
     def _calculate_column_widths(self, headers, widths, truth_table, all_names):
         """Content-based column widths."""
@@ -2540,21 +2557,17 @@ class TruthTableImageGenerator:
         for i, (header, w) in enumerate(zip(headers, widths)):
             header_px = self._text_width(self.font_bold, header) + 2 * self.CELL_PAD
             if w == 1:
-                # LED + "0"/"1"
-                content_px = self.LED_R * 2 + 6 + self._text_width(self.font, "0") + 2 * self.CELL_PAD
+                content_px = (self.LED_R * 2 + 6 +
+                              self._text_width(self.font, "0") + 2 * self.CELL_PAD)
             elif w <= 8:
-                # decimal value + LED row
                 max_val = max(row[all_names[i]] for row in truth_table) if truth_table else 0
-                val_str = str(max_val)
                 led_row_px = w * self.LED_SPACING + 4
-                content_px = (self._text_width(self.font, val_str) + 8 +
+                content_px = (self._text_width(self.font, str(max_val)) + 8 +
                               led_row_px + 2 * self.CELL_PAD)
             else:
-                # hex + binary
                 hex_str = f"0x{(1 << w) - 1:X}"
-                bin_str = "1" * w
                 content_px = (self._text_width(self.font, hex_str) + 6 +
-                              self._text_width(self.font_small, bin_str) + 2 * self.CELL_PAD)
+                              self._text_width(self.font_small, "1" * w) + 2 * self.CELL_PAD)
             col_widths.append(max(header_px, content_px))
         return col_widths
 
@@ -2567,21 +2580,19 @@ class TruthTableImageGenerator:
                   title, fill=self.TEXT_PRIMARY, font=self.font_bold)
         return y + self.TITLE_H
 
-    def _draw_header_row(self, draw, y, col_widths, in_headers, out_headers, num_inputs):
+    def _draw_header_row(self, draw, y, col_widths, table_w,
+                         in_headers, out_headers, num_inputs):
         """Accent stripe + header labels."""
         x0 = self.PAD
-        table_w = sum(col_widths)
-        # Input accent stripe (blue)
         input_w = sum(col_widths[:num_inputs])
+
+        # Input accent stripe (blue), output accent stripe (green)
         draw.rectangle([x0, y, x0 + input_w, y + self.ACCENT_H], fill=self.ACCENT_INPUT)
-        # Output accent stripe (green)
         draw.rectangle([x0 + input_w, y, x0 + table_w, y + self.ACCENT_H], fill=self.ACCENT_OUTPUT)
         y += self.ACCENT_H
 
-        # Header background
         draw.rectangle([x0, y, x0 + table_w, y + self.HEADER_H], fill=self.HEADER_BG)
 
-        # Header text
         x = x0
         for i, header in enumerate(in_headers + out_headers):
             cw = col_widths[i]
@@ -2592,12 +2603,12 @@ class TruthTableImageGenerator:
 
         return y + self.HEADER_H
 
-    def _draw_data_rows(self, draw, y, col_widths, truth_table, all_names, widths, num_inputs):
+    def _draw_data_rows(self, draw, y, col_widths, table_w,
+                        truth_table, all_names, widths, num_inputs):
         """Render all data rows with appropriate cell types."""
+        x0 = self.PAD
         for row_idx, row in enumerate(truth_table):
             bg = self.ROW_ALT if row_idx % 2 else self.BG
-            x0 = self.PAD
-            table_w = sum(col_widths)
             ry = y + row_idx * self.ROW_H
             draw.rectangle([x0, ry, x0 + table_w, ry + self.ROW_H], fill=bg)
 
@@ -2607,50 +2618,45 @@ class TruthTableImageGenerator:
                 val = row[name]
                 w = widths[col_idx]
                 if w == 1:
-                    self._draw_bit_cell(draw, x, ry, cw, val)
+                    self._draw_bit_cell(draw, x, ry, val)
                 elif w <= 8:
-                    self._draw_bus_cell(draw, x, ry, cw, val, w)
+                    self._draw_bus_cell(draw, x, ry, val, w)
                 else:
-                    self._draw_large_bus_cell(draw, x, ry, cw, val, w)
+                    self._draw_large_bus_cell(draw, x, ry, val, w)
                 x += cw
 
-    def _draw_bit_cell(self, draw, x, y, cw, val):
+    def _draw_bit_cell(self, draw, x, y, val):
         """Single-bit: LED circle + '0'/'1' text."""
         cy = y + self.ROW_H // 2
         led_x = x + self.CELL_PAD + self.LED_R
         self._draw_led(draw, led_x, cy, val)
-        text = str(val)
         tx = led_x + self.LED_R + 6
-        color = self.TEXT_ONE if val else self.TEXT_DIM
-        draw.text((tx, y + (self.ROW_H - 13) // 2), text, fill=color, font=self.font)
+        draw.text((tx, self._text_y(y, 13)), str(val),
+                  fill=self._value_color(val), font=self.font)
 
-    def _draw_bus_cell(self, draw, x, y, cw, val, width):
+    def _draw_bus_cell(self, draw, x, y, val, width):
         """Bus 2-8 bits: decimal value + LED row (MSB to LSB)."""
         cy = y + self.ROW_H // 2
         val_str = str(val)
-        color = self.TEXT_ONE if val else self.TEXT_DIM
         tx = x + self.CELL_PAD
-        draw.text((tx, y + (self.ROW_H - 13) // 2), val_str, fill=color, font=self.font)
+        draw.text((tx, self._text_y(y, 13)), val_str,
+                  fill=self._value_color(val), font=self.font)
 
-        # LED row starts after value text
-        val_px = self._text_width(self.font, val_str)
-        lx = tx + val_px + 8 + self.LED_R
+        lx = tx + self._text_width(self.font, val_str) + 8 + self.LED_R
         for bit in range(width - 1, -1, -1):
-            bit_val = (val >> bit) & 1
-            self._draw_led(draw, lx, cy, bit_val)
+            self._draw_led(draw, lx, cy, (val >> bit) & 1)
             lx += self.LED_SPACING
 
-    def _draw_large_bus_cell(self, draw, x, y, cw, val, width):
+    def _draw_large_bus_cell(self, draw, x, y, val, width):
         """Bus 9+ bits: hex + binary string."""
         hex_digits = (width + 3) // 4
         hex_str = f"0x{val:0{hex_digits}X}"
         bin_str = format(val, f'0{width}b')
-        color = self.TEXT_ONE if val else self.TEXT_DIM
         tx = x + self.CELL_PAD
-        draw.text((tx, y + (self.ROW_H - 13) // 2), hex_str, fill=color, font=self.font)
-        hx = self._text_width(self.font, hex_str)
-        draw.text((tx + hx + 6, y + (self.ROW_H - 12) // 2), bin_str,
-                  fill=self.TEXT_DIM, font=self.font_small)
+        draw.text((tx, self._text_y(y, 13)), hex_str,
+                  fill=self._value_color(val), font=self.font)
+        draw.text((tx + self._text_width(self.font, hex_str) + 6, self._text_y(y, 12)),
+                  bin_str, fill=self.TEXT_DIM, font=self.font_small)
 
     def _draw_led(self, draw, cx, cy, on):
         """Draw a single LED circle."""
@@ -2658,36 +2664,32 @@ class TruthTableImageGenerator:
         color = self.LED_ON if on else self.LED_OFF
         draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color)
 
-    def _draw_grid_lines(self, draw, col_widths, num_inputs, num_rows, header_top):
+    def _draw_grid_lines(self, draw, col_widths, table_w, num_inputs, num_rows, header_top):
         """Subtle grid lines and input/output divider."""
         x0 = self.PAD
-        table_w = sum(col_widths)
         table_bottom = header_top + self.HEADER_H + num_rows * self.ROW_H
 
-        # Horizontal lines under header and each row
         for i in range(num_rows + 1):
             ly = header_top + self.HEADER_H + i * self.ROW_H
             draw.line([x0, ly, x0 + table_w, ly], fill=self.GRID, width=1)
 
-        # Vertical column separators
         x = x0
         for i, cw in enumerate(col_widths):
             x += cw
             if x < x0 + table_w:
-                lw = 2 if i == num_inputs - 1 else 1
-                color = self.DIVIDER if i == num_inputs - 1 else self.GRID
+                is_divider = (i == num_inputs - 1)
+                lw = 2 if is_divider else 1
+                color = self.DIVIDER if is_divider else self.GRID
                 draw.line([x, header_top, x, table_bottom], fill=color, width=lw)
 
     def _apply_glow(self, img):
         """Add subtle glow around lit LEDs."""
-        # Create a layer with just the bright LED pixels
         glow_layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         pixels = img.load()
         glow_pixels = glow_layer.load()
         for py in range(img.height):
             for px in range(img.width):
                 r, g, b, a = pixels[px, py]
-                # Match LED_ON color (bright green)
                 if g > 180 and r < 100 and b < 150:
                     glow_pixels[px, py] = self.LED_GLOW
         glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(radius=4))
