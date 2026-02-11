@@ -15,21 +15,14 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Example Output
 
-### Truth Table - Full Adder (15 NAND gates)
-
-![Full Adder Truth Table](parts/basic/full_adder.png)
-
-### Truth Table - 3-to-8 Decoder (27 NAND gates)
-
-![Decoder Truth Table](parts/basic/decoder_3to8.png)
-
-### Truth Table - Overture ALU (OR/NAND/NOR/AND/ADD/SUB)
-
-![Overture ALU Truth Table](parts/overture/overture_alu_8bit.png)
 
 ### Waveform - 8-bit Counter with Reset/Enable
 
 ![Counter Waveform](parts/basic/counter8.png)
+
+### Truth Table - Full Adder 
+
+![Full Adder Truth Table](parts/basic/full_adder.png)
 
 ## Quick Start
 
