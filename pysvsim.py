@@ -22,6 +22,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 
 # Global module cache to prevent repeated parsing of the same modules
@@ -2416,87 +2417,281 @@ class TruthTableGenerator:
 
 
 class TruthTableImageGenerator:
-    """Generates truth table images for combinational logic."""
-    
+    """Generates truth table images with dark theme and LED indicators."""
+
+    # Color palette
+    BG           = (30, 31, 38)       # #1E1F26 charcoal
+    ROW_ALT      = (36, 37, 46)       # slightly lighter alt row
+    HEADER_BG    = (40, 42, 54)       # header row background
+    GRID         = (55, 58, 72)       # subtle grid lines
+    DIVIDER      = (80, 85, 105)      # input/output divider
+    TEXT_PRIMARY  = (220, 222, 230)   # main text
+    TEXT_DIM      = (110, 115, 130)   # dim "0" values
+    TEXT_ONE      = (80, 220, 120)    # green "1" values
+    ACCENT_INPUT  = (70, 130, 220)   # blue accent for input header
+    ACCENT_OUTPUT = (60, 185, 100)   # green accent for output header
+    LED_ON        = (60, 220, 110)   # bright green LED
+    LED_OFF       = (50, 52, 62)     # dark dim LED
+    LED_GLOW      = (60, 220, 110, 40)  # glow overlay (RGBA)
+    TITLE_BG      = (24, 25, 32)     # title banner
+
+    # Layout constants
+    PAD         = 16   # outer padding
+    TITLE_H     = 44   # title banner height
+    ACCENT_H    = 3    # colored accent stripe height
+    HEADER_H    = 36   # header row height
+    ROW_H       = 30   # data row height
+    LED_R       = 5    # LED circle radius
+    LED_SPACING = 14   # center-to-center between LEDs
+    CELL_PAD    = 10   # horizontal padding inside cells
+
     def __init__(self, evaluator):
         self.evaluator = evaluator
-    
+        self.font, self.font_bold, self.font_small = self._load_fonts()
+
+    def _load_fonts(self):
+        """Load monospace fonts with platform fallback."""
+        paths = [
+            "/System/Library/Fonts/Menlo.ttc",       # macOS
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",  # Linux
+            "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+            "C:/Windows/Fonts/consola.ttf",           # Windows
+        ]
+        bold_paths = [
+            "/System/Library/Fonts/Menlo.ttc",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",
+            "C:/Windows/Fonts/consolab.ttf",
+        ]
+        def _try_load(candidates, size):
+            for p in candidates:
+                try:
+                    return ImageFont.truetype(p, size)
+                except (OSError, IOError):
+                    continue
+            return ImageFont.load_default()
+
+        font      = _try_load(paths, 13)
+        font_bold = _try_load(bold_paths, 13)
+        font_sm   = _try_load(paths, 11)
+        return font, font_bold, font_sm
+
     def generate_image(self, truth_table: List[Dict[str, int]], output_path: str):
         """Generate a PNG image of the truth table."""
         if not truth_table:
             return
-        
-        # Set up matplotlib for headless operation
-        plt.switch_backend('Agg')
-        
-        inputs = self.evaluator.inputs
-        outputs = self.evaluator.outputs
+
+        inputs   = self.evaluator.inputs
+        outputs  = self.evaluator.outputs
         bus_info = getattr(self.evaluator, 'bus_info', {})
-        
-        # Create headers with bus information
-        input_headers = []
-        output_headers = []
-        
-        for inp in inputs:
-            if inp in bus_info and bus_info[inp]["width"] > 1:
-                width = bus_info[inp]["width"]
-                msb, lsb = bus_info[inp]["msb"], bus_info[inp]["lsb"]
-                input_headers.append(f"{inp}[{msb}:{lsb}]")
+
+        # Build header labels
+        def _header(name):
+            if name in bus_info and bus_info[name]["width"] > 1:
+                return f"{name}[{bus_info[name]['msb']}:{bus_info[name]['lsb']}]"
+            return name
+
+        in_headers  = [_header(n) for n in inputs]
+        out_headers = [_header(n) for n in outputs]
+        all_names   = inputs + outputs
+        all_headers = in_headers + out_headers
+        num_inputs  = len(inputs)
+
+        # Determine signal widths
+        widths = []
+        for name in all_names:
+            w = bus_info[name]["width"] if name in bus_info and bus_info[name]["width"] > 1 else 1
+            widths.append(w)
+
+        # Compute column pixel widths based on content
+        col_widths = self._calculate_column_widths(all_headers, widths, truth_table, all_names)
+
+        # Image dimensions
+        table_w = sum(col_widths)
+        img_w = table_w + 2 * self.PAD
+        img_h = (2 * self.PAD + self.TITLE_H + self.ACCENT_H +
+                 self.HEADER_H + len(truth_table) * self.ROW_H)
+
+        img  = Image.new("RGBA", (img_w, img_h), self.BG + (255,))
+        draw = ImageDraw.Draw(img)
+
+        y = self.PAD
+        y = self._draw_title(draw, img_w, y, output_path)
+        y = self._draw_header_row(draw, y, col_widths, in_headers, out_headers, num_inputs)
+        self._draw_data_rows(draw, y, col_widths, truth_table, all_names, widths, num_inputs)
+        self._draw_grid_lines(draw, col_widths, num_inputs, len(truth_table),
+                              self.PAD + self.TITLE_H + self.ACCENT_H)
+
+        # Glow pass for small tables
+        if len(truth_table) <= 64:
+            img = self._apply_glow(img)
+
+        img.convert("RGB").save(output_path)
+
+    # ── internal helpers ──────────────────────────────────────────
+
+    def _text_width(self, font, text):
+        bbox = font.getbbox(text)
+        return bbox[2] - bbox[0]
+
+    def _calculate_column_widths(self, headers, widths, truth_table, all_names):
+        """Content-based column widths."""
+        col_widths = []
+        for i, (header, w) in enumerate(zip(headers, widths)):
+            header_px = self._text_width(self.font_bold, header) + 2 * self.CELL_PAD
+            if w == 1:
+                # LED + "0"/"1"
+                content_px = self.LED_R * 2 + 6 + self._text_width(self.font, "0") + 2 * self.CELL_PAD
+            elif w <= 8:
+                # decimal value + LED row
+                max_val = max(row[all_names[i]] for row in truth_table) if truth_table else 0
+                val_str = str(max_val)
+                led_row_px = w * self.LED_SPACING + 4
+                content_px = (self._text_width(self.font, val_str) + 8 +
+                              led_row_px + 2 * self.CELL_PAD)
             else:
-                input_headers.append(inp)
-        
-        for out in outputs:
-            if out in bus_info and bus_info[out]["width"] > 1:
-                width = bus_info[out]["width"]
-                msb, lsb = bus_info[out]["msb"], bus_info[out]["lsb"]
-                output_headers.append(f"{out}[{msb}:{lsb}]")
-            else:
-                output_headers.append(out)
-        
-        all_headers = input_headers + output_headers
-        
-        # Prepare data for table
-        table_data = []
-        for row in truth_table:
-            row_data = []
-            for inp in inputs:
-                row_data.append(str(row[inp]))
-            for out in outputs:
-                row_data.append(str(row[out]))
-            table_data.append(row_data)
-        
-        # Create figure
-        fig, ax = plt.subplots(figsize=(max(12, len(all_headers) * 1.5), max(8, len(table_data) * 0.4 + 2)))
-        ax.axis('tight')
-        ax.axis('off')
-        
-        # Create table
-        table = ax.table(cellText=table_data,
-                        colLabels=all_headers,
-                        cellLoc='center',
-                        loc='center')
-        
-        # Style the table
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.scale(1.2, 1.5)
-        
-        # Color the header
-        for i in range(len(all_headers)):
-            if i < len(input_headers):
-                # Input columns in light blue
-                table[(0, i)].set_facecolor('#E3F2FD')
-            else:
-                # Output columns in light green
-                table[(0, i)].set_facecolor('#E8F5E8')
-            table[(0, i)].set_text_props(weight='bold')
-        
-        # Color coding provides visual separation between inputs and outputs
-        
-        plt.title(f'Truth Table - {Path(output_path).stem}', fontsize=14, weight='bold', pad=20)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=150, bbox_inches='tight')
-        plt.close()
+                # hex + binary
+                hex_str = f"0x{(1 << w) - 1:X}"
+                bin_str = "1" * w
+                content_px = (self._text_width(self.font, hex_str) + 6 +
+                              self._text_width(self.font_small, bin_str) + 2 * self.CELL_PAD)
+            col_widths.append(max(header_px, content_px))
+        return col_widths
+
+    def _draw_title(self, draw, img_w, y, output_path):
+        """Dark banner with module name."""
+        draw.rectangle([0, y, img_w, y + self.TITLE_H], fill=self.TITLE_BG)
+        title = Path(output_path).stem
+        tw = self._text_width(self.font_bold, title)
+        draw.text(((img_w - tw) // 2, y + (self.TITLE_H - 16) // 2),
+                  title, fill=self.TEXT_PRIMARY, font=self.font_bold)
+        return y + self.TITLE_H
+
+    def _draw_header_row(self, draw, y, col_widths, in_headers, out_headers, num_inputs):
+        """Accent stripe + header labels."""
+        x0 = self.PAD
+        table_w = sum(col_widths)
+        # Input accent stripe (blue)
+        input_w = sum(col_widths[:num_inputs])
+        draw.rectangle([x0, y, x0 + input_w, y + self.ACCENT_H], fill=self.ACCENT_INPUT)
+        # Output accent stripe (green)
+        draw.rectangle([x0 + input_w, y, x0 + table_w, y + self.ACCENT_H], fill=self.ACCENT_OUTPUT)
+        y += self.ACCENT_H
+
+        # Header background
+        draw.rectangle([x0, y, x0 + table_w, y + self.HEADER_H], fill=self.HEADER_BG)
+
+        # Header text
+        x = x0
+        for i, header in enumerate(in_headers + out_headers):
+            cw = col_widths[i]
+            tw = self._text_width(self.font_bold, header)
+            draw.text((x + (cw - tw) // 2, y + (self.HEADER_H - 14) // 2),
+                      header, fill=self.TEXT_PRIMARY, font=self.font_bold)
+            x += cw
+
+        return y + self.HEADER_H
+
+    def _draw_data_rows(self, draw, y, col_widths, truth_table, all_names, widths, num_inputs):
+        """Render all data rows with appropriate cell types."""
+        for row_idx, row in enumerate(truth_table):
+            bg = self.ROW_ALT if row_idx % 2 else self.BG
+            x0 = self.PAD
+            table_w = sum(col_widths)
+            ry = y + row_idx * self.ROW_H
+            draw.rectangle([x0, ry, x0 + table_w, ry + self.ROW_H], fill=bg)
+
+            x = x0
+            for col_idx, name in enumerate(all_names):
+                cw = col_widths[col_idx]
+                val = row[name]
+                w = widths[col_idx]
+                if w == 1:
+                    self._draw_bit_cell(draw, x, ry, cw, val)
+                elif w <= 8:
+                    self._draw_bus_cell(draw, x, ry, cw, val, w)
+                else:
+                    self._draw_large_bus_cell(draw, x, ry, cw, val, w)
+                x += cw
+
+    def _draw_bit_cell(self, draw, x, y, cw, val):
+        """Single-bit: LED circle + '0'/'1' text."""
+        cy = y + self.ROW_H // 2
+        led_x = x + self.CELL_PAD + self.LED_R
+        self._draw_led(draw, led_x, cy, val)
+        text = str(val)
+        tx = led_x + self.LED_R + 6
+        color = self.TEXT_ONE if val else self.TEXT_DIM
+        draw.text((tx, y + (self.ROW_H - 13) // 2), text, fill=color, font=self.font)
+
+    def _draw_bus_cell(self, draw, x, y, cw, val, width):
+        """Bus 2-8 bits: decimal value + LED row (MSB to LSB)."""
+        cy = y + self.ROW_H // 2
+        val_str = str(val)
+        color = self.TEXT_ONE if val else self.TEXT_DIM
+        tx = x + self.CELL_PAD
+        draw.text((tx, y + (self.ROW_H - 13) // 2), val_str, fill=color, font=self.font)
+
+        # LED row starts after value text
+        val_px = self._text_width(self.font, val_str)
+        lx = tx + val_px + 8 + self.LED_R
+        for bit in range(width - 1, -1, -1):
+            bit_val = (val >> bit) & 1
+            self._draw_led(draw, lx, cy, bit_val)
+            lx += self.LED_SPACING
+
+    def _draw_large_bus_cell(self, draw, x, y, cw, val, width):
+        """Bus 9+ bits: hex + binary string."""
+        hex_digits = (width + 3) // 4
+        hex_str = f"0x{val:0{hex_digits}X}"
+        bin_str = format(val, f'0{width}b')
+        color = self.TEXT_ONE if val else self.TEXT_DIM
+        tx = x + self.CELL_PAD
+        draw.text((tx, y + (self.ROW_H - 13) // 2), hex_str, fill=color, font=self.font)
+        hx = self._text_width(self.font, hex_str)
+        draw.text((tx + hx + 6, y + (self.ROW_H - 12) // 2), bin_str,
+                  fill=self.TEXT_DIM, font=self.font_small)
+
+    def _draw_led(self, draw, cx, cy, on):
+        """Draw a single LED circle."""
+        r = self.LED_R
+        color = self.LED_ON if on else self.LED_OFF
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color)
+
+    def _draw_grid_lines(self, draw, col_widths, num_inputs, num_rows, header_top):
+        """Subtle grid lines and input/output divider."""
+        x0 = self.PAD
+        table_w = sum(col_widths)
+        table_bottom = header_top + self.HEADER_H + num_rows * self.ROW_H
+
+        # Horizontal lines under header and each row
+        for i in range(num_rows + 1):
+            ly = header_top + self.HEADER_H + i * self.ROW_H
+            draw.line([x0, ly, x0 + table_w, ly], fill=self.GRID, width=1)
+
+        # Vertical column separators
+        x = x0
+        for i, cw in enumerate(col_widths):
+            x += cw
+            if x < x0 + table_w:
+                lw = 2 if i == num_inputs - 1 else 1
+                color = self.DIVIDER if i == num_inputs - 1 else self.GRID
+                draw.line([x, header_top, x, table_bottom], fill=color, width=lw)
+
+    def _apply_glow(self, img):
+        """Add subtle glow around lit LEDs."""
+        # Create a layer with just the bright LED pixels
+        glow_layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        pixels = img.load()
+        glow_pixels = glow_layer.load()
+        for py in range(img.height):
+            for px in range(img.width):
+                r, g, b, a = pixels[px, py]
+                # Match LED_ON color (bright green)
+                if g > 180 and r < 100 and b < 150:
+                    glow_pixels[px, py] = self.LED_GLOW
+        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(radius=4))
+        return Image.alpha_composite(img, glow_layer)
 
 
 class WaveformImageGenerator:
