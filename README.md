@@ -20,7 +20,11 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ![Counter Waveform](parts/basic/counter8.png)
 
-### Truth Table - Full Adder 
+### Waveform - Overture CPU Execution
+
+![CPU Waveform](parts/overture/overture_cpu.png)
+
+### Truth Table - Full Adder
 
 ![Full Adder Truth Table](parts/basic/full_adder.png)
 
