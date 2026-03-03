@@ -228,7 +228,7 @@ Three progressive CPU milestones. See `goals/` for detailed plans.
 
 | Metric | Value |
 |--------|-------|
-| Last Verified | February 11, 2026 |
+| Last Verified | March 3, 2026 |
 | `parts/basic/` | 44/44 files, 416/416 tests |
 | `parts/overture/` | 41/41 files, 325/325 tests |
 | `parts/testing/` | 40/40 files, 261/261 tests |
