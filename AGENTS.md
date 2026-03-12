@@ -12,13 +12,13 @@ Use `uv` to manage dependencies and run Python:
 
 ```bash
 # Test a single module
-uv run test_runner.py parts/basic/and_gate.sv
+uv run pysvsim.py parts/basic/and_gate.sv
 
 # Test entire directory tree (parallel execution, recursive)
-uv run test_runner.py parts/
-uv run test_runner.py parts/basic/
-uv run test_runner.py parts/overture/
-uv run test_runner.py parts/testing/
+uv run pysvsim.py parts/
+uv run pysvsim.py parts/basic/
+uv run pysvsim.py parts/overture/
+uv run pysvsim.py parts/testing/
 
 # Generate truth table / run simulation
 uv run pysvsim.py --file parts/basic/full_adder.sv
@@ -30,7 +30,7 @@ uv add <package>
 
 ## Architecture
 
-**pysvsim.py** - Main simulator with these core classes:
+**pysvsim.py** - Single-file simulator and test runner with these core classes:
 
 - **SystemVerilogParser**: Regex-based parser extracting modules, ports, buses, wires, assignments, `always_ff` blocks, and `always_comb` blocks
 - **LogicEvaluator**: Evaluates combinational logic expressions including `always_comb` blocks and ternary operators; handles hierarchical module instantiation and NAND gate counting
@@ -39,8 +39,6 @@ uv add <package>
 - **TruthTableGenerator/ImageGenerator**: Generates truth tables and PNG visualizations
 - **WaveformImageGenerator**: Creates timing diagrams for sequential logic
 - **TestRunner**: Executes JSON test cases against modules
-
-**test_runner.py** - Parallel test framework using `ProcessPoolExecutor` for multi-core execution
 
 ## Module System
 

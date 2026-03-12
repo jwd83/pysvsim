@@ -32,12 +32,12 @@ uv run pysvsim.py --file parts/basic/full_adder.sv
 uv run pysvsim.py --file parts/basic/full_adder.sv --test parts/basic/full_adder.json
 
 # Test a single file
-uv run test_runner.py parts/basic/and_gate.sv
+uv run pysvsim.py parts/basic/and_gate.sv
 
 # Test a subdirectory or entire tree (parallel)
-uv run test_runner.py parts/basic/
-uv run test_runner.py parts/overture/
-uv run test_runner.py parts/          # all subdirectories
+uv run pysvsim.py parts/basic/
+uv run pysvsim.py parts/overture/
+uv run pysvsim.py parts/          # all subdirectories
 ```
 
 ## Features
@@ -58,14 +58,14 @@ uv run test_runner.py parts/          # all subdirectories
 - **Waveform Generation**: Timing diagrams for sequential logic
 - **Image Output**: PNG images for game integration
 - **JSON Testing**: Test cases for combinational and sequential designs
-- **Parallel Test Runner**: Multi-core regression testing
+- **Single-File Module**: All Python functionality lives in `pysvsim.py`
+- **Parallel Test Runner**: Multi-core regression testing from the same entry point
 
 ## Directory Structure
 
 ```
 pysvsim/
-├── pysvsim.py              # Main simulator
-├── test_runner.py           # Parallel test runner
+├── pysvsim.py              # Simulator, image generation, and batch test runner
 ├── parts/
 │   ├── basic/              # 44 core building blocks
 │   │   ├── nand_gate.sv    #   gates, adders, muxes, registers,
