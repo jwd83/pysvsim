@@ -293,6 +293,8 @@ class SystemVerilogTestRunner:
         self.reports: List[TestReport] = []
         self.parallel = parallel
         self.max_workers = max_workers or max(1, multiprocessing.cpu_count() - 1)
+        self.run_failed = False
+        self.run_failure_message = ""
         
     def find_sv_files(self, path: str) -> List[str]:
         """Find all SystemVerilog files in the given path"""
@@ -350,6 +352,8 @@ class SystemVerilogTestRunner:
     
     def run_tests(self, path: str) -> None:
         """Run tests for all SystemVerilog files in the given path"""
+        self.run_failed = False
+        self.run_failure_message = ""
         try:
             sv_files = self.find_sv_files(path)
             if not sv_files:
@@ -359,13 +363,23 @@ class SystemVerilogTestRunner:
             print(f"Found {len(sv_files)} SystemVerilog file(s) to test\n")
             
             if self.parallel and len(sv_files) > 1:
-                self._run_tests_parallel(sv_files)
+                try:
+                    self._run_tests_parallel(sv_files)
+                except Exception as e:
+                    # Fall back when the host disallows process workers.
+                    print(f"[WARN] Parallel execution unavailable: {e}")
+                    print("[INFO] Falling back to sequential execution\n")
+                    self._run_tests_sequential(sv_files)
             else:
                 self._run_tests_sequential(sv_files)
                     
         except KeyboardInterrupt:
+            self.run_failed = True
+            self.run_failure_message = "Test run interrupted by user"
             print(f"\n[INFO] Test run interrupted by user")
         except Exception as e:
+            self.run_failed = True
+            self.run_failure_message = str(e)
             print(f"[ERROR] Test runner failed: {e}")
             traceback.print_exc()
     
@@ -485,6 +499,8 @@ class SystemVerilogTestRunner:
         total_files = len(self.reports)
         if total_files == 0:
             print("\nNo files tested.")
+            if self.run_failed and self.run_failure_message:
+                print(f"Run failure: {self.run_failure_message}")
             return
             
         successful_files = sum(1 for r in self.reports if r.success)
@@ -515,6 +531,8 @@ class SystemVerilogTestRunner:
         print(f"Average Time per File:  {total_time/total_files:.3f}s")
         print(f"Total NAND Gates:       {total_nand_gates}")
         print(f"Average NAND per File:  {avg_nand_gates:.1f}")
+        if self.run_failed and self.run_failure_message:
+            print(f"Run Failure:            {self.run_failure_message}")
         
         # Show failed files
         failed_files = [r for r in self.reports if not r.success]
@@ -580,6 +598,9 @@ def main():
     
     # Exit with appropriate code
     failed_files = sum(1 for r in runner.reports if not r.success)
+    if runner.run_failed:
+        print(f"\nExiting with code 1 ({runner.run_failure_message})")
+        sys.exit(1)
     if failed_files > 0:
         print(f"\nExiting with code 1 ({failed_files} files failed)")
         sys.exit(1)

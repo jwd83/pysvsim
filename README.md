@@ -16,6 +16,14 @@ A pure Python SystemVerilog simulator designed for an educational digital logic 
 
 ## Quick Start
 
+PySVSim supports Python 3.10+ at runtime. The development workflow in this repo uses the pinned interpreter in `.python-version` (`3.13.2`) and assumes `uv` manages the virtual environment.
+
+```bash
+# Install the pinned development interpreter and dependencies
+uv python install 3.13.2
+uv sync
+```
+
 ```bash
 # Generate truth table for a module
 uv run pysvsim.py --file parts/basic/full_adder.sv
@@ -228,7 +236,7 @@ Three progressive CPU milestones. See `goals/` for detailed plans.
 
 | Metric | Value |
 |--------|-------|
-| Last Verified | March 3, 2026 |
+| Last Verified | March 12, 2026 |
 | `parts/basic/` | 44/44 files, 416/416 tests |
 | `parts/overture/` | 41/41 files, 325/325 tests |
 | `parts/testing/` | 40/40 files, 261/261 tests |
