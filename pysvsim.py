@@ -1081,7 +1081,7 @@ class LogicEvaluator:
                             self._expand_bus_to_bits(
                                 signal_name, new_value, signal_values
                             )
-                except:
+                except Exception:
                     # Skip assignments that can't be evaluated yet (dependencies not ready)
                     continue
 
@@ -1395,7 +1395,7 @@ class LogicEvaluator:
         eval_expr = self._convert_operators(eval_expr)
 
         try:
-            result = eval(eval_expr)
+            result = eval(eval_expr, {"__builtins__": {}}, {})
             result = int(result)
 
             # Apply bit masking based on target signal width
@@ -3441,7 +3441,10 @@ class SystemVerilogTestRunner:
         self.continue_on_error = True
         self.reports: List[TestReport] = []
         self.parallel = parallel
-        self.max_workers = max_workers or max(1, multiprocessing.cpu_count() - 1)
+        if max_workers is None:
+            self.max_workers = max(1, multiprocessing.cpu_count() - 1)
+        else:
+            self.max_workers = max_workers
         self.run_failed = False
         self.run_failure_message = ""
 
@@ -3452,7 +3455,7 @@ class SystemVerilogTestRunner:
         if path_obj.is_file() and path_obj.suffix == ".sv":
             return [str(path_obj)]
         if path_obj.is_dir():
-            return [str(file_path) for file_path in path_obj.rglob("*.sv")]
+            return [str(file_path) for file_path in sorted(path_obj.rglob("*.sv"))]
         raise ValueError(f"Path '{path}' is not a valid file or directory")
 
     def find_json_test(self, sv_file: str) -> Optional[str]:
@@ -3511,7 +3514,8 @@ class SystemVerilogTestRunner:
 
             print(f"Found {len(sv_files)} SystemVerilog file(s) to test\n")
 
-            if self.parallel and len(sv_files) > 1:
+            should_run_parallel = self.parallel and self.max_workers > 1 and len(sv_files) > 1
+            if should_run_parallel:
                 try:
                     self._run_tests_parallel(sv_files)
                 except Exception as e:
@@ -3776,8 +3780,11 @@ def run_test_suite(
     if not os.path.exists(path):
         print(f"Error: Path '{path}' does not exist", file=sys.stderr)
         return 1
+    if workers is not None and workers < 1:
+        print("Error: --workers must be at least 1", file=sys.stderr)
+        return 1
 
-    parallel = not sequential
+    parallel = not sequential and (workers is None or workers > 1)
     runner = SystemVerilogTestRunner(parallel=parallel, max_workers=workers)
     runner.max_combinations = max_combinations
 
