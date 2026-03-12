@@ -201,7 +201,7 @@ class SystemVerilogParser:
             Dictionary containing module info: name, inputs, outputs, assignments
         """
         self._reset_parse_state()
-        self.filepath = filepath
+        self.filepath = os.path.abspath(filepath)
         try:
             with open(self.filepath, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -263,6 +263,7 @@ class SystemVerilogParser:
             "clock_signals": list(self.clock_signals),
             "bus_info": self.bus_info.copy(),
             "memory_arrays": self.memory_arrays.copy(),
+            "filepath": self.filepath,
         }
 
     def _remove_comments(self, content: str) -> str:
@@ -1634,7 +1635,7 @@ class LogicEvaluator:
         if instance_name not in self.instance_evaluators:
             self.instance_evaluators[instance_name] = create_evaluator(
                 module_info,
-                filepath=self.current_file_path,
+                filepath=module_info.get("filepath", self.current_file_path),
                 module_name=module_info.get("name", module_type),
                 instance_path=instance_path,
                 memory_bindings=self.memory_bindings,
@@ -1828,46 +1829,41 @@ class LogicEvaluator:
 
         return total_nands
 
-    def _load_module(self, module_name: str):
-        """Load a module from file."""
-        import os
-
-        # Try to find the module file in the current directory
-        module_file = f"{module_name}.sv"
-
-        load_file = False
-        if os.path.exists(module_file):
-            load_file = True
-            # print(f"Loading module '{module_name}' from current directory")
-        else:
-            # look for module in the same folder as the main file being simulated
-            if self.current_file_path:
-                module_file = os.path.join(
-                    os.path.dirname(self.current_file_path), f"{module_name}.sv"
-                )
-                if os.path.exists(module_file):
-                    load_file = True
-                    # print(f"Loading module '{module_name}' from {module_file}")
-            elif hasattr(gargs, "file") and gargs.file:
-                module_file = os.path.join(
-                    os.path.dirname(gargs.file), f"{module_name}.sv"
-                )
-                if os.path.exists(module_file):
-                    load_file = True
-                    # print(f"Loading module '{module_name}' from {module_file}")
-            # print(f"Looking for module '{module_name}' in {module_file}")
-        if load_file:
-            try:
-                # print(f"Loading module '{module_name}' from disk: {module_file}")
-                parser = SystemVerilogParser()
-                module_info = parser.parse_file(module_file)
-                GLOBAL_MODULE_CACHE[module_name] = module_info
-            except Exception as e:
-                print(f"Warning: Could not load module '{module_name}': {e}")
-        else:
-            print(
-                f"Warning: Module file '{module_file}' not found for module '{module_name}'"
+    def _module_search_paths(self, module_name: str) -> List[str]:
+        """Return candidate paths for resolving an instantiated module."""
+        search_paths = [f"{module_name}.sv"]
+        if self.current_file_path:
+            search_paths.append(
+                os.path.join(os.path.dirname(self.current_file_path), f"{module_name}.sv")
             )
+
+        ordered_paths: List[str] = []
+        seen_paths = set()
+        for path in search_paths:
+            normalized = os.path.abspath(path)
+            if normalized in seen_paths:
+                continue
+            seen_paths.add(normalized)
+            ordered_paths.append(normalized)
+        return ordered_paths
+
+    def _load_module(self, module_name: str):
+        """Load a module from disk using the current source file as context."""
+        search_paths = self._module_search_paths(module_name)
+        module_file = next((path for path in search_paths if os.path.exists(path)), None)
+
+        if module_file is None:
+            print(
+                f"Warning: Module '{module_name}' not found. Searched: {search_paths}"
+            )
+            return
+
+        try:
+            parser = SystemVerilogParser()
+            module_info = parser.parse_file(module_file)
+            GLOBAL_MODULE_CACHE[module_name] = module_info
+        except Exception as e:
+            print(f"Warning: Could not load module '{module_name}': {e}")
 
 
 class SequentialLogicEvaluator:
@@ -2265,6 +2261,7 @@ def create_evaluator(
         is_sequential = _has_sequential_submodules(module_info)
 
     resolved_name = module_name or module_info.get("name", "")
+    source_path = filepath or module_info.get("filepath", "")
 
     if is_sequential:
         return SequentialLogicEvaluator(
@@ -2277,7 +2274,7 @@ def create_evaluator(
             module_info.get("concat_assignments", []),
             module_info.get("sequential_blocks", []),
             module_info.get("clock_signals", []),
-            filepath,
+            source_path,
             module_info.get("memory_arrays", {}),
             resolved_name,
             instance_path,
@@ -2293,7 +2290,7 @@ def create_evaluator(
         module_info.get("bus_info", {}),
         module_info.get("slice_assignments", []),
         module_info.get("concat_assignments", []),
-        filepath,
+        source_path,
         module_info.get("memory_arrays", {}),
         resolved_name,
         instance_path,
@@ -2957,12 +2954,55 @@ class WaveformImageGenerator:
 class TestRunner:
     """Runs test cases from JSON files against the simulator."""
 
-    def __init__(self, evaluator: LogicEvaluator):
+    def __init__(self, evaluator: Any, verbose: bool = True):
         self.evaluator = evaluator
+        self.verbose = verbose
         self.test_cycles = []  # Store test cycles for waveform generation
+        self.test_outputs = []  # Store per-test pass/fail output for callers
         self.loaded_test_file = ""
 
-    def load_tests(self, test_file: str) -> List[Dict[str, Any]]:
+    def _emit(self, message: str, record: bool = True):
+        """Emit output while optionally recording it for silent callers."""
+        if record and message:
+            self.test_outputs.append(message)
+        if self.verbose:
+            print(message)
+
+    def _evaluate_inputs(self, input_values: Dict[str, Any]) -> Dict[str, int]:
+        """Evaluate one input set for combinational or sequential designs."""
+        if hasattr(self.evaluator, "evaluate_cycle"):
+            return self.evaluator.evaluate_cycle(input_values)
+        return self.evaluator.evaluate(input_values)
+
+    def _check_expected_outputs(
+        self,
+        label: str,
+        actual_outputs: Dict[str, int],
+        expected_outputs: Dict[str, Any],
+        description: str = "",
+        emit_pass: bool = True,
+    ) -> bool:
+        """Compare actual outputs to expectations and emit consistent messages."""
+        suffix = f" - {description}" if description else ""
+        test_passed = True
+        for output_name, expected_value in expected_outputs.items():
+            if output_name not in actual_outputs:
+                self._emit(
+                    f"{label} failed: Output '{output_name}' not found{suffix}"
+                )
+                test_passed = False
+            elif actual_outputs[output_name] != expected_value:
+                self._emit(
+                    f"{label} failed: {output_name} = {actual_outputs[output_name]}, "
+                    f"expected {expected_value}{suffix}"
+                )
+                test_passed = False
+
+        if test_passed and emit_pass:
+            self._emit(f"{label} passed{suffix}")
+        return test_passed
+
+    def load_tests(self, test_file: str) -> Any:
         """Load test cases from a JSON file."""
         try:
             with open(test_file, "r", encoding="utf-8") as f:
@@ -2985,6 +3025,8 @@ class TestRunner:
         Returns:
             Tuple of (passed_count, total_count)
         """
+        self.test_outputs = []
+
         # Configure ROM/RAM bindings before running cycles.
         test_dir = os.path.dirname(self.loaded_test_file) if self.loaded_test_file else os.getcwd()
         default_module = getattr(self.evaluator, "module_name", "")
@@ -3003,7 +3045,8 @@ class TestRunner:
     
     def _run_combinational_tests(self, tests: List[Dict[str, Any]]) -> Tuple[int, int]:
         """Run combinational logic tests (original format)"""
-        print("\nRunning combinational tests...")
+        if self.verbose:
+            print("\nRunning combinational tests...")
         passed = 0
         total = len(tests)
 
@@ -3015,27 +3058,17 @@ class TestRunner:
             # Run simulation
             actual_outputs = self.evaluator.evaluate(input_values)
 
-            # Check results
-            test_passed = True
-            for output_name, expected_value in expected_outputs.items():
-                if output_name not in actual_outputs:
-                    print(f"Test {i} failed: Output '{output_name}' not found")
-                    test_passed = False
-                elif actual_outputs[output_name] != expected_value:
-                    print(
-                        f"Test {i} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                    )
-                    test_passed = False
-
-            if test_passed:
-                print(f"Test {i} passed")
+            if self._check_expected_outputs(
+                f"Test {i}", actual_outputs, expected_outputs
+            ):
                 passed += 1
 
         return passed, total
     
     def _run_sequential_tests(self, test_data: Dict[str, Any]) -> Tuple[int, int]:
-        """Run sequential logic tests (new format)"""
-        print("\nRunning sequential tests...")
+        """Run sequential logic tests (legacy cycle-based format)."""
+        if self.verbose:
+            print("\nRunning sequential tests...")
         test_cycles = test_data.get('test_cycles', [])
         passed = 0
         total = len(test_cycles)
@@ -3054,11 +3087,7 @@ class TestRunner:
             description = cycle_test.get('description', f'Cycle {cycle_num}')
             
             # Run one clock cycle
-            if hasattr(self.evaluator, 'evaluate_cycle'):
-                actual_outputs = self.evaluator.evaluate_cycle(input_values)
-            else:
-                # Fallback for combinational evaluator
-                actual_outputs = self.evaluator.evaluate(input_values)
+            actual_outputs = self._evaluate_inputs(input_values)
             
             # Store cycle data for waveform generation
             self.test_cycles.append({
@@ -3068,27 +3097,20 @@ class TestRunner:
                 'description': description
             })
             
-            # Check results
-            test_passed = True
-            for output_name, expected_value in expected_outputs.items():
-                if output_name not in actual_outputs:
-                    print(f"Cycle {cycle_num} failed: Output '{output_name}' not found - {description}")
-                    test_passed = False
-                elif actual_outputs[output_name] != expected_value:
-                    print(
-                        f"Cycle {cycle_num} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value} - {description}"
-                    )
-                    test_passed = False
-            
-            if test_passed:
-                print(f"Cycle {cycle_num} passed - {description}")
+            if self._check_expected_outputs(
+                f"Cycle {cycle_num}",
+                actual_outputs,
+                expected_outputs,
+                description,
+            ):
                 passed += 1
         
         return passed, total
     
     def _run_new_sequential_tests(self, test_data: Dict[str, Any]) -> Tuple[int, int]:
         """Run new sequential logic tests format"""
-        print("\nRunning sequential tests...")
+        if self.verbose:
+            print("\nRunning sequential tests...")
         test_cases = test_data.get('test_cases', [])
         passed = 0
         total = 0
@@ -3112,10 +3134,7 @@ class TestRunner:
                     expected_outputs = step.get('expected', {})
                     
                     # Run one clock cycle
-                    if hasattr(self.evaluator, 'evaluate_cycle'):
-                        actual_outputs = self.evaluator.evaluate_cycle(input_values)
-                    else:
-                        actual_outputs = self.evaluator.evaluate(input_values)
+                    actual_outputs = self._evaluate_inputs(input_values)
                     
                     # Store cycle data for waveform generation
                     self.test_cycles.append({
@@ -3126,19 +3145,16 @@ class TestRunner:
                     })
                     cycle_counter += 1
                     
-                    # Check results for this step
-                    for output_name, expected_value in expected_outputs.items():
-                        if output_name not in actual_outputs:
-                            print(f"{name} failed: Output '{output_name}' not found")
-                            sequence_passed = False
-                        elif actual_outputs[output_name] != expected_value:
-                            print(
-                                f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                            )
-                            sequence_passed = False
+                    if not self._check_expected_outputs(
+                        name,
+                        actual_outputs,
+                        expected_outputs,
+                        emit_pass=False,
+                    ):
+                        sequence_passed = False
                 
                 if sequence_passed:
-                    print(f"{name} passed")
+                    self._emit(f"{name} passed")
                     passed += 1
                 total += 1
             
@@ -3148,10 +3164,7 @@ class TestRunner:
                 expected_outputs = test_case.get('expected', {})
                 
                 # Run one clock cycle
-                if hasattr(self.evaluator, 'evaluate_cycle'):
-                    actual_outputs = self.evaluator.evaluate_cycle(input_values)
-                else:
-                    actual_outputs = self.evaluator.evaluate(input_values)
+                actual_outputs = self._evaluate_inputs(input_values)
                 
                 # Store cycle data for waveform generation
                 self.test_cycles.append({
@@ -3162,20 +3175,9 @@ class TestRunner:
                 })
                 cycle_counter += 1
                 
-                # Check results
-                test_passed = True
-                for output_name, expected_value in expected_outputs.items():
-                    if output_name not in actual_outputs:
-                        print(f"{name} failed: Output '{output_name}' not found")
-                        test_passed = False
-                    elif actual_outputs[output_name] != expected_value:
-                        print(
-                            f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                        )
-                        test_passed = False
-                
-                if test_passed:
-                    print(f"{name} passed")
+                if self._check_expected_outputs(
+                    name, actual_outputs, expected_outputs
+                ):
                     passed += 1
                 total += 1
         
@@ -3183,7 +3185,6 @@ class TestRunner:
 
 
 def main():
-    global gargs
     """Main function to run the SystemVerilog simulator."""
     parser = argparse.ArgumentParser(
         description="SystemVerilog Simulator for Game Development",
@@ -3205,7 +3206,6 @@ def main():
     )
 
     args = parser.parse_args()
-    gargs = args
 
     # Clear cache if requested
     if args.clear_cache:
@@ -3276,6 +3276,5 @@ def main():
         sys.exit(1)
 
 
-gargs = None
 if __name__ == "__main__":
     main()

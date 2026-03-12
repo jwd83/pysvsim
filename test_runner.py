@@ -17,19 +17,13 @@ import json
 import os
 import sys
 import time
+import io
+import contextlib
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
 import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
-
-
-def _outputs_match(actual_outputs: Dict[str, int], expected_outputs: Dict[str, Any]) -> bool:
-    """Check if actual outputs match expected outputs."""
-    for output_name, expected_value in expected_outputs.items():
-        if output_name not in actual_outputs or actual_outputs[output_name] != expected_value:
-            return False
-    return True
 
 
 def _check_missing_expect_fields(tests) -> str:
@@ -65,290 +59,13 @@ def _check_missing_expect_fields(tests) -> str:
     return ""
 
 
-def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
-    """Standalone function to test a single file - used for parallel processing"""
-    import json
-    import os
-    import sys
-    import time
-    from pathlib import Path
-    import io
-    import contextlib
-    
-    try:
-        # Import here to avoid issues with multiprocessing
-        from pysvsim import (
-            SystemVerilogParser,
-            TruthTableGenerator,
-            clear_module_cache,
-            normalize_memory_bindings,
-            create_evaluator,
-        )
-        from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
-        
-        # Inline simplified version of test logic to avoid circular imports
-        start_time = time.time()
-        
-        # Clear module cache
-        clear_module_cache()
-        
-        # Find JSON test file
-        sv_path = Path(sv_file)
-        possible_names = [
-            sv_path.with_suffix('.json'),
-            sv_path.parent / f"{sv_path.stem}_test.json",
-            sv_path.parent / f"{sv_path.stem}_tests.json",
-        ]
-        json_file = None
-        for json_path in possible_names:
-            if json_path.exists():
-                json_file = str(json_path)
-                break
-        
-        # Parse SystemVerilog file
-        parser = SystemVerilogParser()
-        module_info = parser.parse_file(sv_file)
-        
-        # Create evaluator
-        evaluator = create_evaluator(
-            module_info, filepath=sv_file, check_submodules=True
-        )
-
-        # Count NAND gates
-        nand_count = evaluator.count_nand_gates()
-        
-        # Generate truth table for combinational logic
-        truth_table = []
-        truth_table_success = True
-        warnings = ""
-        is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
-        
-        if not is_sequential_eval:
-            try:
-                f = io.StringIO()
-                with contextlib.redirect_stdout(f):
-                    truth_table_gen = TruthTableGenerator(evaluator)
-                    truth_table = truth_table_gen.generate_truth_table(max_combinations)
-                captured_output = f.getvalue()
-                if captured_output.strip():
-                    warnings = captured_output.strip()
-            except Exception as e:
-                truth_table_success = False
-                warnings = f"Truth table generation failed: {e}"
-        else:
-            warnings = "Truth table skipped for sequential logic module"
-        
-        # Run tests if available
-        passed_tests = 0
-        total_tests = 0
-        test_success = True
-        test_outputs = []
-        
-        if json_file:
-            try:
-                with open(json_file, "r", encoding="utf-8") as f:
-                    tests = json.load(f)
-
-                memory_bindings = normalize_memory_bindings(
-                    tests,
-                    str(Path(json_file).parent),
-                    module_info.get("name", ""),
-                )
-                if hasattr(evaluator, "configure_memory_bindings"):
-                    evaluator.configure_memory_bindings(memory_bindings)
-                
-                # Check for missing expect fields and warn
-                missing_expect_warning = _check_missing_expect_fields(tests)
-                if missing_expect_warning:
-                    if warnings:
-                        warnings += "; " + missing_expect_warning
-                    else:
-                        warnings = missing_expect_warning
-                
-                # Run tests using simplified logic
-                if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
-                    # Old sequential format
-                    test_cycles = tests.get('test_cycles', [])
-                    if hasattr(evaluator, 'reset_state'):
-                        evaluator.reset_state()
-                    
-                    for i, cycle_test in enumerate(test_cycles):
-                        cycle_num = cycle_test.get('cycle', i)
-                        input_values = cycle_test.get('inputs', {})
-                        expected_outputs = cycle_test.get('expected_outputs', {})
-                        description = cycle_test.get('description', f'Cycle {cycle_num}')
-                        
-                        # Run one clock cycle
-                        if hasattr(evaluator, 'evaluate_cycle'):
-                            actual_outputs = evaluator.evaluate_cycle(input_values)
-                        else:
-                            actual_outputs = evaluator.evaluate(input_values)
-
-                        test_passed = _outputs_match(actual_outputs, expected_outputs)
-                        status = "passed" if test_passed else "failed"
-                        test_outputs.append(f"Cycle {cycle_num} {status} - {description}")
-                        if test_passed:
-                            passed_tests += 1
-                        total_tests += 1
-
-                elif isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
-                    # New sequential format
-                    test_cases = tests.get('test_cases', [])
-                    if hasattr(evaluator, 'reset_state'):
-                        evaluator.reset_state()
-
-                    for test_case in test_cases:
-                        name = test_case.get('name', 'Unnamed test')
-                        if 'sequence' in test_case:
-                            sequence_passed = True
-                            for step in test_case['sequence']:
-                                input_values = step.get('inputs', {})
-                                expected_outputs = step.get('expected', {})
-
-                                if hasattr(evaluator, 'evaluate_cycle'):
-                                    actual_outputs = evaluator.evaluate_cycle(input_values)
-                                else:
-                                    actual_outputs = evaluator.evaluate(input_values)
-
-                                if not _outputs_match(actual_outputs, expected_outputs):
-                                    sequence_passed = False
-                                    break
-
-                            status = "passed" if sequence_passed else "failed"
-                            test_outputs.append(f"{name} {status}")
-                            if sequence_passed:
-                                passed_tests += 1
-                            total_tests += 1
-                        else:
-                            # Single test case
-                            input_values = test_case.get('inputs', {})
-                            expected_outputs = test_case.get('expected', {})
-
-                            if hasattr(evaluator, 'evaluate_cycle'):
-                                actual_outputs = evaluator.evaluate_cycle(input_values)
-                            else:
-                                actual_outputs = evaluator.evaluate(input_values)
-
-                            test_passed = _outputs_match(actual_outputs, expected_outputs)
-                            status = "passed" if test_passed else "failed"
-                            test_outputs.append(f"{name} {status}")
-                            if test_passed:
-                                passed_tests += 1
-                            total_tests += 1
-
-                else:
-                    # Old combinational format
-                    for i, test in enumerate(tests, 1):
-                        input_values = {k: v for k, v in test.items() if k != "expect"}
-                        expected_outputs = test.get("expect", {})
-
-                        actual_outputs = evaluator.evaluate(input_values)
-
-                        test_passed = _outputs_match(actual_outputs, expected_outputs)
-                        status = "passed" if test_passed else "failed"
-                        test_outputs.append(f"Test {i} {status}")
-                        if test_passed:
-                            passed_tests += 1
-                        total_tests += 1
-                
-                test_success = (passed_tests == total_tests)
-
-            except Exception as e:
-                test_success = False
-                test_outputs = [f"Test execution failed: {str(e)}"]
-
-        execution_time = time.time() - start_time
-
-        # Generate PNG image of results
-        png_file = None
-        try:
-            png_path = str(Path(sv_file).with_suffix('.png'))
-            is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
-
-            if is_sequential_eval and json_file:
-                # Collect waveform data for sequential logic
-                waveform_data = []
-                if hasattr(evaluator, 'reset_state'):
-                    evaluator.reset_state()
-
-                with open(json_file, "r", encoding="utf-8") as f:
-                    tests_for_waveform = json.load(f)
-
-                if isinstance(tests_for_waveform, dict) and tests_for_waveform.get('test_type') == 'sequential':
-                    for cycle_test in tests_for_waveform.get('test_cycles', []):
-                        input_values = cycle_test.get('inputs', {})
-                        outputs = evaluator.evaluate_cycle(input_values)
-                        waveform_data.append({'inputs': input_values, 'outputs': outputs})
-                elif isinstance(tests_for_waveform, dict) and (tests_for_waveform.get('sequential') or tests_for_waveform.get('test_cases')):
-                    for test_case in tests_for_waveform.get('test_cases', []):
-                        if 'sequence' in test_case:
-                            for step in test_case['sequence']:
-                                input_values = step.get('inputs', {})
-                                outputs = evaluator.evaluate_cycle(input_values)
-                                waveform_data.append({'inputs': input_values, 'outputs': outputs})
-                        else:
-                            input_values = test_case.get('inputs', {})
-                            outputs = evaluator.evaluate_cycle(input_values)
-                            waveform_data.append({'inputs': input_values, 'outputs': outputs})
-
-                if waveform_data:
-                    waveform_gen = WaveformImageGenerator(evaluator)
-                    waveform_gen.generate_image(waveform_data, png_path)
-                    png_file = png_path
-            elif truth_table:
-                # Generate truth table image for combinational logic
-                image_gen = TruthTableImageGenerator(evaluator)
-                image_gen.generate_image(truth_table, png_path)
-                png_file = png_path
-        except Exception as e:
-            if warnings:
-                warnings += f"; Image generation failed: {e}"
-            else:
-                warnings = f"Image generation failed: {e}"
-
-        # Return dictionary instead of TestReport object to avoid serialization issues
-        return {
-            'sv_file': sv_file,
-            'json_file': json_file,
-            'success': truth_table_success and (not json_file or test_success),
-            'parse_success': True,
-            'truth_table_success': truth_table_success,
-            'test_success': test_success,
-            'passed_tests': passed_tests,
-            'total_tests': total_tests,
-            'error_message': '',
-            'truth_table': truth_table,
-            'execution_time': execution_time,
-            'nand_gate_count': nand_count,
-            'warnings': warnings,
-            'test_outputs': test_outputs,
-            'inputs': module_info["inputs"],
-            'outputs': module_info["outputs"],
-            'bus_info': module_info.get("bus_info", {}),
-            'png_file': png_file
-        }
-
-    except Exception as e:
-        return {
-            'sv_file': sv_file,
-            'json_file': None,
-            'success': False,
-            'parse_success': False,
-            'truth_table_success': False,
-            'test_success': False,
-            'passed_tests': 0,
-            'total_tests': 0,
-            'error_message': f"Parallel processing failed: {str(e)}",
-            'truth_table': [],
-            'execution_time': 0.0,
-            'nand_gate_count': 0,
-            'warnings': '',
-            'test_outputs': [],
-            'inputs': [],
-            'outputs': [],
-            'bus_info': {},
-            'png_file': None
-        }
+def _append_warning(existing: str, new_warning: str) -> str:
+    """Append a warning message using the existing semicolon-delimited format."""
+    if not new_warning:
+        return existing
+    if existing:
+        return f"{existing}; {new_warning}"
+    return new_warning
 
 
 # Import our simulator components
@@ -357,199 +74,180 @@ from pysvsim import (
     TruthTableGenerator,
     clear_module_cache,
     create_evaluator,
-    normalize_memory_bindings,
+    TestRunner as SimulatorTestRunner,
 )
 from pysvsim import TruthTableImageGenerator, WaveformImageGenerator
-import json
-import io
-import contextlib
 
-# Silent TestRunner that captures output
-class SilentTestRunner:
-    """TestRunner that captures all output for clean reporting"""
-    
-    def __init__(self, evaluator):
-        self.evaluator = evaluator
-        self.test_outputs = []
-        # Check if this is a sequential evaluator
-        self.is_sequential = hasattr(evaluator, 'evaluate_cycle')
-        self.loaded_test_file = ""
-    
-    def load_tests(self, test_file: str):
-        """Load test cases from a JSON file."""
-        try:
-            with open(test_file, "r", encoding="utf-8") as f:
-                tests = json.load(f)
-            self.loaded_test_file = test_file
-            return tests
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Test file not found: {test_file}")
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in test file {test_file}: {e}")
-    
-    def run_tests(self, tests):
-        """Run tests silently and capture results"""
-        test_dir = str(Path(self.loaded_test_file).parent) if self.loaded_test_file else os.getcwd()
-        default_module = getattr(self.evaluator, "module_name", "")
-        memory_bindings = normalize_memory_bindings(tests, test_dir, default_module)
-        if hasattr(self.evaluator, "configure_memory_bindings"):
-            self.evaluator.configure_memory_bindings(memory_bindings)
+def _find_json_test_file(sv_file: str) -> Optional[str]:
+    """Find the corresponding JSON test file for a SystemVerilog file."""
+    sv_path = Path(sv_file)
+    possible_names = [
+        sv_path.with_suffix(".json"),
+        sv_path.parent / f"{sv_path.stem}_test.json",
+        sv_path.parent / f"{sv_path.stem}_tests.json",
+    ]
+    for json_path in possible_names:
+        if json_path.exists():
+            return str(json_path)
+    return None
 
-        # Check if this is the new sequential test format
-        if isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
-            return self._run_new_sequential_tests(tests)
-        # Check if this is the old sequential test format
-        elif isinstance(tests, dict) and tests.get('test_type') == 'sequential':
-            return self._run_sequential_tests(tests)
-        else:
-            return self._run_combinational_tests(tests)
-    
-    def _run_combinational_tests(self, tests):
-        """Run combinational logic tests (original format)"""
-        passed = 0
-        total = len(tests)
-        self.test_outputs = []
-        
-        for i, test in enumerate(tests, 1):
-            # Extract input values (all keys except 'expect')
-            input_values = {k: v for k, v in test.items() if k != "expect"}
-            expected_outputs = test.get("expect", {})
-            
-            # Run simulation
-            actual_outputs = self.evaluator.evaluate(input_values)
-            
-            # Check results
-            test_passed = True
-            for output_name, expected_value in expected_outputs.items():
-                if output_name not in actual_outputs:
-                    self.test_outputs.append(f"Test {i} failed: Output '{output_name}' not found")
-                    test_passed = False
-                elif actual_outputs[output_name] != expected_value:
-                    self.test_outputs.append(
-                        f"Test {i} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                    )
-                    test_passed = False
-            
-            if test_passed:
-                self.test_outputs.append(f"Test {i} passed")
-                passed += 1
-        
-        return passed, total
-    
-    def _run_sequential_tests(self, test_data):
-        """Run sequential logic tests (new format)"""
-        test_cycles = test_data.get('test_cycles', [])
-        passed = 0
-        total = len(test_cycles)
-        self.test_outputs = []
-        
-        # Reset sequential state
-        if hasattr(self.evaluator, 'reset_state'):
-            self.evaluator.reset_state()
-        
-        for i, cycle_test in enumerate(test_cycles):
-            cycle_num = cycle_test.get('cycle', i)
-            input_values = cycle_test.get('inputs', {})
-            expected_outputs = cycle_test.get('expected_outputs', {})
-            description = cycle_test.get('description', f'Cycle {cycle_num}')
-            
-            # Run one clock cycle
-            if self.is_sequential:
-                actual_outputs = self.evaluator.evaluate_cycle(input_values)
-            else:
-                # Fallback for combinational evaluator
-                actual_outputs = self.evaluator.evaluate(input_values)
-            
-            # Check results
-            test_passed = True
-            for output_name, expected_value in expected_outputs.items():
-                if output_name not in actual_outputs:
-                    self.test_outputs.append(f"Cycle {cycle_num} failed: Output '{output_name}' not found - {description}")
-                    test_passed = False
-                elif actual_outputs[output_name] != expected_value:
-                    self.test_outputs.append(
-                        f"Cycle {cycle_num} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value} - {description}"
-                    )
-                    test_passed = False
-            
-            if test_passed:
-                self.test_outputs.append(f"Cycle {cycle_num} passed - {description}")
-                passed += 1
-        
-        return passed, total
-    
-    def _run_new_sequential_tests(self, test_data):
-        """Run new sequential logic tests format"""
-        test_cases = test_data.get('test_cases', [])
-        passed = 0
-        total = 0
-        self.test_outputs = []
-        
-        # Reset sequential state if available
-        if hasattr(self.evaluator, 'reset_state'):
-            self.evaluator.reset_state()
-        
-        for test_case in test_cases:
-            name = test_case.get('name', 'Unnamed test')
-            
-            if 'sequence' in test_case:
-                # Handle sequence tests
-                sequence_passed = True
-                for step in test_case['sequence']:
-                    input_values = step.get('inputs', {})
-                    expected_outputs = step.get('expected', {})
-                    
-                    # Run one clock cycle
-                    if self.is_sequential:
-                        actual_outputs = self.evaluator.evaluate_cycle(input_values)
-                    else:
-                        actual_outputs = self.evaluator.evaluate(input_values)
-                    
-                    # Check results for this step
-                    for output_name, expected_value in expected_outputs.items():
-                        if output_name not in actual_outputs:
-                            self.test_outputs.append(f"{name} failed: Output '{output_name}' not found")
-                            sequence_passed = False
-                        elif actual_outputs[output_name] != expected_value:
-                            self.test_outputs.append(
-                                f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                            )
-                            sequence_passed = False
-                
-                if sequence_passed:
-                    self.test_outputs.append(f"{name} passed")
-                    passed += 1
-                total += 1
-            
-            else:
-                # Handle single test cases
-                input_values = test_case.get('inputs', {})
-                expected_outputs = test_case.get('expected', {})
-                
-                # Run one clock cycle
-                if self.is_sequential:
-                    actual_outputs = self.evaluator.evaluate_cycle(input_values)
-                else:
-                    actual_outputs = self.evaluator.evaluate(input_values)
-                
-                # Check results
-                test_passed = True
-                for output_name, expected_value in expected_outputs.items():
-                    if output_name not in actual_outputs:
-                        self.test_outputs.append(f"{name} failed: Output '{output_name}' not found")
-                        test_passed = False
-                    elif actual_outputs[output_name] != expected_value:
-                        self.test_outputs.append(
-                            f"{name} failed: {output_name} = {actual_outputs[output_name]}, expected {expected_value}"
-                        )
-                        test_passed = False
-                
-                if test_passed:
-                    self.test_outputs.append(f"{name} passed")
-                    passed += 1
-                total += 1
-        
-        return passed, total
+
+def _generate_truth_table(evaluator, max_combinations: int) -> Tuple[List[Dict[str, int]], bool, str]:
+    """Generate a truth table and capture any warning output."""
+    truth_table: List[Dict[str, int]] = []
+    truth_table_success = True
+    warnings = ""
+
+    if hasattr(evaluator, "evaluate_cycle"):
+        return truth_table, True, "Truth table skipped for sequential logic module"
+
+    try:
+        capture = io.StringIO()
+        with contextlib.redirect_stdout(capture):
+            truth_table_gen = TruthTableGenerator(evaluator)
+            truth_table = truth_table_gen.generate_truth_table(max_combinations)
+        warnings = capture.getvalue().strip()
+    except Exception as e:
+        truth_table_success = False
+        warnings = f"Truth table generation failed: {e}"
+
+    return truth_table, truth_table_success, warnings
+
+
+def _run_json_tests(evaluator, json_file: str) -> Dict[str, Any]:
+    """Run JSON-backed tests using the shared simulator-side test runner."""
+    sim_runner = SimulatorTestRunner(evaluator, verbose=False)
+    tests = sim_runner.load_tests(json_file)
+    missing_expect_warning = _check_missing_expect_fields(tests)
+    passed_tests, total_tests = sim_runner.run_tests(tests)
+    return {
+        "passed_tests": passed_tests,
+        "total_tests": total_tests,
+        "test_success": passed_tests == total_tests,
+        "test_outputs": sim_runner.test_outputs,
+        "test_cycles": sim_runner.test_cycles,
+        "warning": missing_expect_warning,
+    }
+
+
+def _generate_output_image(
+    evaluator,
+    sv_file: str,
+    truth_table: List[Dict[str, int]],
+    test_cycles: List[Dict[str, Any]],
+) -> Tuple[Optional[str], str]:
+    """Generate the PNG artifact associated with a file's results."""
+    try:
+        png_path = str(Path(sv_file).with_suffix(".png"))
+        if hasattr(evaluator, "evaluate_cycle"):
+            if test_cycles:
+                waveform_gen = WaveformImageGenerator(evaluator)
+                waveform_gen.generate_image(test_cycles, png_path)
+                return png_path, ""
+            return None, ""
+
+        if truth_table:
+            image_gen = TruthTableImageGenerator(evaluator)
+            image_gen.generate_image(truth_table, png_path)
+            return png_path, ""
+    except Exception as e:
+        return None, f"Image generation failed: {e}"
+
+    return None, ""
+
+
+def _analyze_sv_file(sv_file: str, max_combinations: int = 16) -> Dict[str, Any]:
+    """Process one SystemVerilog file into a serializable result payload."""
+    try:
+        start_time = time.time()
+        clear_module_cache()
+
+        json_file = _find_json_test_file(sv_file)
+        parser = SystemVerilogParser()
+        module_info = parser.parse_file(sv_file)
+        evaluator = create_evaluator(module_info, filepath=sv_file, check_submodules=True)
+        nand_gate_count = evaluator.count_nand_gates()
+
+        truth_table, truth_table_success, warnings = _generate_truth_table(
+            evaluator, max_combinations
+        )
+        test_cycles: List[Dict[str, Any]] = []
+        passed_tests = 0
+        total_tests = 0
+        test_success = True
+        test_outputs: List[str] = []
+        error_message = ""
+
+        if json_file:
+            try:
+                test_result = _run_json_tests(evaluator, json_file)
+                passed_tests = test_result["passed_tests"]
+                total_tests = test_result["total_tests"]
+                test_success = test_result["test_success"]
+                test_outputs = test_result["test_outputs"]
+                test_cycles = test_result["test_cycles"]
+                warnings = _append_warning(warnings, test_result["warning"])
+            except Exception as e:
+                test_success = False
+                error_message = f"Test execution failed: {e}"
+                test_outputs = []
+
+        png_file, image_warning = _generate_output_image(
+            evaluator, sv_file, truth_table, test_cycles
+        )
+        warnings = _append_warning(warnings, image_warning)
+        execution_time = time.time() - start_time
+
+        return {
+            "sv_file": sv_file,
+            "json_file": json_file,
+            "success": truth_table_success and (not json_file or test_success),
+            "parse_success": True,
+            "truth_table_success": truth_table_success,
+            "test_success": test_success,
+            "passed_tests": passed_tests,
+            "total_tests": total_tests,
+            "error_message": error_message,
+            "truth_table": truth_table,
+            "execution_time": execution_time,
+            "nand_gate_count": nand_gate_count,
+            "warnings": warnings,
+            "test_outputs": test_outputs,
+            "inputs": module_info["inputs"],
+            "outputs": module_info["outputs"],
+            "bus_info": module_info.get("bus_info", {}),
+            "png_file": png_file,
+            "module_name": module_info.get("name", Path(sv_file).stem),
+            "is_sequential": hasattr(evaluator, "evaluate_cycle"),
+        }
+    except Exception as e:
+        return {
+            "sv_file": sv_file,
+            "json_file": None,
+            "success": False,
+            "parse_success": False,
+            "truth_table_success": False,
+            "test_success": False,
+            "passed_tests": 0,
+            "total_tests": 0,
+            "error_message": f"Processing failed: {e}",
+            "truth_table": [],
+            "execution_time": 0.0,
+            "nand_gate_count": 0,
+            "warnings": "",
+            "test_outputs": [],
+            "inputs": [],
+            "outputs": [],
+            "bus_info": {},
+            "png_file": None,
+            "module_name": Path(sv_file).stem,
+            "is_sequential": False,
+        }
+
+
+def test_single_file_standalone(sv_file: str, max_combinations: int = 16):
+    """Standalone function to test a single file - used for parallel processing."""
+    return _analyze_sv_file(sv_file, max_combinations)
 
 
 class TestReport:
@@ -570,6 +268,9 @@ class TestReport:
         self.nand_gate_count = 0
         self.warnings = ""
         self.test_outputs = []
+        self.png_file = None
+        self.module_name = Path(sv_file).stem
+        self.is_sequential = False
         
     @property
     def has_tests(self) -> bool:
@@ -606,166 +307,46 @@ class SystemVerilogTestRunner:
     
     def find_json_test(self, sv_file: str) -> Optional[str]:
         """Find the corresponding JSON test file for a SystemVerilog file"""
-        sv_path = Path(sv_file)
-        
-        # Try different naming patterns
-        possible_names = [
-            sv_path.with_suffix('.json'),  # Original: counter8.json
-            sv_path.parent / f"{sv_path.stem}_test.json",  # New: counter8_test.json
-            sv_path.parent / f"{sv_path.stem}_tests.json",  # Alternative: counter8_tests.json
-        ]
-        
-        for json_path in possible_names:
-            if json_path.exists():
-                return str(json_path)
-        return None
+        return _find_json_test_file(sv_file)
 
-    def _collect_waveform_data(self, evaluator, json_file: str) -> List[Dict]:
-        """Collect waveform data by running through test sequences."""
-        if not json_file:
-            return []
+    def _report_from_result(self, result_dict: Dict[str, Any]) -> TestReport:
+        """Convert a serializable result payload into a TestReport."""
+        report = TestReport(result_dict["sv_file"])
+        report.json_file = result_dict["json_file"]
+        report.success = result_dict["success"]
+        report.parse_success = result_dict["parse_success"]
+        report.truth_table_success = result_dict["truth_table_success"]
+        report.test_success = result_dict["test_success"]
+        report.passed_tests = result_dict["passed_tests"]
+        report.total_tests = result_dict["total_tests"]
+        report.error_message = result_dict["error_message"]
+        report.truth_table = result_dict["truth_table"]
+        report.execution_time = result_dict["execution_time"]
+        report.nand_gate_count = result_dict["nand_gate_count"]
+        report.warnings = result_dict["warnings"]
+        report.test_outputs = result_dict["test_outputs"]
+        report.png_file = result_dict.get("png_file")
+        report.module_name = result_dict.get("module_name", report.module_name)
+        report.is_sequential = result_dict.get("is_sequential", False)
 
-        try:
-            with open(json_file, "r", encoding="utf-8") as f:
-                tests = json.load(f)
-        except:
-            return []
+        class DummyEvaluator:
+            def __init__(self, inputs, outputs, bus_info, module_name):
+                self.inputs = inputs
+                self.outputs = outputs
+                self.bus_info = bus_info or {}
+                self.module_name = module_name
 
-        waveform_data = []
-
-        # Reset evaluator state
-        if hasattr(evaluator, 'reset_state'):
-            evaluator.reset_state()
-
-        if isinstance(tests, dict) and tests.get('test_type') == 'sequential':
-            # Old sequential format
-            for cycle_test in tests.get('test_cycles', []):
-                input_values = cycle_test.get('inputs', {})
-                if hasattr(evaluator, 'evaluate_cycle'):
-                    outputs = evaluator.evaluate_cycle(input_values)
-                else:
-                    outputs = evaluator.evaluate(input_values)
-                waveform_data.append({'inputs': input_values, 'outputs': outputs})
-
-        elif isinstance(tests, dict) and (tests.get('sequential') or tests.get('test_cases')):
-            # New sequential format
-            for test_case in tests.get('test_cases', []):
-                if 'sequence' in test_case:
-                    for step in test_case['sequence']:
-                        input_values = step.get('inputs', {})
-                        if hasattr(evaluator, 'evaluate_cycle'):
-                            outputs = evaluator.evaluate_cycle(input_values)
-                        else:
-                            outputs = evaluator.evaluate(input_values)
-                        waveform_data.append({'inputs': input_values, 'outputs': outputs})
-                else:
-                    input_values = test_case.get('inputs', {})
-                    if hasattr(evaluator, 'evaluate_cycle'):
-                        outputs = evaluator.evaluate_cycle(input_values)
-                    else:
-                        outputs = evaluator.evaluate(input_values)
-                    waveform_data.append({'inputs': input_values, 'outputs': outputs})
-
-        return waveform_data
+        report.evaluator = DummyEvaluator(
+            result_dict.get("inputs", []),
+            result_dict.get("outputs", []),
+            result_dict.get("bus_info", {}),
+            report.module_name,
+        )
+        return report
 
     def test_single_file(self, sv_file: str) -> TestReport:
-        """Test a single SystemVerilog file"""
-        report = TestReport(sv_file)
-        start_time = time.time()
-        
-        try:
-            # Clear module cache to ensure clean state
-            clear_module_cache()
-            
-            # Find JSON test file
-            report.json_file = self.find_json_test(sv_file)
-            
-            # Parse SystemVerilog file
-            parser = SystemVerilogParser()
-            module_info = parser.parse_file(sv_file)
-            report.parse_success = True
-            
-            # Create evaluator (sequential or combinational based on module content)
-            evaluator = create_evaluator(
-                module_info, filepath=sv_file, check_submodules=True
-            )
-            
-            # Store evaluator in report for later use
-            report.evaluator = evaluator
-            
-            # Count NAND gates
-            report.nand_gate_count = evaluator.count_nand_gates()
-            
-            # Generate truth table only for combinational logic (sequential logic truth tables are nonsensical)
-            is_sequential = hasattr(evaluator, 'evaluate_cycle')
-            if not is_sequential:
-                try:
-                    # Capture any warning messages during truth table generation
-                    f = io.StringIO()
-                    with contextlib.redirect_stdout(f):
-                        truth_table_gen = TruthTableGenerator(evaluator)
-                        report.truth_table = truth_table_gen.generate_truth_table(self.max_combinations)
-                    captured_output = f.getvalue()
-                    if captured_output.strip():
-                        report.warnings = captured_output.strip()
-                    report.truth_table_success = True
-                except Exception as e:
-                    report.error_message = f"Truth table generation failed: {e}"
-            else:
-                # Skip truth table for sequential logic - it's not meaningful
-                report.truth_table_success = True
-                report.warnings = "Truth table skipped for sequential logic module"
-            
-            # Run JSON tests if available
-            if report.json_file:
-                try:
-                    test_runner = SilentTestRunner(evaluator)
-                    tests = test_runner.load_tests(report.json_file)
-                    
-                    # Run tests and get actual counts from the test runner
-                    passed, total = test_runner.run_tests(tests)
-                    report.passed_tests = passed
-                    report.total_tests = total  # Use the actual total from test runner, not len(tests)
-                    report.test_success = (passed == total)
-                    report.test_outputs = test_runner.test_outputs
-                        
-                except Exception as e:
-                    report.error_message = f"Test execution failed: {str(e)}"
-            
-            # Overall success
-            report.success = (report.parse_success and
-                            (not report.has_tests or report.test_success) and
-                            report.truth_table_success)
-
-            # Generate PNG image of results
-            try:
-                png_path = str(Path(sv_file).with_suffix('.png'))
-                is_sequential_eval = hasattr(evaluator, 'evaluate_cycle')
-
-                if is_sequential_eval:
-                    # Generate waveform for sequential logic
-                    waveform_data = self._collect_waveform_data(evaluator, report.json_file)
-                    if waveform_data:
-                        waveform_gen = WaveformImageGenerator(evaluator)
-                        waveform_gen.generate_image(waveform_data, png_path)
-                        report.png_file = png_path
-                elif report.truth_table:
-                    # Generate truth table image for combinational logic
-                    image_gen = TruthTableImageGenerator(evaluator)
-                    image_gen.generate_image(report.truth_table, png_path)
-                    report.png_file = png_path
-            except Exception as e:
-                # Don't fail the test if image generation fails
-                if hasattr(report, 'warnings') and report.warnings:
-                    report.warnings += f"; Image generation failed: {e}"
-                else:
-                    report.warnings = f"Image generation failed: {e}"
-
-        except Exception as e:
-            report.error_message = f"Parsing failed: {str(e)}"
-
-        report.execution_time = time.time() - start_time
-        return report
+        """Test a single SystemVerilog file."""
+        return self._report_from_result(_analyze_sv_file(sv_file, self.max_combinations))
     
     def run_tests(self, path: str) -> None:
         """Run tests for all SystemVerilog files in the given path"""
@@ -820,33 +401,7 @@ class SystemVerilogTestRunner:
                 index = future_to_index[future]
                 sv_file = sv_files[index]
                 try:
-                    result_dict = future.result()
-                    # Convert dictionary back to TestReport object
-                    report = TestReport(result_dict['sv_file'])
-                    report.json_file = result_dict['json_file']
-                    report.success = result_dict['success']
-                    report.parse_success = result_dict['parse_success']
-                    report.truth_table_success = result_dict['truth_table_success']
-                    report.test_success = result_dict['test_success']
-                    report.passed_tests = result_dict['passed_tests']
-                    report.total_tests = result_dict['total_tests']
-                    report.error_message = result_dict['error_message']
-                    report.truth_table = result_dict['truth_table']
-                    report.execution_time = result_dict['execution_time']
-                    report.nand_gate_count = result_dict['nand_gate_count']
-                    report.warnings = result_dict['warnings']
-                    report.test_outputs = result_dict['test_outputs']
-                    report.png_file = result_dict.get('png_file')
-
-                    # Create a dummy evaluator with the basic info for reporting
-                    class DummyEvaluator:
-                        def __init__(self, inputs, outputs, bus_info):
-                            self.inputs = inputs
-                            self.outputs = outputs
-                            self.bus_info = bus_info or {}
-                    
-                    report.evaluator = DummyEvaluator(result_dict['inputs'], result_dict['outputs'], result_dict.get('bus_info', {}))
-                    reports_by_index[index] = report
+                    reports_by_index[index] = self._report_from_result(future.result())
                     
                 except Exception as e:
                     # Create error report for failed job
@@ -873,12 +428,7 @@ class SystemVerilogTestRunner:
         # Basic info
         status = "PASS" if report.success else "FAIL"
         print(f"Status: [{status}]")
-        if report.evaluator and hasattr(report.evaluator, 'module_name'):
-            print(f"Module: {report.evaluator.module_name}")
-        else:
-            # Extract module name from file path as fallback
-            module_name = Path(report.sv_file).stem
-            print(f"Module: {module_name}")
+        print(f"Module: {report.module_name}")
         print(f"Inputs: {report.evaluator.inputs if report.evaluator else 'N/A'}")
         print(f"Outputs: {report.evaluator.outputs if report.evaluator else 'N/A'}")
         print(f"NAND Gates: {report.nand_gate_count}")
@@ -909,8 +459,7 @@ class SystemVerilogTestRunner:
             print(f"Error: {report.error_message}")
         
         # Truth table - only show for combinational logic
-        is_sequential = hasattr(report.evaluator, 'evaluate_cycle') if report.evaluator else False
-        if is_sequential:
+        if report.is_sequential:
             print("\nTruth Table: Skipped (sequential logic module)")
         elif report.truth_table and report.truth_table_success and report.evaluator:
             print()
